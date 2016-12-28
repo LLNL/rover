@@ -22,6 +22,23 @@ option(ENABLE_CUDA       "Build CUDA support"        OFF)
 option(ENABLE_MPI        "Build MPI Support"         OFF)
 option(ENABLE_TBB        "Build TBB support"         OFF)
 
+
+
+####################################
+# Setup the basic cmake options 
+####################################
+include(CMake/CMakeBasics.cmake)
+
+####################################
+# Setup the tests 
+####################################
+include(CMake/SetupTests.cmake)
+
+####################################
+# Setup the tests 
+####################################
+include(CMake/SetupIncludes.cmake)
+
 ####################################
 # Find CUDA 
 ####################################
@@ -51,7 +68,7 @@ if(TBB_DIR)
   set(ENV{TBB_ROOT} ${TBB_DIR})
 endif()
 
-find_package(VTKm REQUIRED)
+find_package(VTKm REQUIRED OPTIONAL_COMPONENTS Rendering)
 message(STATUS "Found VTKm Include Dirs: ${VTKm_INCLUDE_DIRS}")
 set(VTKM_FOUND TRUE)
 
@@ -61,7 +78,18 @@ set(VTKM_FOUND TRUE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXXFLAGS} -std=c++11")
 
 ####################################
-# Add the test dir 
+# Add the rover dir 
 ####################################
-add_subdirectory(tests)
+add_subdirectory(rover)
 
+####################################
+# Add the thirdparty 
+####################################
+add_subdirectory(thirdparty_builtin)
+
+####################################
+# Add the test 
+####################################
+if(ENABLE_TESTS)
+  add_subdirectory(tests)
+endif()
