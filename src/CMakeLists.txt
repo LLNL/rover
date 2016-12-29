@@ -23,6 +23,22 @@ option(ENABLE_MPI        "Build MPI Support"         OFF)
 option(ENABLE_TBB        "Build TBB support"         OFF)
 
 
+####################################
+# Find VTK-m 
+####################################
+if(NOT VTKM_DIR)
+  MESSAGE(FATAL_ERROR "Rover needs explicit VTKM_DIR")
+endif()
+
+set(VTKm_DIR ${VTKM_DIR}/lib)
+
+if(TBB_DIR)
+  set(ENV{TBB_ROOT} ${TBB_DIR})
+endif()
+
+find_package(VTKm REQUIRED OPTIONAL_COMPONENTS Rendering)
+message(STATUS "Found VTKm Include Dirs: ${VTKm_INCLUDE_DIRS}")
+set(VTKM_FOUND TRUE)
 
 ####################################
 # Setup the basic cmake options 
@@ -55,22 +71,6 @@ if(ENABLE_CUDA)
 endif()
 
 
-####################################
-# Find VTK-m 
-####################################
-if(NOT VTKM_DIR)
-  MESSAGE(FATAL_ERROR "Rover needs explicit VTKM_DIR")
-endif()
-
-set(VTKm_DIR ${VTKM_DIR}/lib)
-
-if(TBB_DIR)
-  set(ENV{TBB_ROOT} ${TBB_DIR})
-endif()
-
-find_package(VTKm REQUIRED OPTIONAL_COMPONENTS Rendering)
-message(STATUS "Found VTKm Include Dirs: ${VTKm_INCLUDE_DIRS}")
-set(VTKM_FOUND TRUE)
 
 ####################################
 # set the cxx flags 

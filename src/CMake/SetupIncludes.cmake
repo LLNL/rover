@@ -18,6 +18,8 @@ include_directories(${PROJECT_SOURCE_DIR}/thirdparty_builtin/gtest-1.7.0/include
 
 include_directories(${PROJECT_SOURCE_DIR}/rover/)
 
+include_directories(${VTKm_INCLUDE_DIRS})
+
 if(MPI_FOUND)
     include_directories(${MPI_CXX_INCLUDE_PATH})
 endif()
