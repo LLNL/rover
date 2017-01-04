@@ -1,6 +1,8 @@
 #ifndef rover_types_h
 #define rover_types_h
 
+#include <vtkm_typedefs.hpp>
+
 namespace rover {
 // this could be ray tracing(surface) / volume rendering / energy 
 enum RenderMode 
@@ -24,15 +26,27 @@ enum RayScope
   local_rays    // ran only exist in a single domain st any given time
 };
 
+//
+// floating point precision to preform the intersection tests.
+// Note: I would like to try float_16 at some point.
+//
+enum RayPrecision
+{
+  float_32,    
+  float_64
+};
+
 struct RenderSettings 
 {
   RenderMode     m_render_mode;
   ScatteringType m_scattering_type;
   RayScope       m_ray_scope;
+  vtkmColorTable m_color_table; 
   //
   // Default settings
   // 
   RenderSettings()
+    : m_color_table("cool2warm")
   {
     m_render_mode     = volume;
     m_scattering_type = non_scattering;

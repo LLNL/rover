@@ -14,6 +14,8 @@ set(rover_headers
     schedular.hpp
     static_schedular.hpp
     volume_engine.hpp
+    # ray container headers
+    ray_containers/ray_container.hpp
    )
 
 set(rover_sources

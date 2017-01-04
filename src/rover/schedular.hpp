@@ -20,7 +20,6 @@ namespace rover {
 
 class Schedular {
 public:
-  Schedular();
   virtual ~Schedular();
   virtual void trace_rays(Ray32 &rays);
   virtual void trace_rays(Ray64 &rays);
@@ -38,6 +37,10 @@ protected:
   Engine         *m_engine;
   vtkmDataSet     m_data_set;
   RenderSettings  m_render_settings;
+  const RayPrecision m_precision;
+private:
+  Schedular();
+
 };
 
 }; // namespace rover
