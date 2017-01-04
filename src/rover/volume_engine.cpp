@@ -27,6 +27,8 @@ VolumeEngine::trace(Ray32 &rays)
   {
     std::cout<<"Volume Engine Error: must set the data set before tracing\n";
   }
+  m_tracer->SetColorMap(m_color_map);
+  m_tracer->Trace(rays);
 }
 
 void 
@@ -37,5 +39,7 @@ VolumeEngine::trace(Ray64 &rays)
     std::cout<<"Volume Engine Error: must set the data set before tracing\n";
   }
 
+  m_tracer->SetColorMap(m_color_map);
+  m_tracer->Trace(rays);
 }
 }; //namespace rover

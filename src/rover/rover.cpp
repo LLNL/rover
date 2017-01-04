@@ -3,22 +3,22 @@
 #include <vtkm_typedefs.hpp>
 #include <iostream>
 namespace rover {
-
-class Rover::InternalsType 
+template<typename FloatType>
+class Rover<FloatType>::InternalsType 
 {
 protected:
-  Schedular      *m_schedular;
+  Schedular<FloatType>      *m_schedular;
   void reset_render_mode(RenderMode render_mode)
   {
   }
 
-  public: 
+public: 
   InternalsType()
   {
 #ifdef PARALLEL
-    m_schedular = new StaticSchedular();
+    m_schedular = new StaticSchedular<FloatType>();
 #else
-    m_schedular = new Schedular();
+    m_schedular = new Schedular<FloatType>();
 #endif
   }
 
@@ -41,7 +41,7 @@ protected:
     //       domain. Thus, avoid waiting for the ray to emerge or throw out the results
 #else
       if(m_schedular == NULL) delete m_schedular;
-      m_schedular = new Schedular();
+      m_schedular = new Schedular<FloatType>();
 #endif
    }
 
@@ -52,39 +52,50 @@ protected:
 
 };
 
-Rover::Rover()
+template<typename FloatType>
+Rover<FloatType>::Rover()
   : m_internals( new InternalsType )
 {
 
 }
 
-Rover::~Rover()
+template<typename FloatType>
+Rover<FloatType>::~Rover()
 {
   
 }
 
+template<typename FloatType>
 void
-Rover::init()
+Rover<FloatType>::init()
 {
   // initialize
 }
 
+template<typename FloatType>
 void
-Rover::finalize()
+Rover<FloatType>::finalize()
 {
   // finalize
 }
 
+template<typename FloatType>
 void
-Rover::set_data_set(vtkmDataSet &dataset)
+Rover<FloatType>::set_data_set(vtkmDataSet &dataset)
 {
   m_internals->set_data_set(dataset); 
 }
 
+template<typename FloatType>
 void
-Rover::set_render_settings(RenderSettings render_settings)
+Rover<FloatType>::set_render_settings(RenderSettings render_settings)
 {
   m_internals->set_render_settings(render_settings);
 }
+
+// Explicit instantiations
+template class Rover<vtkm::Float32>; 
+template class Rover<vtkm::Float64>; 
+
 }; //namespace rover
 

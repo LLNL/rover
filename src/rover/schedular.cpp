@@ -2,18 +2,21 @@
 #include <volume_engine.hpp>
 namespace rover {
 
-Schedular::Schedular()
+template<typename FloatType>
+Schedular<FloatType>::Schedular()
 {
   m_engine = NULL;
 }
 
-Schedular::~Schedular()
+template<typename FloatType>
+Schedular<FloatType>::~Schedular()
 {
   if(m_engine) delete m_engine;
 }
 
+template<typename FloatType>
 void
-Schedular::set_render_settings(const RenderSettings render_render_settings)
+Schedular<FloatType>::set_render_settings(const RenderSettings render_render_settings)
 {
   //
   //  In the serial schedular, the only setting that matter are 
@@ -38,20 +41,23 @@ Schedular::set_render_settings(const RenderSettings render_render_settings)
     std::cout<<"ray tracing not implemented\n";
   }
 }
+template<typename FloatType>
 void 
-Schedular::set_data_set(vtkmDataSet &dataset)
+Schedular<FloatType>::set_data_set(vtkmDataSet &dataset)
 {
   m_engine->set_data_set(dataset);
 }
 
+template<typename FloatType>
 vtkmDataSet
-Schedular::get_data_set() const
+Schedular<FloatType>::get_data_set() const
 {
   return m_data_set;
 }
 
+template<typename FloatType>
 RenderSettings
-Schedular::get_render_settings() const
+Schedular<FloatType>::get_render_settings() const
 {
   return m_render_settings;
 }
@@ -59,18 +65,14 @@ Schedular::get_render_settings() const
 //
 // in the other schedulars this method will be far from trivial
 //
+template<typename FloatType>
 void 
-Schedular::trace_rays(Ray32 &rays)
+Schedular<FloatType>::trace_rays(vtkm::rendering::raytracing::Ray<FloatType> &rays)
 {
   m_engine->trace(rays);
 }
 
-void 
-Schedular::trace_rays(Ray64 &rays)
-{
-  m_engine->trace(rays);
-}
-
-
-
+// Explicit instantiation
+template class Schedular<vtkm::Float32>;
+template class Schedular<vtkm::Float64>;
 }; // namespace rover

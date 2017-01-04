@@ -18,11 +18,12 @@
 //
 namespace rover {
 
+template<typename FloatType>
 class Schedular {
 public:
+  Schedular();
   virtual ~Schedular();
-  virtual void trace_rays(Ray32 &rays);
-  virtual void trace_rays(Ray64 &rays);
+  virtual void trace_rays(vtkm::rendering::raytracing::Ray<FloatType> &rays);
   //
   // Setters
   //
@@ -32,14 +33,12 @@ public:
   // Getters
   //
   RenderSettings get_render_settings() const;
-  vtkmDataSet  get_data_set() const;
+  vtkmDataSet    get_data_set() const;
 protected:
   Engine         *m_engine;
   vtkmDataSet     m_data_set;
   RenderSettings  m_render_settings;
-  const RayPrecision m_precision;
 private:
-  Schedular();
 
 };
 

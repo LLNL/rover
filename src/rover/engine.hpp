@@ -14,6 +14,11 @@ public:
   virtual void trace(Ray32 &rays) = 0;
   virtual void trace(Ray64 &rays) = 0;
   
+  void set_color_map(const vtkmColorTable &color_map, int samples = 1024)
+  {
+    color_map.Sample(samples, m_color_map);
+  }
+
   void set_color_map(const vtkmColorMap &color_map)
   {
     m_color_map = color_map;

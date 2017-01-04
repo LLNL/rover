@@ -12,6 +12,7 @@ using namespace rover;
 
 TEST(rover_smoke, test_call)
 {
-  std::cout<<"Hello\n";
+  Rover32 driver32;
+  Rover64 driver64;
 }
 

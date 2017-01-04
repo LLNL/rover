@@ -11,6 +11,7 @@
 
 namespace rover {
 
+template<typename FloatType>
 class Rover 
 {
 public:
@@ -27,6 +28,8 @@ private:
   std::shared_ptr<InternalsType> m_internals; 
 }; // class strawman 
 
+typedef Rover<float>  Rover32;
+typedef Rover<double> Rover64; 
 }; // namespace rover
 
 #endif
