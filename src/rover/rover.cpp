@@ -1,4 +1,4 @@
-#include <volume_engine.hpp>
+#include <schedular.hpp>
 #include <rover.hpp>
 #include <vtkm_typedefs.hpp>
 #include <iostream>
@@ -7,42 +7,49 @@ namespace rover {
 class Rover::InternalsType 
 {
 protected:
-  Engine       *m_engine;
-  RenderMode    m_render_mode;
-  Promise       m_promise; 
-  vtkmDataSet   m_dataset;
-
-  void reset_engine()
+  Schedular      *m_schedular;
+  void reset_render_mode(RenderMode render_mode)
   {
-    if(m_engine) delete m_engine;
-
-    if(m_render_mode == volume)
-    {
-      m_engine = new VolumeEngine(m_dataset); 
-    }
-    else if(m_render_mode == engergy)
-    {
-      std::cout<<"engergy not implemented\n";
-    }
-    else if(m_render_mode == ray_tracing)
-    {
-      std::cout<<"ray tracing not implemented\n";
-    }
   }
-public: 
+
+  public: 
   InternalsType()
   {
-    m_engine = NULL;
-    // defualt render mode
-    m_render_mode = volume;
-    // start with the loosest assumption
-    m_promise = non_contiguous_domains;
+#ifdef PARALLEL
+    m_schedular = new StaticSchedular();
+#else
+    m_schedular = new Schedular();
+#endif
   }
 
-  void set_dataset(vtkmDataSet &dataset)
+  void set_data_set(vtkmDataSet &dataset)
   {
-    m_dataset = dataset;
+    m_schedular->set_data_set(dataset);
   }
+
+  void set_render_settings(RenderSettings render_settings)
+  {
+#ifdef PARALLEL
+    // logic to create the appropriate parallel schedular
+    //
+    // ray tracing = dynamic schedular, scattering | no_scattering
+    // volume/engery = scattering + local_scope -> dynamic schedular 
+    //                 non_scattering + global_scope ->static schedular
+    //
+    // Note: I wanted to allow for the case of scattering + global scope. This could 
+    //       be benificial in the case where we may or may not scatter in a given 
+    //       domain. Thus, avoid waiting for the ray to emerge or throw out the results
+#else
+      if(m_schedular == NULL) delete m_schedular;
+      m_schedular = new Schedular();
+#endif
+   }
+
+  ~InternalsType()
+  {
+    if(m_schedular) delete m_schedular;
+  }
+
 };
 
 Rover::Rover()
@@ -69,10 +76,15 @@ Rover::finalize()
 }
 
 void
-Rover::set_dataset(vtkmDataSet &dataset)
+Rover::set_data_set(vtkmDataSet &dataset)
 {
-  m_internals->set_dataset(dataset); 
+  m_internals->set_data_set(dataset); 
 }
 
+void
+Rover::set_render_settings(RenderSettings render_settings)
+{
+  m_internals->set_render_settings(render_settings);
+}
 }; //namespace rover
 

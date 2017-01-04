@@ -6,12 +6,20 @@
 
 
 set(rover_headers
+    compositor.hpp
+    engine.hpp
     rover_exports.h
+    rover_types.hpp
     rover.hpp
+    schedular.hpp
+    static_schedular.hpp
+    volume_engine.hpp
    )
 
 set(rover_sources
     rover.cpp
+    schedular.cpp
+    volume_engine.cpp
    )
 
 if(BUILD_SHARED_LIBS)

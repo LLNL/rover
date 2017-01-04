@@ -1,11 +1,11 @@
 #ifndef rover_volume_engine_h
 #define rover_volume_engine_h
 
-#include <Engine.hpp>
-
+#include <engine.hpp>
+#include <vtkm/rendering/ConnectivityProxy.h>
 namespace rover {
 
-class VolumeEngine
+class VolumeEngine : public Engine
 {
 protected:
   vtkm::rendering::ConnectivityProxy *m_tracer;
@@ -13,26 +13,11 @@ public:
   VolumeEngine();
   ~VolumeEngine();
 
-  void set_dataset(vtkm::cont::DataSet &);
+  void set_data_set(vtkm::cont::DataSet &);
+  void trace(Ray32 &rays);
+  void trace(Ray64 &rays);
   
 };
-
-VolumeEngine::VolumeEngine()
-{
-  m_tracer = NULL;
-}
-
-VolumeEngine::~VolumeEngine()
-{
-  if(m_tracer) delete m_tracer;
-}
-
-void
-VolumeEngine::set_dataset(vtkm::cont::DataSet &dataset)
-{
-  if(m_tracer) delete m_tracer;
-  m_tracer = new vtkm::rendering::ConnectivityProxy(dataset);
-}
 
 }; // namespace rover
 #endif
