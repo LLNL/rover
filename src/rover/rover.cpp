@@ -130,6 +130,33 @@ Rover<FloatType>::execute()
   m_internals->execute(); 
 }
 
+template<typename T> 
+void 
+print_type(T ) { } 
+
+template<> 
+void 
+print_type<vtkm::Float32>(vtkm::Float32 )
+{
+  std::cout<<"Single precision\n";
+}
+
+template<> 
+void
+print_type<vtkm::Float64>(vtkm::Float64)
+{
+  std::cout<<"Double precision\n";
+}
+
+template<typename FloatType>
+void
+Rover<FloatType>::about()
+{
+  std::cout<<"rover version: xx.xx.xx\n";
+  print_type(FloatType());
+  std::cout<<"Other important information\n";
+}
+
 // Explicit instantiations
 template class Rover<vtkm::Float32>; 
 template class Rover<vtkm::Float64>; 
