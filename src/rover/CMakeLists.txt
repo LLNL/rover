@@ -22,6 +22,7 @@ set(rover_headers
     # utils headers
     utils/png_encoder.hpp
     utils/material_database.hpp
+    utils/vtk_dataset_reader.hpp
    )
 
 set(rover_sources
@@ -34,6 +35,7 @@ set(rover_sources
     # utils sources
     utils/png_encoder.cpp
     utils/material_database.cpp
+    utils/vtk_dataset_reader.cpp
    )
 
 if(BUILD_SHARED_LIBS)

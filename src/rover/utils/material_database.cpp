@@ -208,4 +208,8 @@ template void MaterialDatabase::get_elements<vtkm::Float32>(const std::vector<st
                                                             const int &num_bins,
                                                             vtkm::cont::ArrayHandle<vtkm::Float32> &output);
 
+template void MaterialDatabase::get_elements<vtkm::Float64>(const std::vector<std::string> &symbols,
+                                                            const int &num_bins,
+                                                            vtkm::cont::ArrayHandle<vtkm::Float64> &output);
+
 } // namespace rover
