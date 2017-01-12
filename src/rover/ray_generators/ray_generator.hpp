@@ -7,13 +7,13 @@ template<typename FloatType>
 class RayGenerator 
 {
 public:
-  typename typedef FloatType Precision;
-  RayGenerator(vtkmRayTraceing::Ray<Precision> rays); 
-  virtual ~RayGenerator();
-
-  virtual vtkmRayTracing::Ray<Precision> get_rays();
-protected:
+  typedef FloatType Precision;
   RayGenerator();
+  RayGenerator(vtkmRayTracing::Ray<Precision> rays); 
+  virtual ~RayGenerator(); 
+  virtual vtkmRayTracing::Ray<Precision> get_rays();
+  virtual void set_rays(vtkmRayTracing::Ray<Precision> rays);
+protected:
   vtkmRayTracing::Ray<Precision> m_rays; 
 };
 }; //namespace rover

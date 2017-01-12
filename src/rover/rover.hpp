@@ -3,6 +3,7 @@
 
 #include <rover_exports.h>
 #include <rover_types.hpp>
+#include <ray_generators/ray_generator.hpp>
 // vtk-m includes
 #include <vtkm_typedefs.hpp>
 
@@ -23,6 +24,7 @@ public:
 
   void set_data_set(vtkmDataSet &);
   void set_render_settings(const RenderSettings render_settings);
+  void set_ray_generator(RayGenerator<FloatType> *);
 private:
   class InternalsType;
   std::shared_ptr<InternalsType> m_internals; 

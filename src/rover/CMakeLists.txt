@@ -9,19 +9,24 @@ set(rover_headers
     compositor.hpp
     engine.hpp
     rover_exports.h
+    rover_exceptions.hpp
     rover_types.hpp
     rover.hpp
     schedular.hpp
     static_schedular.hpp
     volume_engine.hpp
-    # ray container headers
-    ray_containers/ray_container.hpp
+    # ray generators headers
+    ray_generators/ray_generator.hpp
+    ray_generators/camera_generator.hpp
    )
 
 set(rover_sources
     rover.cpp
     schedular.cpp
     volume_engine.cpp
+    # ray generators
+    ray_generators/ray_generator.cpp
+    ray_generators/camera_generator.cpp
    )
 
 if(BUILD_SHARED_LIBS)

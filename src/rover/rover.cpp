@@ -1,5 +1,6 @@
 #include <schedular.hpp>
 #include <rover.hpp>
+#include <rover_exceptions.hpp>
 #include <vtkm_typedefs.hpp>
 #include <iostream>
 namespace rover {
@@ -29,6 +30,7 @@ public:
 
   void set_render_settings(RenderSettings render_settings)
   {
+    // TODO: make copy constructors to get the members like ray_generator
 #ifdef PARALLEL
     // logic to create the appropriate parallel schedular
     //
@@ -45,12 +47,17 @@ public:
 #endif
    }
 
+  void set_ray_generator(RayGenerator<FloatType> *ray_generator)
+  {
+    m_schedular->set_ray_generator(ray_generator); 
+  }
+
   ~InternalsType()
   {
     if(m_schedular) delete m_schedular;
   }
 
-};
+}; //Internals Type
 
 template<typename FloatType>
 Rover<FloatType>::Rover()
@@ -91,6 +98,17 @@ void
 Rover<FloatType>::set_render_settings(RenderSettings render_settings)
 {
   m_internals->set_render_settings(render_settings);
+}
+
+template<typename FloatType>
+void
+Rover<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_generator)
+{
+  if(ray_generator == nullptr)
+  {
+    throw RoverException("Ray generator cannot  be null");    
+  }
+  m_internals->set_ray_generator(ray_generator);
 }
 
 // Explicit instantiations
