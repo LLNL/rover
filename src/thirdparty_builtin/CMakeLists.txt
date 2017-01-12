@@ -8,7 +8,7 @@
 ################################
 # Add lodepng 
 ################################
-add_subdirectory(lodepng)
+#add_subdirectory(lodepng)
 
 ################################
 # Add lodepng 

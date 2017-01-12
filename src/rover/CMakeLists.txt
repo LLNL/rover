@@ -4,6 +4,7 @@
 #
 ###############################################################################
 
+add_subdirectory(../thirdparty_builtin/lodepng/ ${CMAKE_CURRENT_SOURCE_DIR}/utils)
 
 set(rover_headers
     compositor.hpp
@@ -18,6 +19,7 @@ set(rover_headers
     # ray generators headers
     ray_generators/ray_generator.hpp
     ray_generators/camera_generator.hpp
+    utils/png_encoder.hpp
    )
 
 set(rover_sources
@@ -27,6 +29,7 @@ set(rover_sources
     # ray generators
     ray_generators/ray_generator.cpp
     ray_generators/camera_generator.cpp
+    utils/png_encoder.cpp
    )
 
 if(BUILD_SHARED_LIBS)
@@ -35,6 +38,7 @@ if(BUILD_SHARED_LIBS)
   add_library(rover SHARED
               ${rover_sources}
               ${rover_headers}
+              $<TARGET_OBJECTS:lodepng>
               )
 else()
   message(STATUS "Building rover as a static library")
@@ -42,6 +46,7 @@ else()
   add_library(rover STATIC
               ${rover_sources}
               ${rover_headers}
+              utils/<TARGET_OBJECTS:lodepng>
               )
 endif()
 

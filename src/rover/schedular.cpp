@@ -74,7 +74,10 @@ Schedular<FloatType>::trace_rays()
 }
 
 template<typename FloatType>
-void Schedular<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_generator);
+void Schedular<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_generator)
+{
+  m_ray_generator = ray_generator;
+}
 // Explicit instantiation
 template class Schedular<vtkm::Float32>;
 template class Schedular<vtkm::Float64>;
