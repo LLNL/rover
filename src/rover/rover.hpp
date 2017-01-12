@@ -25,6 +25,7 @@ public:
   void set_data_set(vtkmDataSet &);
   void set_render_settings(const RenderSettings render_settings);
   void set_ray_generator(RayGenerator<FloatType> *);
+  void execute();
 private:
   class InternalsType;
   std::shared_ptr<InternalsType> m_internals; 

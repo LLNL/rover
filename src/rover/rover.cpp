@@ -2,7 +2,9 @@
 #include <rover.hpp>
 #include <rover_exceptions.hpp>
 #include <vtkm_typedefs.hpp>
+#include <utils/png_encoder.hpp>
 #include <iostream>
+
 namespace rover {
 template<typename FloatType>
 class Rover<FloatType>::InternalsType 
@@ -57,6 +59,16 @@ public:
     if(m_schedular) delete m_schedular;
   }
 
+  void save_png(const std::string &file_name)
+  {
+    PNGEncoder encoder;
+  }
+
+  void execute()
+  {
+    m_schedular->trace_rays();
+  }
+
 }; //Internals Type
 
 template<typename FloatType>
@@ -109,6 +121,13 @@ Rover<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_generator)
     throw RoverException("Ray generator cannot  be null");    
   }
   m_internals->set_ray_generator(ray_generator);
+}
+
+template<typename FloatType>
+void
+Rover<FloatType>::execute()
+{
+  m_internals->execute(); 
 }
 
 // Explicit instantiations

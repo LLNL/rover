@@ -19,7 +19,9 @@ set(rover_headers
     # ray generators headers
     ray_generators/ray_generator.hpp
     ray_generators/camera_generator.hpp
+    # utils headers
     utils/png_encoder.hpp
+    utils/material_database.hpp
    )
 
 set(rover_sources
@@ -29,7 +31,9 @@ set(rover_sources
     # ray generators
     ray_generators/ray_generator.cpp
     ray_generators/camera_generator.cpp
+    # utils sources
     utils/png_encoder.cpp
+    utils/material_database.cpp
    )
 
 if(BUILD_SHARED_LIBS)
