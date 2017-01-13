@@ -62,6 +62,7 @@ public:
   void save_png(const std::string &file_name)
   {
     PNGEncoder encoder;
+
   }
 
   void execute()

@@ -42,4 +42,10 @@ VolumeEngine::trace(Ray64 &rays)
   m_tracer->SetColorMap(m_color_map);
   m_tracer->Trace(rays);
 }
+
+ColorBuffer4f
+get_color_buffer()
+{
+  m_tracer->GetColorBuffer(); 
+}
 }; //namespace rover

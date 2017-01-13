@@ -14,6 +14,7 @@ typedef vtkm::rendering::raytracing::Ray<vtkm::Float32>       Ray32;
 typedef vtkm::rendering::raytracing::Ray<vtkm::Float64>       Ray64;
 typedef vtkm::rendering::ColorTable                           vtkmColorTable;
 typedef vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::Float32, 4> > vtkmColorMap;
+typedef vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::Float32, 4> > vtkmColorBuffer;
 typedef vtkm::rendering::raytracing::Camera                   vtkmCamera;
 };
 #endif

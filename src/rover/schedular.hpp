@@ -36,11 +36,13 @@ public:
   //
   RenderSettings get_render_settings() const;
   vtkmDataSet    get_data_set() const;
+  float* get_color_buffer();
 protected:
   Engine                    *m_engine;
   vtkmDataSet                m_data_set;
   RenderSettings             m_render_settings;
   RayGenerator<FloatType>   *m_ray_generator;
+  vtkmColorBuffer            m_color_buffer;
 private:
 
 };

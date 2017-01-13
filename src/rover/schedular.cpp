@@ -1,5 +1,6 @@
 #include <schedular.hpp>
 #include <volume_engine.hpp>
+#include <vtkm/rendering/CanvasRayTracer.h>
 namespace rover {
 
 template<typename FloatType>
@@ -61,6 +62,17 @@ Schedular<FloatType>::get_render_settings() const
 {
   return m_render_settings;
 }
+template<typename FloatType>
+float *
+Schedular<FloatType>::get_color_buffer()
+{
+  if(m_render_settings.RenderMode == energy)
+  {
+    throw RoverException("cannot call get_color_buffer while using energy mode");
+  }
+  
+  
+}
 
 //
 // in the other schedulars this method will be far from trivial
@@ -69,8 +81,18 @@ template<typename FloatType>
 void 
 Schedular<FloatType>::trace_rays()
 {
+  // TODO while (m_geerator.has_rays())
   vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
   m_engine->trace(rays);
+
+  if(m_render_settings.m_render_mode == energy)
+  {
+    std::cout<<"engergy not implemented\n";
+  }
+  else
+  {
+    m_color_buffer = dynamic_cast<VolumeEngine*>(m_engine)->get_color_buffer();
+  }
 }
 
 template<typename FloatType>
