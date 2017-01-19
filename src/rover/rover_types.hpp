@@ -42,6 +42,8 @@ struct RenderSettings
   ScatteringType m_scattering_type;
   RayScope       m_ray_scope;
   vtkmColorTable m_color_table; 
+  std::string    m_primary_field;
+  std::string    m_secondary_field;
   //
   // Default settings
   // 

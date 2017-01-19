@@ -95,6 +95,46 @@ PNGEncoder::Encode(const float *rgba_in,
     throw RoverException("PNG encoding failed");
   }
 }
+//-----------------------------------------------------------------------------
+void
+PNGEncoder::Encode(const double *rgba_in,
+                   const int width,
+                   const int height)
+{
+  Cleanup();
+
+  // upside down relative to what lodepng wants
+  unsigned char *rgba_flip = new unsigned char[width * height *4];
+
+
+  for(int x = 0; x < width; ++x)
+
+    #pragma omp parrallel for
+    for (int y = 0; y < height; ++y)
+    {
+      int inOffset = (y * width + x) * 4;
+      int outOffset = ((height - y - 1) * width + x) * 4;
+      rgba_flip[outOffset + 0] = (unsigned char)(rgba_in[inOffset + 0] * 255.);
+      rgba_flip[outOffset + 1] = (unsigned char)(rgba_in[inOffset + 1] * 255.);
+      rgba_flip[outOffset + 2] = (unsigned char)(rgba_in[inOffset + 2] * 255.);
+      rgba_flip[outOffset + 3] = (unsigned char)(rgba_in[inOffset + 3] * 255.);
+    }
+
+   unsigned error = lodepng_encode_memory(&m_buffer,
+                                          &m_buffer_size,
+                                          &rgba_flip[0],
+                                          width,
+                                          height,
+                                          LCT_RGBA, // these settings match those for 
+                                          8);       // lodepng_encode32_file
+
+  delete [] rgba_flip;
+  
+  if(error)
+  {
+    throw RoverException("PNG encoding failed");
+  }
+}
 
 //-----------------------------------------------------------------------------
 void

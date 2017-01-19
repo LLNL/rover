@@ -14,11 +14,22 @@ public:
   virtual void trace(Ray32 &rays) = 0;
   virtual void trace(Ray64 &rays) = 0;
   
+  void set_primary_field(const std::string &primary_field)
+  {
+    m_primary_field = primary_field;
+  }
+
+  void set_secondary_field(const std::string &secondary_field)
+  {
+    m_secondary_field = secondary_field;
+  }
+
   void set_color_map(const vtkmColorTable &color_map, int samples = 1024)
   {
     color_map.Sample(samples, m_color_map);
   }
 
+  
   void set_color_map(const vtkmColorMap &color_map)
   {
     m_color_map = color_map;
@@ -30,6 +41,8 @@ public:
   }
 protected:
   vtkmColorMap m_color_map;
+  std::string m_primary_field;
+  std::string m_secondary_field;
 };
 
 }; // namespace rover

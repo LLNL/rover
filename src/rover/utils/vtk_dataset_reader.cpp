@@ -16,7 +16,7 @@ VTKReader::read_file(const std::string &file_name)
 //void add_absorption();
 //void add_emmission();
 vtkmDataSet
-VTKReader::get_dataset()
+VTKReader::get_data_set()
 {
   return m_dataset;
 }

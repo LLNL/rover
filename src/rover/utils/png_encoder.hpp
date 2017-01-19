@@ -17,6 +17,10 @@ public:
                         const int width,
                         const int height);
 
+  void           Encode(const double *rgba_in,
+                        const int width,
+                        const int height);
+
   void           Save(const std::string &filename);
 
   void          *PngBuffer();

@@ -52,7 +52,7 @@ else()
   add_library(rover STATIC
               ${rover_sources}
               ${rover_headers}
-              utils/<TARGET_OBJECTS:lodepng>
+              $<TARGET_OBJECTS:lodepng>
               )
 endif()
 

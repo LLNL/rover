@@ -1,5 +1,5 @@
 #include <volume_engine.hpp>
-
+#include <rover_exceptions.hpp>
 namespace rover {
 
 VolumeEngine::VolumeEngine()
@@ -27,6 +27,13 @@ VolumeEngine::trace(Ray32 &rays)
   {
     std::cout<<"Volume Engine Error: must set the data set before tracing\n";
   }
+  
+  if(this->m_primary_field == "")
+  {
+    throw RoverException("Primary field is not set. Unable to render\n");
+  }
+
+  m_tracer->SetScalarField(this->m_primary_field);
   m_tracer->SetColorMap(m_color_map);
   m_tracer->Trace(rays);
 }
@@ -43,9 +50,4 @@ VolumeEngine::trace(Ray64 &rays)
   m_tracer->Trace(rays);
 }
 
-ColorBuffer4f
-get_color_buffer()
-{
-  m_tracer->GetColorBuffer(); 
-}
 }; //namespace rover

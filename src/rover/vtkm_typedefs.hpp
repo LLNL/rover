@@ -16,5 +16,21 @@ typedef vtkm::rendering::ColorTable                           vtkmColorTable;
 typedef vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::Float32, 4> > vtkmColorMap;
 typedef vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::Float32, 4> > vtkmColorBuffer;
 typedef vtkm::rendering::raytracing::Camera                   vtkmCamera;
+
+//
+// Utility method for getting raw pointer 
+//
+template<typename T>
+T * 
+get_vtkm_ptr(vtkm::cont::ArrayHandle<T> handle)
+{
+  typedef typename vtkm::cont::ArrayHandle<T>  HandleType;
+  typedef typename HandleType::ExecutionTypes<vtkm::cont::DeviceAdapterTagSerial>::Portal PortalType;
+  typedef typename vtkm::cont::ArrayPortalToIterators<PortalType>::IteratorType IteratorType;
+  
+  IteratorType iter = vtkm::cont::ArrayPortalToIterators<PortalType>(handle.GetPortalControl()).GetBegin();
+  return &(*iter);
+}
+
 };
 #endif

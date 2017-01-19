@@ -1,12 +1,16 @@
 #include <schedular.hpp>
 #include <volume_engine.hpp>
+#include <vtkm_typedefs.hpp>
+#include <utils/png_encoder.hpp>
 #include <vtkm/rendering/CanvasRayTracer.h>
+#include <rover_exceptions.hpp>
+#include <assert.h>
 namespace rover {
 
 template<typename FloatType>
 Schedular<FloatType>::Schedular()
 {
-  m_engine = NULL;
+  m_engine = new VolumeEngine(); 
 }
 
 template<typename FloatType>
@@ -17,21 +21,24 @@ Schedular<FloatType>::~Schedular()
 
 template<typename FloatType>
 void
-Schedular<FloatType>::set_render_settings(const RenderSettings render_render_settings)
+Schedular<FloatType>::set_render_settings(const RenderSettings render_settings)
 {
   //
   //  In the serial schedular, the only setting that matter are 
   //  m_render_mode and m_scattering_mode
   //
 
+  m_render_settings = render_settings;
   // 
   // Create the correct engine
   //
   if(m_engine) delete m_engine;
+  m_engine = NULL;
 
   if(m_render_settings.m_render_mode == volume)
   {
     m_engine = new VolumeEngine(); 
+
   }
   else if(m_render_settings.m_render_mode == energy)
   {
@@ -41,7 +48,16 @@ Schedular<FloatType>::set_render_settings(const RenderSettings render_render_set
   {
     std::cout<<"ray tracing not implemented\n";
   }
+
+  if(m_engine == NULL)
+  {
+    throw RoverException("Fatal Error: schedular unable to create the apporpriate engine\n");
+  }
+  std::cout<<"Primary field "<<render_settings.m_primary_field<<"\n";
+  m_engine->set_primary_field(render_settings.m_primary_field);
+  m_engine->set_secondary_field(render_settings.m_secondary_field);
 }
+
 template<typename FloatType>
 void 
 Schedular<FloatType>::set_data_set(vtkmDataSet &dataset)
@@ -63,15 +79,15 @@ Schedular<FloatType>::get_render_settings() const
   return m_render_settings;
 }
 template<typename FloatType>
-float *
+FloatType *
 Schedular<FloatType>::get_color_buffer()
 {
-  if(m_render_settings.RenderMode == energy)
+  if(m_render_settings.m_render_mode == energy)
   {
     throw RoverException("cannot call get_color_buffer while using energy mode");
   }
   
-  
+  return get_vtkm_ptr(m_result_handle);
 }
 
 //
@@ -91,8 +107,28 @@ Schedular<FloatType>::trace_rays()
   }
   else
   {
-    m_color_buffer = dynamic_cast<VolumeEngine*>(m_engine)->get_color_buffer();
+    // TODO: add some conversion to uchar probably withing the "channel buffer"
+    assert(rays.Buffers.at(0).GetNumChannels() == 4); 
+    int buffer_size = m_ray_generator->get_size();
+    m_result_handle = rays.Buffers.at(0).ExpandBuffer(rays.PixelIdx, buffer_size).Buffer;
+     
   }
+}
+
+template<typename FloatType>
+void Schedular<FloatType>::save_result(std::string file_name) const
+{
+  int height = 0;
+  int width = 0;
+  m_ray_generator->get_dims(height, width);
+  assert( height > 0 );
+  assert( width > 0 );
+  PNGEncoder encoder;
+  FloatType * buffer = get_vtkm_ptr(m_result_handle);
+
+  encoder.Encode(buffer, width, height);
+  encoder.Save(file_name);
+  
 }
 
 template<typename FloatType>
@@ -101,6 +137,5 @@ void Schedular<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_genera
   m_ray_generator = ray_generator;
 }
 // Explicit instantiation
-template class Schedular<vtkm::Float32>;
-template class Schedular<vtkm::Float64>;
+template class Schedular<vtkm::Float32>; template class Schedular<vtkm::Float64>;
 }; // namespace rover

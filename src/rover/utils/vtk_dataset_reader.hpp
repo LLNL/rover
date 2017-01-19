@@ -11,7 +11,7 @@ public:
   void read_file(const std::string &file_name);
   //void add_absorption();
   //void add_emmission();
-  vtkmDataSet get_dataset();
+  vtkmDataSet get_data_set();
 protected:
   vtkmDataSet m_dataset;
 };

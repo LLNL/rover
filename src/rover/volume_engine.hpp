@@ -16,7 +16,6 @@ public:
   void set_data_set(vtkm::cont::DataSet &);
   void trace(Ray32 &rays);
   void trace(Ray64 &rays);
-  vtkmColorBuffer get_color_buffer();    
 };
 
 }; // namespace rover

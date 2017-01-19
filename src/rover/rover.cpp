@@ -2,7 +2,6 @@
 #include <rover.hpp>
 #include <rover_exceptions.hpp>
 #include <vtkm_typedefs.hpp>
-#include <utils/png_encoder.hpp>
 #include <iostream>
 
 namespace rover {
@@ -46,6 +45,7 @@ public:
 #else
       if(m_schedular == NULL) delete m_schedular;
       m_schedular = new Schedular<FloatType>();
+      m_schedular->set_render_settings(render_settings);
 #endif
    }
 
@@ -61,8 +61,7 @@ public:
 
   void save_png(const std::string &file_name)
   {
-    PNGEncoder encoder;
-
+    m_schedular->save_result(file_name);
   }
 
   void execute()

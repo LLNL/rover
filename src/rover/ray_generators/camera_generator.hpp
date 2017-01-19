@@ -12,7 +12,7 @@ public:
   CameraGenerator(const vtkmCamera &camera, vtkmCoordinates coordinates);
   virtual ~CameraGenerator();
   virtual vtkmRayTracing::Ray<Precision> get_rays(); 
-  vtkmCamera &get_camera();
+  vtkmCamera get_camera();
   vtkmCoordinates get_coordinates();
 protected:
   CameraGenerator(); 
@@ -20,5 +20,7 @@ protected:
   vtkmCamera m_camera;
 };
 
+typedef CameraGenerator<vtkm::Float32> CameraGenerator32;
+typedef CameraGenerator<vtkm::Float64> CameraGenerator64;
 } // namespace rover
 #endif
