@@ -24,7 +24,7 @@ public:
     m_secondary_field = secondary_field;
   }
 
-  void set_color_map(const vtkmColorTable &color_map, int samples = 1024)
+  void set_color_table(const vtkmColorTable &color_map, int samples = 1024)
   {
     color_map.Sample(samples, m_color_map);
   }

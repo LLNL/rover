@@ -3,7 +3,7 @@
 #include <rover_exceptions.hpp>
 #include <vtkm_typedefs.hpp>
 #include <iostream>
-
+#include <utils/rover_logging.hpp>
 namespace rover {
 template<typename FloatType>
 class Rover<FloatType>::InternalsType 
@@ -31,6 +31,7 @@ public:
 
   void set_render_settings(RenderSettings render_settings)
   {
+    ROVER_INFO("set_render_settings");
     // TODO: make copy constructors to get the members like ray_generator
 #ifdef PARALLEL
     // logic to create the appropriate parallel schedular
@@ -155,6 +156,13 @@ Rover<FloatType>::about()
   std::cout<<"rover version: xx.xx.xx\n";
   print_type(FloatType());
   std::cout<<"Other important information\n";
+}
+template<typename FloatType>
+
+void
+Rover<FloatType>::save_png(const std::string &file_name)
+{
+  m_internals->save_png(file_name);
 }
 
 // Explicit instantiations

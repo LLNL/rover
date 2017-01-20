@@ -4,7 +4,7 @@
 #
 ###############################################################################
 
-add_subdirectory(../thirdparty_builtin/lodepng/ ${CMAKE_CURRENT_SOURCE_DIR}/utils)
+add_subdirectory(../thirdparty_builtin/lodepng/ ${CMAKE_CURRENT_SOURCE_DIR}/utils/lodepng)
 
 set(rover_headers
     compositor.hpp
@@ -22,6 +22,7 @@ set(rover_headers
     # utils headers
     utils/png_encoder.hpp
     utils/material_database.hpp
+    utils/rover_logging.hpp
     utils/vtk_dataset_reader.hpp
    )
 
@@ -35,6 +36,7 @@ set(rover_sources
     # utils sources
     utils/png_encoder.cpp
     utils/material_database.cpp
+    utils/rover_logging.cpp
     utils/vtk_dataset_reader.cpp
    )
 

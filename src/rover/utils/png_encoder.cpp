@@ -8,6 +8,7 @@
 // rover includes
 #include <rover_exceptions.hpp>
 #include <utils/png_encoder.hpp>
+#include <utils/rover_logging.hpp>
 namespace rover {
 
 PNGEncoder::PNGEncoder()
@@ -51,6 +52,7 @@ PNGEncoder::Encode(const unsigned char *rgba_in,
   
   if(error)
   {
+    ROVER_ERROR("PNG encoding failed");
     throw RoverException("PNG encoding failed");
   }
 }
@@ -92,6 +94,7 @@ PNGEncoder::Encode(const float *rgba_in,
   
   if(error)
   {
+    ROVER_ERROR("PNG encoding failed");
     throw RoverException("PNG encoding failed");
   }
 }
@@ -132,6 +135,7 @@ PNGEncoder::Encode(const double *rgba_in,
   
   if(error)
   {
+    ROVER_ERROR("PNG encoding failed");
     throw RoverException("PNG encoding failed");
   }
 }
@@ -142,16 +146,18 @@ PNGEncoder::Save(const std::string &filename)
 {
   if(m_buffer == NULL)
   {
+    ROVER_ERROR("PNG interal buffer NULL");
     throw RoverException("PNG save failed");
-      /// we have a problem ...!
       return;
   }
   
   unsigned error = lodepng_save_file(m_buffer,
                                      m_buffer_size,
                                      filename.c_str());
+  ROVER_INFO("Saved png: "<<filename);
   if(error)
   {
+    ROVER_ERROR("PNG saving failed");
     throw RoverException("PNG save failed");
   }
 }

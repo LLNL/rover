@@ -27,6 +27,7 @@ public:
   void set_ray_generator(RayGenerator<FloatType> *);
   void execute();
   void about();
+  void save_png(const std::string &file_name);
 private:
   class InternalsType;
   std::shared_ptr<InternalsType> m_internals; 

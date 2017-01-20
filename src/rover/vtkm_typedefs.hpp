@@ -25,7 +25,7 @@ T *
 get_vtkm_ptr(vtkm::cont::ArrayHandle<T> handle)
 {
   typedef typename vtkm::cont::ArrayHandle<T>  HandleType;
-  typedef typename HandleType::ExecutionTypes<vtkm::cont::DeviceAdapterTagSerial>::Portal PortalType;
+  typedef typename HandleType::template ExecutionTypes<vtkm::cont::DeviceAdapterTagSerial>::Portal PortalType;
   typedef typename vtkm::cont::ArrayPortalToIterators<PortalType>::IteratorType IteratorType;
   
   IteratorType iter = vtkm::cont::ArrayPortalToIterators<PortalType>(handle.GetPortalControl()).GetBegin();

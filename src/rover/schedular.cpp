@@ -1,3 +1,4 @@
+#include <ray_generators/camera_generator.hpp>
 #include <schedular.hpp>
 #include <volume_engine.hpp>
 #include <vtkm_typedefs.hpp>
@@ -5,6 +6,7 @@
 #include <vtkm/rendering/CanvasRayTracer.h>
 #include <rover_exceptions.hpp>
 #include <assert.h>
+#include <utils/rover_logging.hpp>
 namespace rover {
 
 template<typename FloatType>
@@ -56,6 +58,8 @@ Schedular<FloatType>::set_render_settings(const RenderSettings render_settings)
   std::cout<<"Primary field "<<render_settings.m_primary_field<<"\n";
   m_engine->set_primary_field(render_settings.m_primary_field);
   m_engine->set_secondary_field(render_settings.m_secondary_field);
+  m_engine->set_color_table(render_settings.m_color_table);
+
 }
 
 template<typename FloatType>
@@ -111,7 +115,15 @@ Schedular<FloatType>::trace_rays()
     assert(rays.Buffers.at(0).GetNumChannels() == 4); 
     int buffer_size = m_ray_generator->get_size();
     m_result_handle = rays.Buffers.at(0).ExpandBuffer(rays.PixelIdx, buffer_size).Buffer;
-     
+
+    int height = 0;
+    int width = 0;
+    m_ray_generator->get_dims(height, width);
+    vtkm::rendering::CanvasRayTracer canvas(width, height);
+    //vtkmCamera cam = dynamic_cast<CameraGenerator<FloatType>* >(m_ray_generator)->get_camera(); 
+    vtkm::rendering::Camera cam;
+    canvas.WriteToCanvas(rays, cam);
+    canvas.SaveAs("test.pnm"); 
   }
 }
 
@@ -123,6 +135,7 @@ void Schedular<FloatType>::save_result(std::string file_name) const
   m_ray_generator->get_dims(height, width);
   assert( height > 0 );
   assert( width > 0 );
+  ROVER_INFO("Saving file " << height << " "<<width);
   PNGEncoder encoder;
   FloatType * buffer = get_vtkm_ptr(m_result_handle);
 

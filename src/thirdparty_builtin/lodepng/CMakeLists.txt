@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2015 - 2016, Lawrence Livermore National Security, LLC
 # Produced at the Lawrence Livermore National Laboratory
-# LLNL-CODE-442911
+# 
 # All rights reserved.
 #
 # This file is  part of VisIt. For  details, see https://visit.llnl.gov/.  The
