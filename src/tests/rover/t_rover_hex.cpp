@@ -30,6 +30,7 @@ TEST(rover_hex, test_call)
   typedef vtkm::Vec<vtkm::Float32,3> Vec3f;
 
   Vec3f position(-1.f, -1.f, -1.f); 
+  Vec3f up(1.f, 0.f, 0.f); 
   Vec3f look_at(.5f, .5f, .5f);
   const int image_width = 500;
   const int image_height = 500;
@@ -38,6 +39,7 @@ TEST(rover_hex, test_call)
   camera.SetWidth(image_width);
   camera.SetLookAt(look_at);
   camera.SetPosition(position);
+  camera.SetUp(up);
   CameraGenerator32 generator(camera,
                               dataset.GetCoordinateSystem() );
   Rover32 driver32;
