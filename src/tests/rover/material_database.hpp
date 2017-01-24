@@ -1,7 +1,88 @@
-#include <utils/material_database.hpp>
-#include <sstream>
+#ifndef rover_material_database_h
+#define rover_material_database_h
 
+
+#include <cmath>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <map>
+#include <stdio.h>
+#include <vector>
+#include <vtkm/cont/ArrayHandle.h>
+#include "test_config.h"
 namespace rover {
+
+struct EnergyBin
+{
+  double energy; //in eV
+  double opacity;//cm^2/gm
+};
+struct Element
+{
+  std::string symbol;
+  int atomic_number;    // -1 if compound
+  double atomic_weight;
+  double density;       // units (g/cc)
+  std::vector<EnergyBin> energy_bins; 
+  Element()
+  {}
+  ~Element()
+  {}
+  Element(const Element &other)
+  {
+    symbol = other.symbol;
+    atomic_number = other.atomic_number;
+    atomic_weight = other.atomic_weight;
+    density = other.density;
+    energy_bins = other.energy_bins;
+
+  }
+
+  Element& operator=(const Element &other)
+  {
+    symbol = other.symbol;
+    atomic_number = other.atomic_number;
+    atomic_weight = other.atomic_weight;
+    density = other.density;
+    energy_bins = other.energy_bins;
+    return *this;
+  }
+
+  void PrintSelf()
+  {
+    printf("Element: %s\n", symbol.c_str());
+    printf("   Atomic number: %d\n", atomic_number);
+    printf("   %d Bins:\n", (int)energy_bins.size());
+    for(int i = 0; i < energy_bins.size();++i)
+    {
+      printf("        %e %e\n", energy_bins[i].energy, energy_bins[i].opacity);
+    } 
+  }
+
+};
+
+class MaterialDatabase
+{
+public:
+  MaterialDatabase();
+  template<typename T>
+  void get_elements(const std::vector<std::string> &symbols,
+                    const int &num_bins,
+                    vtkm::cont::ArrayHandle<T> absorption,
+                    int &element_count);
+  ~MaterialDatabase(){};
+protected:
+  void read_db();
+  bool contains_keyword(const std::string &line) const;
+  void parse_element(const std::string &, Element &, std::ifstream &);
+  std::map<std::string,Element> Elements;
+  double sample_bin(const Element &, const double &x); 
+  double minMeV;    // min photon eneregy
+  double maxMeV;    // max photon eneregy
+};
+
 
 bool contains(const std::string haystack, std::string needle)
 {
@@ -110,7 +191,10 @@ MaterialDatabase::parse_element(const std::string &line, Element &elem, std::ifs
 void MaterialDatabase::read_db()
 {
   std::ifstream db_reader;
-  db_reader.open("/nfs/tmp2larsen30/rover_api/src/rover/utils/opacities.dat");
+  std::string data_dir(DATA_DIR);
+  std::string file("opacities.dat");
+  std::string file_name = data_dir + file;
+  db_reader.open(file_name.c_str());
   if(!db_reader.is_open())
   {
     printf("Could not open the db\n");
@@ -163,14 +247,32 @@ MaterialDatabase::sample_bin(const Element &elem, const double &x)
           elem.energy_bins[upperBin].opacity * delta);
 }
 
+struct GetFieldSizeFunctor
+{
+  vtkm::Id *m_size;
+
+  GetFieldSizeFunctor(vtkm::Id *size)
+    : m_size(size)
+  {}
+
+  template<typename T, typename Storage>
+  void operator()(const vtkm::cont::ArrayHandle<T, Storage> &array) const
+  {
+      *m_size = array.GetPortalConstControl().GetNumberOfValues();
+  }
+};
+
 template<typename T>
 void
 MaterialDatabase::get_elements(const std::vector<std::string> &symbols,
-                              const int &num_bins,
-                              vtkm::cont::ArrayHandle<T> &output)
+                               const int &num_bins,
+                               vtkm::cont::ArrayHandle<T> absorption,
+                               int &element_count)
 {
+  element_count = 0;
   double spectrumLength = maxMeV - minMeV;
-  output.Allocate(symbols.size() * num_bins);
+  vtkm::cont::ArrayHandle<T> look_up;
+  absorption.Allocate(symbols.size() * num_bins);
   if(spectrumLength <= 0)
   {
     std::cout<<"Bad spectrum length: "<<minMeV<<" - "<<maxMeV<<"\n";
@@ -186,6 +288,7 @@ MaterialDatabase::get_elements(const std::vector<std::string> &symbols,
       std::cout<<"Warning: symbol "<<symbols[i]<<" not found. Skipping\n";
       continue;
     }
+    element_count++; 
     Element elem = it->second;
     
     for(int j = 0; j < num_bins; ++j)
@@ -197,19 +300,11 @@ MaterialDatabase::get_elements(const std::vector<std::string> &symbols,
       // and will be multiplied by distance (cm)
       // to obtain the actual extinction coeff
       value = value / elem.density;
-      output.GetPortalControl().Set( i * num_bins + j,value);
+      absorption.GetPortalControl().Set( i * num_bins + j,value);
     }
 
   }
 }
 
-//Explicit instantiations
-template void MaterialDatabase::get_elements<vtkm::Float32>(const std::vector<std::string> &symbols,
-                                                            const int &num_bins,
-                                                            vtkm::cont::ArrayHandle<vtkm::Float32> &output);
-
-template void MaterialDatabase::get_elements<vtkm::Float64>(const std::vector<std::string> &symbols,
-                                                            const int &num_bins,
-                                                            vtkm::cont::ArrayHandle<vtkm::Float64> &output);
-
-} // namespace rover
+}// namespace rover
+#endif

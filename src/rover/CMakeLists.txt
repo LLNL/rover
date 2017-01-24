@@ -21,7 +21,6 @@ set(rover_headers
     ray_generators/camera_generator.hpp
     # utils headers
     utils/png_encoder.hpp
-    utils/material_database.hpp
     utils/rover_logging.hpp
     utils/vtk_dataset_reader.hpp
    )
@@ -35,7 +34,6 @@ set(rover_sources
     ray_generators/camera_generator.cpp
     # utils sources
     utils/png_encoder.cpp
-    utils/material_database.cpp
     utils/rover_logging.cpp
     utils/vtk_dataset_reader.cpp
    )
