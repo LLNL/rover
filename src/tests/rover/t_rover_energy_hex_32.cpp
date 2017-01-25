@@ -38,7 +38,9 @@ TEST(rover_hex, test_call)
   Vec3f look_at(.5f, .5f, .5f);
   const int image_width = 500;
   const int image_height = 500;
-  
+  //
+  // Create a camera
+  //
   camera.SetHeight(image_height);
   camera.SetWidth(image_width);
   camera.SetLookAt(look_at);
