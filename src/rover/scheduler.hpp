@@ -1,11 +1,11 @@
-#ifndef rover_schedular_h
-#define rover_schedular_h
+#ifndef rover_scheduler_h
+#define rover_scheduler_h
 #include <engine.hpp>
 #include <rover_types.hpp>
 #include <ray_generators/ray_generator.hpp>
 #include <vtkm_typedefs.hpp>
 //
-// Schedular types:
+// Scheduler types:
 //  static: all ranks gets all rays
 //  normal compositing -
 //    back to front (energy): absorbtion, absorbtion + emmission
@@ -20,10 +20,10 @@
 namespace rover {
 
 template<typename FloatType>
-class Schedular {
+class Scheduler {
 public:
-  Schedular();
-  virtual ~Schedular();
+  Scheduler();
+  virtual ~Scheduler();
   virtual void trace_rays();
   void save_result(std::string file_name) const;
   //

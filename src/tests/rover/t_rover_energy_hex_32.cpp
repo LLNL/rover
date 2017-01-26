@@ -25,10 +25,10 @@ TEST(rover_hex, test_call)
   std::string file("luleshSpeed.vtk");
   std::string file_name = data_dir + file;
   std::cout<<"Reading file "<<file_name<<"\n";
-  reader.read_file(file_name);
+  reader.read_file(file_name) ;
   vtkmDataSet dataset = reader.get_data_set();
- 
-  add_absorption_field(dataset, "speed", 10, vtkm::Float32());
+  const int num_bins = 10; 
+  add_absorption_field(dataset, "speed", num_bins, vtkm::Float32());
   dataset.PrintSummary(std::cout); 
   vtkmCamera camera;
   typedef vtkm::Vec<vtkm::Float32,3> Vec3f;
@@ -53,13 +53,9 @@ TEST(rover_hex, test_call)
   // Create some basic setting and color table
   //
   RenderSettings settings;
-  settings.m_primary_field = "speed";
-  vtkmColorTable color_table("cool2warm");
-  color_table.AddAlphaControlPoint(0.0, .01);
-  color_table.AddAlphaControlPoint(0.5, .02);
-  color_table.AddAlphaControlPoint(1.0, .01);
-  settings.m_color_table = color_table;
-  
+  settings.m_primary_field = "absorption";
+  settings.m_render_mode = rover::energy;
+
   driver32.set_render_settings(settings);
   driver32.set_data_set(dataset);
   driver32.set_ray_generator(&generator);

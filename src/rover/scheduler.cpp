@@ -1,6 +1,7 @@
 #include <ray_generators/camera_generator.hpp>
-#include <schedular.hpp>
+#include <scheduler.hpp>
 #include <volume_engine.hpp>
+#include <energy_engine.hpp>
 #include <vtkm_typedefs.hpp>
 #include <utils/png_encoder.hpp>
 #include <vtkm/rendering/CanvasRayTracer.h>
@@ -10,20 +11,20 @@
 namespace rover {
 
 template<typename FloatType>
-Schedular<FloatType>::Schedular()
+Scheduler<FloatType>::Scheduler()
 {
   m_engine = new VolumeEngine(); 
 }
 
 template<typename FloatType>
-Schedular<FloatType>::~Schedular()
+Scheduler<FloatType>::~Scheduler()
 {
   if(m_engine) delete m_engine;
 }
 
 template<typename FloatType>
 void
-Schedular<FloatType>::set_render_settings(const RenderSettings render_settings)
+Scheduler<FloatType>::set_render_settings(const RenderSettings render_settings)
 {
   //
   //  In the serial schedular, the only setting that matter are 
@@ -44,7 +45,7 @@ Schedular<FloatType>::set_render_settings(const RenderSettings render_settings)
   }
   else if(m_render_settings.m_render_mode == energy)
   {
-    std::cout<<"engergy not implemented\n";
+    m_engine =  new EnergyEngine();
   }
   else if(m_render_settings.m_render_mode == surface)
   {
@@ -53,9 +54,10 @@ Schedular<FloatType>::set_render_settings(const RenderSettings render_settings)
 
   if(m_engine == NULL)
   {
+    ROVER_ERROR("Unable to create the appropriate engine");
     throw RoverException("Fatal Error: schedular unable to create the apporpriate engine\n");
   }
-  std::cout<<"Primary field "<<render_settings.m_primary_field<<"\n";
+  ROVER_INFO("Primary field "<<render_settings.m_primary_field);
   m_engine->set_primary_field(render_settings.m_primary_field);
   m_engine->set_secondary_field(render_settings.m_secondary_field);
   m_engine->set_color_table(render_settings.m_color_table);
@@ -64,27 +66,27 @@ Schedular<FloatType>::set_render_settings(const RenderSettings render_settings)
 
 template<typename FloatType>
 void 
-Schedular<FloatType>::set_data_set(vtkmDataSet &dataset)
+Scheduler<FloatType>::set_data_set(vtkmDataSet &dataset)
 {
   m_engine->set_data_set(dataset);
 }
 
 template<typename FloatType>
 vtkmDataSet
-Schedular<FloatType>::get_data_set() const
+Scheduler<FloatType>::get_data_set() const
 {
   return m_data_set;
 }
 
 template<typename FloatType>
 RenderSettings
-Schedular<FloatType>::get_render_settings() const
+Scheduler<FloatType>::get_render_settings() const
 {
   return m_render_settings;
 }
 template<typename FloatType>
 FloatType *
-Schedular<FloatType>::get_color_buffer()
+Scheduler<FloatType>::get_color_buffer()
 {
   if(m_render_settings.m_render_mode == energy)
   {
@@ -99,9 +101,10 @@ Schedular<FloatType>::get_color_buffer()
 //
 template<typename FloatType>
 void 
-Schedular<FloatType>::trace_rays()
+Scheduler<FloatType>::trace_rays()
 {
   // TODO while (m_geerator.has_rays())
+  ROVER_INFO("Tracing rays");
   vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
   m_engine->trace(rays);
 
@@ -115,20 +118,20 @@ Schedular<FloatType>::trace_rays()
     assert(rays.Buffers.at(0).GetNumChannels() == 4); 
     int buffer_size = m_ray_generator->get_size();
     m_result_handle = rays.Buffers.at(0).ExpandBuffer(rays.PixelIdx, buffer_size).Buffer;
-
+    /*
     int height = 0;
     int width = 0;
     m_ray_generator->get_dims(height, width);
     vtkm::rendering::CanvasRayTracer canvas(width, height);
-    //vtkmCamera cam = dynamic_cast<CameraGenerator<FloatType>* >(m_ray_generator)->get_camera(); 
     vtkm::rendering::Camera cam;
     canvas.WriteToCanvas(rays, cam);
     canvas.SaveAs("test.pnm"); 
+    */
   }
 }
 
 template<typename FloatType>
-void Schedular<FloatType>::save_result(std::string file_name) const
+void Scheduler<FloatType>::save_result(std::string file_name) const
 {
   int height = 0;
   int width = 0;
@@ -145,10 +148,10 @@ void Schedular<FloatType>::save_result(std::string file_name) const
 }
 
 template<typename FloatType>
-void Schedular<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_generator)
+void Scheduler<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_generator)
 {
   m_ray_generator = ray_generator;
 }
 // Explicit instantiation
-template class Schedular<vtkm::Float32>; template class Schedular<vtkm::Float64>;
+template class Scheduler<vtkm::Float32>; template class Scheduler<vtkm::Float64>;
 }; // namespace rover

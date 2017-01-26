@@ -42,7 +42,7 @@ struct EnergySettings
 {
   bool m_divide_abs_by_emmision;
   EnergySettings()
-    : m_devide_abs_by_emmision(false)
+    : m_divide_abs_by_emmision(false)
   {}
 };
 

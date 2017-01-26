@@ -1,4 +1,4 @@
-#include <schedular.hpp>
+#include <scheduler.hpp>
 #include <rover.hpp>
 #include <rover_exceptions.hpp>
 #include <vtkm_typedefs.hpp>
@@ -9,7 +9,7 @@ template<typename FloatType>
 class Rover<FloatType>::InternalsType 
 {
 protected:
-  Schedular<FloatType>      *m_schedular;
+  Scheduler<FloatType>      *m_scheduler;
   void reset_render_mode(RenderMode render_mode)
   {
   }
@@ -18,15 +18,15 @@ public:
   InternalsType()
   {
 #ifdef PARALLEL
-    m_schedular = new StaticSchedular<FloatType>();
+    m_scheduler = new StaticScheduler<FloatType>();
 #else
-    m_schedular = new Schedular<FloatType>();
+    m_scheduler = new Scheduler<FloatType>();
 #endif
   }
 
   void set_data_set(vtkmDataSet &dataset)
   {
-    m_schedular->set_data_set(dataset);
+    m_scheduler->set_data_set(dataset);
   }
 
   void set_render_settings(RenderSettings render_settings)
@@ -34,40 +34,40 @@ public:
     ROVER_INFO("set_render_settings");
     // TODO: make copy constructors to get the members like ray_generator
 #ifdef PARALLEL
-    // logic to create the appropriate parallel schedular
+    // logic to create the appropriate parallel scheduler
     //
-    // ray tracing = dynamic schedular, scattering | no_scattering
-    // volume/engery = scattering + local_scope -> dynamic schedular 
-    //                 non_scattering + global_scope ->static schedular
+    // ray tracing = dynamic scheduler, scattering | no_scattering
+    // volume/engery = scattering + local_scope -> dynamic scheduler 
+    //                 non_scattering + global_scope ->static scheduler
     //
     // Note: I wanted to allow for the case of scattering + global scope. This could 
     //       be benificial in the case where we may or may not scatter in a given 
     //       domain. Thus, avoid waiting for the ray to emerge or throw out the results
 #else
-      if(m_schedular == NULL) delete m_schedular;
-      m_schedular = new Schedular<FloatType>();
-      m_schedular->set_render_settings(render_settings);
+      if(m_scheduler == NULL) delete m_scheduler;
+      m_scheduler = new Scheduler<FloatType>();
+      m_scheduler->set_render_settings(render_settings);
 #endif
    }
 
   void set_ray_generator(RayGenerator<FloatType> *ray_generator)
   {
-    m_schedular->set_ray_generator(ray_generator); 
+    m_scheduler->set_ray_generator(ray_generator); 
   }
 
   ~InternalsType()
   {
-    if(m_schedular) delete m_schedular;
+    if(m_scheduler) delete m_scheduler;
   }
 
   void save_png(const std::string &file_name)
   {
-    m_schedular->save_result(file_name);
+    m_scheduler->save_result(file_name);
   }
 
   void execute()
   {
-    m_schedular->trace_rays();
+    m_scheduler->trace_rays();
   }
 
 }; //Internals Type

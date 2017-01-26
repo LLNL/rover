@@ -1,7 +1,7 @@
 #ifndef rover_static_schedular_h
 #define rover_static_schedular_h
 
-#include <schedular.h>
+#include <scheduler.h>
 
 namespace rover {
 // static scedular handles the case where all ranks get all rays

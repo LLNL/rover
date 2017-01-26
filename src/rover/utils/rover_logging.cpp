@@ -40,7 +40,7 @@ Logger::write(const int level, const std::string &message, const char *file, int
     m_stream<<"<Warning> ";
   else if (level == 2)
     m_stream<<"<Error> ";
-  m_stream<<message<<" "<<file<<" "<<line<<std::endl;
+  m_stream<<" "<<message<<" ["<<file<<" "<<line<<"]"<<std::endl;
 }
 
 } // namespace rover
