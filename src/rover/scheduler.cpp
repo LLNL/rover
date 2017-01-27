@@ -154,11 +154,12 @@ void Scheduler<FloatType>::save_result(std::string file_name)
       std::stringstream sstream;
       sstream<<file_name<<"_"<<i<<".png";
       vtkmRayTracing::ChannelBuffer<FloatType> channel = m_result_buffer.GetChannel( i );
-      bool invert = true;
+      const bool invert = true;
       channel.Normalize(invert);
 
+      vtkmRayTracing::ChannelBuffer<FloatType>  expand = channel.ExpandBuffer(m_pixel_ids, buffer_size);
       FloatType * buffer 
-        = get_vtkm_ptr(channel.ExpandBuffer(m_pixel_ids, buffer_size).Buffer);
+        = get_vtkm_ptr(expand.Buffer);
       encoder.EncodeChannel(buffer, width, height);
       encoder.Save(sstream.str());
     }
@@ -166,8 +167,9 @@ void Scheduler<FloatType>::save_result(std::string file_name)
   else
   {
       
+    vtkmRayTracing::ChannelBuffer<FloatType>  expand = m_result_buffer.ExpandBuffer(m_pixel_ids, buffer_size);
     FloatType * buffer 
-      = get_vtkm_ptr(m_result_buffer.ExpandBuffer(m_pixel_ids, buffer_size).Buffer);
+      = get_vtkm_ptr(expand.Buffer);
     
     assert(m_result_buffer.GetNumChannels() == 4);
     encoder.Encode(buffer, width, height);

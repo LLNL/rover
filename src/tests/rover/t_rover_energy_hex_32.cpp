@@ -28,7 +28,7 @@ TEST(rover_hex, test_call)
   reader.read_file(file_name) ;
   vtkmDataSet dataset = reader.get_data_set();
   dataset.PrintSummary(std::cout); 
-  const int num_bins = 10; 
+  const int num_bins = 100; 
   add_absorption_field(dataset, "speed", num_bins, vtkm::Float32());
   vtkmCamera camera;
   typedef vtkm::Vec<vtkm::Float32,3> Vec3f;

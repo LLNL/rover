@@ -203,7 +203,7 @@ PNGEncoder::EncodeChannel(const float *buffer_in,
       rgba_flip[outOffset + 0] = (unsigned char)(buffer_in[inOffset] * 255.);
       rgba_flip[outOffset + 1] = (unsigned char)(buffer_in[inOffset] * 255.);
       rgba_flip[outOffset + 2] = (unsigned char)(buffer_in[inOffset] * 255.);
-      rgba_flip[outOffset + 3] = 255; 
+      rgba_flip[outOffset + 3] = 255;
     }
 
    unsigned error = lodepng_encode_memory(&m_buffer,
