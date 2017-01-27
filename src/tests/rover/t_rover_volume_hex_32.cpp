@@ -64,7 +64,7 @@ TEST(rover_hex, test_call)
   driver32.set_data_set(dataset);
   driver32.set_ray_generator(&generator);
   driver32.execute();
-  driver32.save_png("volume_hex_32.png");
+  driver32.save_png("volume_hex_32");
 
   }
   catch ( const RoverException &e )

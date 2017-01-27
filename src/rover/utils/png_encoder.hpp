@@ -21,6 +21,14 @@ public:
                         const int width,
                         const int height);
 
+  void           EncodeChannel(const float *buffer_in,
+                               const int width,
+                               const int height);
+
+  void           EncodeChannel(const double *buffer_in,
+                               const int width,
+                               const int height);
+
   void           Save(const std::string &filename);
 
   void          *PngBuffer();

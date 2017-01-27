@@ -25,7 +25,7 @@ public:
   Scheduler();
   virtual ~Scheduler();
   virtual void trace_rays();
-  void save_result(std::string file_name) const;
+  void save_result(std::string file_name);
   //
   // Setters
   //
@@ -45,7 +45,8 @@ protected:
   RenderSettings                       m_render_settings;
   RayGenerator<FloatType>             *m_ray_generator;
 
-  vtkm::cont::ArrayHandle<FloatType>   m_result_handle;
+  vtkmRayTracing::ChannelBuffer<FloatType>   m_result_buffer;
+  vtkm::cont::ArrayHandle<vtkm::Id>          m_pixel_ids;
 private:
 
 };

@@ -27,9 +27,9 @@ TEST(rover_hex, test_call)
   std::cout<<"Reading file "<<file_name<<"\n";
   reader.read_file(file_name) ;
   vtkmDataSet dataset = reader.get_data_set();
+  dataset.PrintSummary(std::cout); 
   const int num_bins = 10; 
   add_absorption_field(dataset, "speed", num_bins, vtkm::Float32());
-  dataset.PrintSummary(std::cout); 
   vtkmCamera camera;
   typedef vtkm::Vec<vtkm::Float32,3> Vec3f;
 
@@ -60,7 +60,7 @@ TEST(rover_hex, test_call)
   driver32.set_data_set(dataset);
   driver32.set_ray_generator(&generator);
   driver32.execute();
-  driver32.save_png("hex32.png");
+  driver32.save_png("hex32");
 
   }
   catch ( const RoverException &e )

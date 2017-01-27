@@ -1,9 +1,11 @@
 #ifndef vtkm_utils_h
 #define vtkm_utils_h
 
+#include <utils/rover_logging.hpp>
 #include <vtkm/filter/CellAverage.h>
 #include "material_database.hpp"
 #include <assert.h>
+
 template<typename OutType>
 void get_cell_assoc_field(vtkm::cont::DataSet &dataset,
                           std::string field_name,
@@ -13,19 +15,23 @@ void get_cell_assoc_field(vtkm::cont::DataSet &dataset,
 
   bool is_assoc_points = dataset.GetField(field_name).GetAssociation() == vtkm::cont::Field::ASSOC_POINTS;
   std::string output_name;
-  if(is_assoc_points)
+  if(!is_assoc_points)
   {
     output_name = field_name;    
     output_field = dataset.GetField(field_name);
   }
   else
   {
+    ROVER_INFO("Re-centering point associated field "<<field_name);
     vtkm::filter::ResultField result; 
     vtkm::filter::CellAverage cell_average;
     cell_average.SetOutputFieldName("test_ave");
     result = cell_average.Execute( dataset, dataset.GetField(field_name));
     vtkm::cont::ArrayHandle<OutType> out_array;
+    out_array.Allocate(dataset.GetCellSet().GetNumberOfCells());
     bool valid = result.FieldAs(out_array);
+    if(valid) std::cout<<"VALID\n";
+    if(!valid) std::cout<<"InVALID\n";
     output_name = field_name + "_cell"; 
     output_field = vtkm::cont::Field(  output_name,
                                        vtkm::cont::Field::ASSOC_CELL_SET,
@@ -61,7 +67,7 @@ struct FieldToMaterialFunctor
   {
     vtkm::Id field_size = array.GetPortalConstControl().GetNumberOfValues();
     m_output_array->Allocate( m_bins * field_size );
-    
+    ROVER_INFO("Creating absorption field of size "<<field_size<<" num bins "<<m_bins);
     vtkm::Float32 inv_diff = m_range.Min;
     if(m_range.Max - m_range.Min != 0.f)
       inv_diff = 1.f / (m_range.Max - m_range.Min);
@@ -97,9 +103,9 @@ add_absorption_field(vtkm::cont::DataSet &dataset,
   //
   //  Make sure the field is cell associated
   //
-  vtkm::cont::Field mapping_field;
-  get_cell_assoc_field(dataset, mapping_field_name, mapping_field, field_type);
-  vtkm::cont::ArrayHandle<vtkm::Range> range_array = mapping_field.GetRange(vtkm::cont::DeviceAdapterTagSerial());
+  vtkm::cont::Field cell_field;
+  get_cell_assoc_field(dataset, mapping_field_name, cell_field, field_type);
+  vtkm::cont::ArrayHandle<vtkm::Range> range_array = cell_field.GetRange(vtkm::cont::DeviceAdapterTagSerial());
   assert(range_array.GetPortalControl().GetNumberOfValues() == 1);
   vtkm::Range scalar_range = range_array.GetPortalControl().Get(0);
   
@@ -127,8 +133,7 @@ add_absorption_field(vtkm::cont::DataSet &dataset,
   //
   try
   {
-    dataset.GetField(mapping_field_name).
-      GetData().ResetTypeList( vtkm::TypeListTagFieldScalar() ).CastAndCall(matFunctor);
+      cell_field.GetData().ResetTypeList( vtkm::TypeListTagFieldScalar() ).CastAndCall(matFunctor);
   }
   catch (vtkm::cont::Error error)
   {

@@ -93,7 +93,7 @@ Scheduler<FloatType>::get_color_buffer()
     throw RoverException("cannot call get_color_buffer while using energy mode");
   }
   
-  return get_vtkm_ptr(m_result_handle);
+  return get_vtkm_ptr(m_result_buffer.Buffer);
 }
 
 //
@@ -108,16 +108,19 @@ Scheduler<FloatType>::trace_rays()
   vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
   m_engine->trace(rays);
 
+  m_pixel_ids = rays.PixelIdx;
+
   if(m_render_settings.m_render_mode == energy)
   {
-    std::cout<<"engergy not implemented\n";
+    m_result_buffer = rays.Buffers.at(0);
+    assert(m_result_buffer.GetNumChannels() > 0);
   }
   else
   {
     // TODO: add some conversion to uchar probably withing the "channel buffer"
     assert(rays.Buffers.at(0).GetNumChannels() == 4); 
-    int buffer_size = m_ray_generator->get_size();
-    m_result_handle = rays.Buffers.at(0).ExpandBuffer(rays.PixelIdx, buffer_size).Buffer;
+    m_result_buffer = rays.Buffers.at(0);
+
     /*
     int height = 0;
     int width = 0;
@@ -131,19 +134,45 @@ Scheduler<FloatType>::trace_rays()
 }
 
 template<typename FloatType>
-void Scheduler<FloatType>::save_result(std::string file_name) const
+void Scheduler<FloatType>::save_result(std::string file_name) 
 {
   int height = 0;
   int width = 0;
+  int buffer_size = m_ray_generator->get_size();
   m_ray_generator->get_dims(height, width);
   assert( height > 0 );
   assert( width > 0 );
   ROVER_INFO("Saving file " << height << " "<<width);
   PNGEncoder encoder;
-  FloatType * buffer = get_vtkm_ptr(m_result_handle);
 
-  encoder.Encode(buffer, width, height);
-  encoder.Save(file_name);
+  if(m_render_settings.m_render_mode == energy)
+  {
+    const int num_channels = m_result_buffer.GetNumChannels();
+    ROVER_INFO("Saving "<<num_channels<<" channels ");
+    for(int i = 0; i < num_channels; ++i)
+    {
+      std::stringstream sstream;
+      sstream<<file_name<<"_"<<i<<".png";
+      vtkmRayTracing::ChannelBuffer<FloatType> channel = m_result_buffer.GetChannel( i );
+      bool invert = true;
+      channel.Normalize(invert);
+
+      FloatType * buffer 
+        = get_vtkm_ptr(channel.ExpandBuffer(m_pixel_ids, buffer_size).Buffer);
+      encoder.EncodeChannel(buffer, width, height);
+      encoder.Save(sstream.str());
+    }
+  }
+  else
+  {
+      
+    FloatType * buffer 
+      = get_vtkm_ptr(m_result_buffer.ExpandBuffer(m_pixel_ids, buffer_size).Buffer);
+    
+    assert(m_result_buffer.GetNumChannels() == 4);
+    encoder.Encode(buffer, width, height);
+    encoder.Save(file_name + ".png");
+  }
   
 }
 
