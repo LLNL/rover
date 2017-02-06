@@ -22,9 +22,10 @@ public:
   void init();
   void finalize();
 
-  void set_data_set(vtkmDataSet &);
+  void add_data_set(vtkmDataSet &);
   void set_render_settings(const RenderSettings render_settings);
   void set_ray_generator(RayGenerator<FloatType> *);
+  void clear_data_sets();
   void execute();
   void about();
   void save_png(const std::string &file_name);

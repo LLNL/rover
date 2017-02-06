@@ -12,7 +12,10 @@ configure_file(test_config.h.in "${CMAKE_CURRENT_SOURCE_DIR}/test_config.h" @ONL
 set(BASIC_TESTS t_rover_smoke
                 t_rover_volume_hex_32
                 t_rover_volume_hex_64
-                t_rover_energy_hex_32)
+                t_rover_energy_hex_32
+                t_rover_energy_hex_64
+                t_rover_energy_zoo_32
+                t_rover_volume_zoo_32)
 
 message(STATUS "Adding rover unit tests")
 foreach(TEST ${BASIC_TESTS})

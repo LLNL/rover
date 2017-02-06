@@ -22,12 +22,12 @@ TEST(rover_hex, test_call)
   vtkmCamera camera;
   vtkmDataSet dataset;
   set_up_lulesh(dataset, camera);
-  const int num_bins = 10;
+  const int num_bins = 10; 
   add_absorption_field(dataset, "speed", num_bins, vtkm::Float32());
 
-  CameraGenerator32 generator(camera,
+  CameraGenerator64 generator(camera,
                               dataset.GetCoordinateSystem() );
-  Rover32 driver32;
+  Rover64 driver64;
   //
   // Create some basic setting and color table
   //
@@ -35,11 +35,11 @@ TEST(rover_hex, test_call)
   settings.m_primary_field = "absorption";
   settings.m_render_mode = rover::energy;
 
-  driver32.set_render_settings(settings);
-  driver32.set_data_set(dataset);
-  driver32.set_ray_generator(&generator);
-  driver32.execute();
-  driver32.save_png("hex32");
+  driver64.set_render_settings(settings);
+  driver64.set_data_set(dataset);
+  driver64.set_ray_generator(&generator);
+  driver64.execute();
+  driver64.save_png("hex64");
 
   }
   catch ( const RoverException &e )

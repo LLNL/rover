@@ -5,13 +5,11 @@
 *******************************************************************************/
 
 #include <gtest/gtest.h>
-#include "test_config.h"
-#include "vtkm_utils.hpp"
 #include <iostream>
+#include "test_utils.hpp"
 #include <rover.hpp>
 #include <rover_exceptions.hpp>
 #include <ray_generators/camera_generator.hpp>
-#include <utils/vtk_dataset_reader.hpp>
 
 using namespace rover;
 
@@ -20,29 +18,10 @@ TEST(rover_hex, test_call)
 {
 
   try {
-  VTKReader reader;
-  std::string data_dir(DATA_DIR);
-  std::string file("luleshSpeed.vtk");
-  std::string file_name = data_dir + file;
-  std::cout<<"Reading file "<<file_name<<"\n";
-  reader.read_file(file_name);
-  vtkmDataSet dataset = reader.get_data_set();
- 
-  dataset.PrintSummary(std::cout); 
   vtkmCamera camera;
-  typedef vtkm::Vec<vtkm::Float32,3> Vec3f;
+  vtkmDataSet dataset;
+  set_up_lulesh(dataset, camera);
 
-  Vec3f position(-2.5f, -2.5f, -2.5f); 
-  Vec3f up(1.f, 0.f, 0.f); 
-  Vec3f look_at(.5f, .5f, .5f);
-  const int image_width = 500;
-  const int image_height = 500;
-    
-  camera.SetHeight(image_height);
-  camera.SetWidth(image_width);
-  camera.SetLookAt(look_at);
-  camera.SetPosition(position);
-  camera.SetUp(up);
   CameraGenerator64 generator(camera,
                               dataset.GetCoordinateSystem() );
   Rover64 driver64;
@@ -61,7 +40,7 @@ TEST(rover_hex, test_call)
   driver64.set_data_set(dataset);
   driver64.set_ray_generator(&generator);
   driver64.execute();
-  driver64.save_png("volume_hex_64.png");
+  driver64.save_png("volume_hex_64");
 
   }
   catch ( const RoverException &e )

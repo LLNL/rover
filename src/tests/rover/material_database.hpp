@@ -50,7 +50,7 @@ struct Element
     return *this;
   }
 
-  void PrintSelf()
+  void PrintSelf() const
   {
     printf("Element: %s\n", symbol.c_str());
     printf("   Atomic number: %d\n", atomic_number);
@@ -291,6 +291,7 @@ MaterialDatabase::get_elements(const std::vector<std::string> &symbols,
     element_count++; 
     Element elem = it->second;
     
+    std::cout<<"\nElem : "<<i<<"\n";
     for(int j = 0; j < num_bins; ++j)
     {
       double position = minMeV + (double)j * seg;
@@ -300,6 +301,7 @@ MaterialDatabase::get_elements(const std::vector<std::string> &symbols,
       // and will be multiplied by distance (cm)
       // to obtain the actual extinction coeff
       value = value / elem.density;
+      std::cout<<" "<<value;
       absorption.GetPortalControl().Set( i * num_bins + j,value);
     }
 

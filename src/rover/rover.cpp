@@ -24,9 +24,9 @@ public:
 #endif
   }
 
-  void set_data_set(vtkmDataSet &dataset)
+  void add_data_set(vtkmDataSet &dataset)
   {
-    m_scheduler->set_data_set(dataset);
+    m_scheduler->add_data_set(dataset);
   }
 
   void set_render_settings(RenderSettings render_settings)
@@ -53,6 +53,11 @@ public:
   void set_ray_generator(RayGenerator<FloatType> *ray_generator)
   {
     m_scheduler->set_ray_generator(ray_generator); 
+  }
+
+  void clear_data_sets()
+  {
+    m_scheduler->clear_data_sets(); 
   }
 
   ~InternalsType()
@@ -101,9 +106,9 @@ Rover<FloatType>::finalize()
 
 template<typename FloatType>
 void
-Rover<FloatType>::set_data_set(vtkmDataSet &dataset)
+Rover<FloatType>::add_data_set(vtkmDataSet &dataset)
 {
-  m_internals->set_data_set(dataset); 
+  m_internals->add_data_set(dataset); 
 }
 
 template<typename FloatType>
@@ -111,6 +116,13 @@ void
 Rover<FloatType>::set_render_settings(RenderSettings render_settings)
 {
   m_internals->set_render_settings(render_settings);
+}
+
+template<typename FloatType>
+void
+Rover<FloatType>::clear_data_sets()
+{
+  m_internals->clear_data_sets();
 }
 
 template<typename FloatType>

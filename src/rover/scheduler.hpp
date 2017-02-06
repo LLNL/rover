@@ -26,11 +26,12 @@ public:
   virtual ~Scheduler();
   virtual void trace_rays();
   void save_result(std::string file_name);
+  void clear_data_sets();
   //
   // Setters
   //
   virtual void set_render_settings(const RenderSettings render_settings);
-  virtual void set_data_set(vtkmDataSet &data_set);
+  virtual void add_data_set(vtkmDataSet &data_set);
   virtual void set_ray_generator(RayGenerator<FloatType> *ray_generator);
   //
   // Getters

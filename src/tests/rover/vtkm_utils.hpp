@@ -116,8 +116,8 @@ add_absorption_field(vtkm::cont::DataSet &dataset,
   std::vector<std::string> mat_names;
   mat_names.push_back("O");
   mat_names.push_back("N");
-  mat_names.push_back("Ti");
   mat_names.push_back("C");
+  mat_names.push_back("Ti");
   vtkm::cont::ArrayHandle<FieldType> mat_lookup;
   int num_elements;
   db_reader.get_elements(mat_names, num_bins, mat_lookup, num_elements);

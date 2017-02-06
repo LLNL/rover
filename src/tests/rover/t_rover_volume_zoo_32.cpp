@@ -21,9 +21,7 @@ TEST(rover_hex, test_call)
   try {
   vtkmCamera camera;
   vtkmDataSet dataset;
-  set_up_lulesh(dataset, camera);
-  const int num_bins = 10;
-  add_absorption_field(dataset, "speed", num_bins, vtkm::Float32());
+  set_up_zoo(dataset, camera);
 
   CameraGenerator32 generator(camera,
                               dataset.GetCoordinateSystem() );
@@ -32,26 +30,32 @@ TEST(rover_hex, test_call)
   // Create some basic setting and color table
   //
   RenderSettings settings;
-  settings.m_primary_field = "absorption";
-  settings.m_render_mode = rover::energy;
+  settings.m_primary_field = "var_point";
+  
+  vtkmColorTable color_table("cool2warm");
+  color_table.AddAlphaControlPoint(0.0, .02);
+  color_table.AddAlphaControlPoint(0.5, .05);
+  color_table.AddAlphaControlPoint(1.0, .02);
+  settings.m_color_table = color_table;
 
   driver32.set_render_settings(settings);
   driver32.set_data_set(dataset);
   driver32.set_ray_generator(&generator);
   driver32.execute();
-  driver32.save_png("hex32");
+  driver32.save_png("volume_zoo_32");
 
   }
   catch ( const RoverException &e )
   {
     std::cout<<e.what();
+    ASSERT_EQ("rover_exception", "it_happened");
   }
   catch (vtkm::cont::Error error)
   {
     std::cout<<"VTKM exception "<<error.GetMessage()<<"\n";
+
+    ASSERT_EQ("vtkm_exception", "it_happened");
   }
   
-  //Rover64 driver64;
-  //driver64.about();
 }
 
