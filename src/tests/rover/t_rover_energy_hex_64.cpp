@@ -36,7 +36,7 @@ TEST(rover_hex, test_call)
   settings.m_render_mode = rover::energy;
 
   driver64.set_render_settings(settings);
-  driver64.set_data_set(dataset);
+  driver64.add_data_set(dataset);
   driver64.set_ray_generator(&generator);
   driver64.execute();
   driver64.save_png("hex64");

@@ -8,6 +8,7 @@ add_subdirectory(../thirdparty_builtin/lodepng/ ${CMAKE_CURRENT_SOURCE_DIR}/util
 
 set(rover_headers
     compositor.hpp
+    domain.hpp
     rover_exports.h
     rover_exceptions.hpp
     rover_types.hpp
@@ -28,6 +29,7 @@ set(rover_headers
    )
 
 set(rover_sources
+    domain.cpp
     rover.cpp
     scheduler.cpp
     # engines

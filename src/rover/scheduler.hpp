@@ -1,5 +1,7 @@
 #ifndef rover_scheduler_h
 #define rover_scheduler_h
+
+#include <domain.hpp>
 #include <engine.hpp>
 #include <rover_types.hpp>
 #include <ray_generators/ray_generator.hpp>
@@ -38,16 +40,14 @@ public:
   //
 
   RenderSettings get_render_settings() const;
-  vtkmDataSet    get_data_set() const;
+  vtkmDataSet    get_data_set(const int &domain);
   FloatType *    get_color_buffer();
 protected:
-  Engine                              *m_engine;
-  vtkmDataSet                          m_data_set;
-  RenderSettings                       m_render_settings;
-  RayGenerator<FloatType>             *m_ray_generator;
-
-  vtkmRayTracing::ChannelBuffer<FloatType>   m_result_buffer;
-  vtkm::cont::ArrayHandle<vtkm::Id>          m_pixel_ids;
+  std::vector<Domain>                       m_domains;
+  PartialComposite<FloatType>               m_result;
+  std::vector<PartialComposite<FloatType>>  m_partial_composites;
+  RenderSettings                            m_render_settings;
+  RayGenerator<FloatType>                  *m_ray_generator;
 private:
 
 };
