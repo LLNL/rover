@@ -98,6 +98,7 @@ Scheduler<FloatType>::trace_rays()
     {
       // TODO: add some conversion to uchar probably withing the "channel buffer"
       assert(rays.Buffers.at(0).GetNumChannels() == 4); 
+
       partial_comp.m_buffer = rays.Buffers.at(0);
 
       /*
