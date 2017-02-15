@@ -172,11 +172,12 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   #pragma omp parallel for shared(total_unique_pixels, unique_flags) reduction(+:total_unique_pixels)
   for(int i = 0; i < total_partial_comps; ++i)
   {
-    total_segments += unique_flags[i];
+    total_unique_pixels += unique_flags[i];
   }
 
   ROVER_INFO("Total pixels that need compositing"<<total_segments<<" total partials "<<total_partial_comps);
-  
+  ROVER_INFO("Total unique pixels "<<total_unique_pixels);
+
   if(total_segments ==  0)
   {
     //nothing to do
