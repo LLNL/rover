@@ -70,8 +70,10 @@ struct RenderSettings
 };
 
 template<typename FloatType>
-struct PartialComposite
+struct PartialImage
 {
+  int                                      m_height;
+  int                                      m_width;
   IdHandle                                 m_pixel_ids;
   vtkmRayTracing::ChannelBuffer<FloatType> m_buffer;
   vtkm::cont::ArrayHandle<FloatType>       m_distances;

@@ -67,7 +67,7 @@ Scheduler<FloatType>::get_color_buffer()
     throw RoverException("cannot call get_color_buffer while using energy mode");
   }
   ROVER_ERROR("This should not be called"); 
-  return get_vtkm_ptr(m_partial_composites.at(100).m_buffer.Buffer);
+  return get_vtkm_ptr(m_partial_images.at(100).m_buffer.Buffer);
 }
 
 //
@@ -81,25 +81,32 @@ Scheduler<FloatType>::trace_rays()
   ROVER_INFO("Tracing rays");
   vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
 
+  int height = 0;
+  int width = 0;
+  m_ray_generator->get_dims(height, width);
+
   const int num_domains = static_cast<int>(m_domains.size());
   for(int i = 0; i < num_domains; ++i)
   {
     ROVER_INFO("Tracing domain "<<i);
     m_domains[i].trace(rays);
-    PartialComposite<FloatType> partial_comp;
-    partial_comp.m_pixel_ids = rays.PixelIdx;
+
+    PartialImage<FloatType> partial_image;
+    partial_image.m_pixel_ids = rays.PixelIdx;
+    partial_image.m_width = width;
+    partial_image.m_height = height;
 
     if(m_render_settings.m_render_mode == energy)
     {
-      partial_comp.m_buffer = rays.Buffers.at(0);
-      assert(partial_comp.m_buffer.GetNumChannels() > 0);
+      partial_image.m_buffer = rays.Buffers.at(0);
+      assert(partial_image.m_buffer.GetNumChannels() > 0);
     }
     else
     {
       // TODO: add some conversion to uchar probably withing the "channel buffer"
       assert(rays.Buffers.at(0).GetNumChannels() == 4); 
 
-      partial_comp.m_buffer = rays.Buffers.at(0);
+      partial_image.m_buffer = rays.Buffers.at(0);
 
       /*
       int height = 0;
@@ -111,23 +118,24 @@ Scheduler<FloatType>::trace_rays()
       canvas.SaveAs("test.pnm"); 
       */
     }
-    m_partial_composites.push_back(partial_comp);
+    m_partial_images.push_back(partial_image);
   }// for each domain
 
   if(num_domains > 1)
   {
     ROVER_ERROR("compositing not implemented");
     //TODO: composite
+     
   }
   else if(num_domains == 1)
   {
-    m_result = m_partial_composites[0];
+    m_result = m_partial_images[0];
   }
   else 
   {
     ROVER_ERROR("Invalid number of domains: "<<num_domains);
   }
-  m_partial_composites.clear();
+  m_partial_images.clear();
 }
 
 template<typename FloatType>

@@ -44,8 +44,8 @@ public:
   FloatType *    get_color_buffer();
 protected:
   std::vector<Domain>                       m_domains;
-  PartialComposite<FloatType>               m_result;
-  std::vector<PartialComposite<FloatType>>  m_partial_composites;
+  PartialImage<FloatType>                   m_result;
+  std::vector<PartialImage<FloatType>>  m_partial_images;
   RenderSettings                            m_render_settings;
   RayGenerator<FloatType>                  *m_ray_generator;
 private:

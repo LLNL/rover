@@ -4,14 +4,28 @@
 #include <vector>
 
 namespace rover {
-  
+ 
+
+
 template<typename Precision>
 struct PartialComposite
 {
   int                    m_pixel_id;
   Precision              m_depth; 
   std::vector<Precision> m_channels;
+  bool operator > (const PartialComposite &other)
+  {
+    if(m_pixel_id != other.m_pixel_id) 
+    {
+      return m_pixel_id > other.m_pixel_id;
+    }
+    else
+    {
+      return m_depth > other.m_depth;
+    }
+  }
 };
+
 
 //
 // Ideas for sorting:
