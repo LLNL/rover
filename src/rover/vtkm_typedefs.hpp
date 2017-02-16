@@ -9,6 +9,7 @@
 
 namespace rover {
 namespace vtkmRayTracing = vtkm::rendering::raytracing;
+typedef vtkm::Range                                           vtkmRange;
 typedef vtkm::cont::DataSet                                   vtkmDataSet;
 typedef vtkm::cont::CoordinateSystem                          vtkmCoordinates;
 typedef vtkm::rendering::raytracing::Ray<vtkm::Float32>       Ray32;

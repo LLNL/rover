@@ -25,8 +25,7 @@ TEST(rover_hex, test_call)
   const int num_bins = 10;
   add_absorption_field(dataset, "speed", num_bins, vtkm::Float32());
 
-  CameraGenerator32 generator(camera,
-                              dataset.GetCoordinateSystem() );
+  CameraGenerator32 generator(camera);
   Rover32 driver32;
   //
   // Create some basic setting and color table

@@ -43,6 +43,7 @@ public:
   vtkmDataSet    get_data_set(const int &domain);
   FloatType *    get_color_buffer();
 protected:
+  void set_global_scalar_range();
   std::vector<Domain>                       m_domains;
   PartialImage<FloatType>                   m_result;
   std::vector<PartialImage<FloatType>>  m_partial_images;

@@ -34,8 +34,23 @@ EnergyEngine::set_data_set(vtkm::cont::DataSet &dataset)
   ROVER_INFO("Energy Engine settting data set");
   m_tracer = new vtkm::rendering::ConnectivityProxy(dataset);
   m_data_set = dataset;
+  m_tracer->SetScalarField(this->m_primary_field);
 }
 
+
+void 
+EnergyEngine::set_primary_field(const std::string &primary_field)
+{
+  m_primary_field = primary_field;
+  if(m_tracer == NULL)
+  {
+    return;
+  }
+  else
+  {
+    m_tracer->SetScalarField(this->m_primary_field);
+  }
+}
 
 void 
 EnergyEngine::trace(Ray32 &rays)
@@ -58,7 +73,6 @@ EnergyEngine::trace(Ray32 &rays)
   rays.Buffers.at(0).InitConst(1.);
 
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
-  m_tracer->SetScalarField(this->m_primary_field);
   m_tracer->SetColorMap(m_color_map);
   m_tracer->Trace(rays);
 
@@ -85,7 +99,6 @@ EnergyEngine::trace(Ray64 &rays)
   rays.Buffers.at(0).InitConst(1.);
 
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
-  m_tracer->SetScalarField(this->m_primary_field);
   m_tracer->SetColorMap(m_color_map);
   m_tracer->Trace(rays);
 }
@@ -113,6 +126,18 @@ EnergyEngine::detect_num_bins()
   vtkm::Id num_bins = absorption_size / num_cells;
   ROVER_INFO("Dectected "<<num_bins<<" bins ");
   return static_cast<int>(num_bins);
+}
+
+vtkmRange
+EnergyEngine::get_primary_range()
+{
+  return m_tracer->GetScalarRange();
+}
+
+void
+EnergyEngine::set_primary_range(const vtkmRange &range)
+{
+  return m_tracer->SetScalarRange(range);
 }
 
 }; //namespace rover

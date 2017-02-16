@@ -18,8 +18,23 @@ VolumeEngine::set_data_set(vtkm::cont::DataSet &dataset)
 {
   if(m_tracer) delete m_tracer;
   m_tracer = new vtkm::rendering::ConnectivityProxy(dataset);
+  m_tracer->SetScalarField(this->m_primary_field);
 }
 
+
+void 
+VolumeEngine::set_primary_field(const std::string &primary_field)
+{
+  m_primary_field = primary_field;
+  if(m_tracer == NULL)
+  {
+    return;
+  }
+  else
+  {
+    m_tracer->SetScalarField(this->m_primary_field);
+  }
+}
 
 void 
 VolumeEngine::trace(Ray32 &rays)
@@ -35,7 +50,6 @@ VolumeEngine::trace(Ray32 &rays)
   }
   ROVER_INFO("tracing  rays");
   rays.Buffers.at(0).InitConst(0.);
-  m_tracer->SetScalarField(this->m_primary_field);
   m_tracer->SetColorMap(m_color_map);
   m_tracer->Trace(rays);
 
@@ -56,9 +70,20 @@ VolumeEngine::trace(Ray64 &rays)
 
   ROVER_INFO("tracing  rays");
   rays.Buffers.at(0).InitConst(0.);
-  m_tracer->SetScalarField(this->m_primary_field);
   m_tracer->SetColorMap(m_color_map);
   m_tracer->Trace(rays);
+}
+
+vtkmRange
+VolumeEngine::get_primary_range()
+{
+  return m_tracer->GetScalarRange();
+}
+
+void
+VolumeEngine::set_primary_range(const vtkmRange &range)
+{
+  return m_tracer->SetScalarRange(range);
 }
 
 }; //namespace rover

@@ -20,13 +20,12 @@ protected:
 };
 
 
-#define ROVER_INFO(msg) rover::Logger::get_instance()->get_stream() <<"<Info>" \
-  msg << " " <<__FILE__<<"  "<<__LINE__<<std::endl;
-#define ROVER_WARN(msg) rover::Logger::get_instance()->get_stream() <<"<Warn>" \
-  msg << " " <<__FILE__<<"  "<<__LINE__<<std::endl;
-#define ROVER_ERROR(msg) rover::Logger::get_instance()->get_stream() <<"<Error>" \
-  msg << " " <<__FILE__<<"  "<<__LINE__<<std::endl;
-
+#define ROVER_INFO(msg) rover::Logger::get_instance()->get_stream() <<"<Info>\n" \
+  <<"  message: "<< msg <<"\n  file: " <<__FILE__<<"\n  line:  "<<__LINE__<<std::endl;
+#define ROVER_WARN(msg) rover::Logger::get_instance()->get_stream() <<"<Warn>\n" \
+  <<"  message: "<< msg <<"\n  file: " <<__FILE__<<"\n  line:  "<<__LINE__<<std::endl;
+#define ROVER_ERROR(msg) rover::Logger::get_instance()->get_stream() <<"<Error>\n" \
+  <<"  message: "<< msg <<"\n  file: " <<__FILE__<<"\n  line:  "<<__LINE__<<std::endl;
 
 } // namespace rover
 

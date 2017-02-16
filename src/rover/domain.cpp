@@ -28,7 +28,7 @@ Domain::set_render_settings(const RenderSettings &settings)
   }
   else if(m_render_mode != energy && settings.m_render_mode == energy)
   {
-    m_engine =  std::make_shared<EnergyEngine>();
+    m_engine = std::make_shared<EnergyEngine>();
   }
   else if(m_render_mode != surface && settings.m_render_mode == surface)
   {
@@ -42,7 +42,8 @@ Domain::set_render_settings(const RenderSettings &settings)
 
   m_render_mode = settings.m_render_mode; 
 
-    ROVER_INFO("Primary field "<<settings.m_primary_field);
+  ROVER_INFO("Primary field " << settings.m_primary_field);
+
   m_engine->set_primary_field(settings.m_primary_field);
   m_engine->set_secondary_field(settings.m_secondary_field);
   m_engine->set_color_table(settings.m_color_table);
@@ -54,6 +55,7 @@ void
 Domain::set_data_set(vtkmDataSet &dataset)
 {
   m_engine->set_data_set(dataset);
+  m_data_set = dataset;
 }
 
 vtkmDataSet
@@ -73,4 +75,17 @@ Domain::trace(Ray64 &rays)
 {
   m_engine->trace(rays);
 }
+
+void 
+Domain::set_primary_range(const vtkmRange &range)
+{
+  m_engine->set_primary_range(range);
+}
+
+vtkmRange
+Domain::get_primary_range()
+{
+  return m_engine->get_primary_range();
+}
+
 } // namespace rover 

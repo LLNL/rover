@@ -21,15 +21,15 @@ struct VolumeCompositor::PartialComposite
     m_pixel[2] = 0;
   }
 
-  bool operator > (const PartialComposite &other)
+  bool operator < (const PartialComposite &other) const
   {
     if(m_pixel_id != other.m_pixel_id) 
     {
-      return m_pixel_id > other.m_pixel_id;
+      return m_pixel_id < other.m_pixel_id;
     }
     else
     {
-      return m_depth > other.m_depth;
+      return m_depth < other.m_depth;
     }
   }
 };
@@ -54,7 +54,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 
   for(int i = 0; i < num_partial_images; ++i)
   {
-    assert(partial_images[i].m_buffer.GetNumChannels == 4);
+    assert(partial_images[i].m_buffer.GetNumChannels() == 4);
     offsets[i] = total_partial_comps;
     total_partial_comps += partial_images[i].m_buffer.GetSize();
   }
@@ -66,27 +66,31 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 
   for(int i = 0; i < num_partial_images; ++i)
   {
-    
+    int pixel_min = 100000000;
+    int pixel_max = -1;
     const int image_size = partial_images[i].m_buffer.GetSize();
     #pragma omp parallel for
     for(int j = 0; j < image_size; ++j)
     {
       int index = offsets[i] + j;
-      partials[i].m_pixel_id = static_cast<int>(partial_images[i].m_pixel_id.GetPortalConstControl().Get(j));
-      partials[i].m_depth = static_cast<float>(partial_images[i].m_distances.GetPortalConstControl().Get(j));
-      partials[i].m_pixel[0] = static_cast<unsigned char>(partial_images[i].
-                                m_buffer.Buffer.GetPortalConstControl().Get(j*4+0) * 255);
+      partials[index].m_pixel_id = static_cast<int>(partial_images[i].m_pixel_ids.GetPortalConstControl().Get(j));
+      partials[index].m_depth = static_cast<float>(partial_images[i].m_distances.GetPortalConstControl().Get(j));
+      partials[index].m_pixel[0] = static_cast<unsigned char>(partial_images[i].
+                                  m_buffer.Buffer.GetPortalConstControl().Get(j*4+0) * 255);
 
-      partials[i].m_pixel[1] = static_cast<unsigned char>(partial_images[i].
-                                m_buffer.Buffer.GetPortalConstControl().Get(j*4+1) * 255);
+      partials[index].m_pixel[1] = static_cast<unsigned char>(partial_images[i].
+                                  m_buffer.Buffer.GetPortalConstControl().Get(j*4+1) * 255);
 
-      partials[i].m_pixel[2] = static_cast<unsigned char>(partial_images[i].
-                                m_buffer.Buffer.GetPortalConstControl().Get(j*4+2) * 255);
+      partials[index].m_pixel[2] = static_cast<unsigned char>(partial_images[i].
+                                  m_buffer.Buffer.GetPortalConstControl().Get(j*4+2) * 255);
 
-      partials[i].m_alpha = static_cast<float>(partial_images[i].
-                                m_buffer.Buffer.GetPortalConstControl().Get(j*4+3));
+      partials[index].m_alpha = static_cast<float>(partial_images[i].
+                                  m_buffer.Buffer.GetPortalConstControl().Get(j*4+3));
 
+      pixel_min = std::min(partials[index].m_pixel_id, pixel_min);
+      pixel_max = std::max(partials[index].m_pixel_id, pixel_max);
     }
+    std::cout<<"Domain "<<i<<" pixel range : "<<pixel_min<<" - "<<pixel_max<<"\n";
   }
   delete[] offsets;
 
@@ -255,36 +259,47 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
       next = partials[current_index];
     }
     result.m_alpha = fmaxf(1.f, result.m_alpha);
+    //std::cout<<" Color ("<<(int)result.m_pixel[0]<<" "<<(int)result.m_pixel[1]<<" " <<(int)result.m_pixel[2]<< " " <<(int)result.m_alpha<<")"; 
+
     output_partials[total_unique_pixels + i] = result;
-
-
-
-    //
-    // pack the output back into a channel buffer
-    //
-    PartialImage<FloatType> output;
-    output.m_width = partial_images[0].m_width;
-    output.m_height= partial_images[0].m_height;
-    output.m_pixel_ids.Allocate(total_output_pixels);
-    output.m_distances.Allocate(total_output_pixels);
-    //default num channels is 4
-    output.m_buffer.Resize(total_output_pixels);
-    const FloatType inverse = 1.f / 255.f;
-    #pragma omp parallel for
-    for(int i = 0; i < total_output_pixels; ++i)
-    {
-      output.m_pixel_ids.GetPortalControl().Set(i, output_partials[i].m_pixel_id ); 
-      output.m_distances.GetPortalControl().Set(i, output_partials[i].m_depth ); 
-      const int starting_index = i * 4;
-      output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 0, static_cast<FloatType>(output_partials[i].m_pixel[0])*inverse);
-      output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(output_partials[i].m_pixel[1])*inverse);
-      output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(output_partials[i].m_pixel[2])*inverse);
-      output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(output_partials[i].m_alpha));
-    }
-
-    return output;
   }
 
+
+
+  //
+  // pack the output back into a channel buffer
+  //
+  PartialImage<FloatType> output;
+  output.m_width = partial_images[0].m_width;
+  output.m_height= partial_images[0].m_height;
+  output.m_pixel_ids.Allocate(total_output_pixels);
+  output.m_distances.Allocate(total_output_pixels);
+  //default num channels is 4
+  output.m_buffer.Resize(total_output_pixels);
+  const FloatType inverse = 1.f / 255.f;
+  #pragma omp parallel for
+  for(int i = 0; i < total_output_pixels; ++i)
+  {
+    output.m_pixel_ids.GetPortalControl().Set(i, output_partials[i].m_pixel_id ); 
+    output.m_distances.GetPortalControl().Set(i, output_partials[i].m_depth ); 
+    const int starting_index = i * 4;
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 0, static_cast<FloatType>(output_partials[i].m_pixel[0])*inverse);
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(output_partials[i].m_pixel[1])*inverse);
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(output_partials[i].m_pixel[2])*inverse);
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(output_partials[i].m_alpha));
+  }
+
+  return output;
+
+
 }
+//Explicit function instantiations
+template 
+PartialImage<vtkm::Float32> 
+VolumeCompositor::composite<vtkm::Float32>(std::vector<PartialImage<vtkm::Float32>> &);
+
+template 
+PartialImage<vtkm::Float64> 
+VolumeCompositor::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
 
 } // namespace rover

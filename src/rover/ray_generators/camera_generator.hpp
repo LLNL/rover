@@ -9,11 +9,12 @@ template<typename Precision>
 class CameraGenerator : public RayGenerator<Precision>
 {
 public:
-  CameraGenerator(const vtkmCamera &camera, vtkmCoordinates coordinates);
+  CameraGenerator(const vtkmCamera &camera);
   virtual ~CameraGenerator();
   virtual vtkmRayTracing::Ray<Precision> get_rays(); 
   vtkmCamera get_camera();
   vtkmCoordinates get_coordinates();
+  void set_coordinates(vtkmCoordinates coordinates);
 protected:
   CameraGenerator(); 
   vtkmCoordinates m_coordinates;

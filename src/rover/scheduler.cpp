@@ -1,3 +1,4 @@
+#include <compositing/compositor.hpp>
 #include <ray_generators/camera_generator.hpp>
 #include <scheduler.hpp>
 #include <vtkm_typedefs.hpp>
@@ -31,16 +32,49 @@ Scheduler<FloatType>::set_render_settings(const RenderSettings render_settings)
   // TODO: make copy constructor so the mesh stuctures are not rebuilt when moving from
   //       volume to energy and vice versa
   const int num_domains = static_cast<int>(m_domains.size());
-  for(int i = 0; i < num_domains; ++i) m_domains[i].set_render_settings(m_render_settings);
+  for(int i = 0; i < num_domains; ++i) 
+  {
+    m_domains[i].set_render_settings(m_render_settings);
+  }
+}
+
+template<typename FloatType>
+void
+Scheduler<FloatType>::set_global_scalar_range()
+{
+
+  const int num_domains = static_cast<int>(m_domains.size());
+  if(num_domains == 1)
+  {
+    // Nothing to do
+    return;
+  }
+  vtkmRange global_range;
+
+  for(int i = 0; i < num_domains; ++i) 
+  {
+    vtkmRange local_range = m_domains[i].get_primary_range();
+    global_range.Include(local_range);
+  }
+
+  ROVER_INFO("Global scalar range "<<global_range);
+
+  for(int i = 0; i < num_domains; ++i) 
+  {
+    m_domains[i].set_primary_range(global_range);
+  }
 }
 
 template<typename FloatType>
 void 
 Scheduler<FloatType>::add_data_set(vtkmDataSet &dataset)
 {
+  ROVER_INFO("Adding domain "<<m_domains.size());
   Domain domain;
   domain.set_render_settings(m_render_settings);
   domain.set_data_set(dataset);
+  dataset.PrintSummary(std::cout); 
+  domain.get_data_set().PrintSummary(std::cout); 
   m_domains.push_back(domain);
 }
 
@@ -77,22 +111,36 @@ template<typename FloatType>
 void 
 Scheduler<FloatType>::trace_rays()
 {
+
   // TODO while (m_geerator.has_rays())
   ROVER_INFO("Tracing rays");
-  vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
 
   int height = 0;
   int width = 0;
   m_ray_generator->get_dims(height, width);
+  
+  this->set_global_scalar_range();
 
   const int num_domains = static_cast<int>(m_domains.size());
   for(int i = 0; i < num_domains; ++i)
   {
+    if(dynamic_cast<CameraGenerator<FloatType>*>(m_ray_generator) != NULL)
+    {
+      //
+      // Setting the coordinate system miminizes the number of rays generated
+      //
+      CameraGenerator<FloatType> *generator = dynamic_cast<CameraGenerator<FloatType>*>(m_ray_generator);
+      m_domains[i].get_data_set().PrintSummary(std::cout);
+      generator->set_coordinates(m_domains[i].get_data_set().GetCoordinateSystem());
+    }
+    ROVER_INFO("Generating rays for domian "<<i);
+    vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
     ROVER_INFO("Tracing domain "<<i);
     m_domains[i].trace(rays);
 
     PartialImage<FloatType> partial_image;
     partial_image.m_pixel_ids = rays.PixelIdx;
+    partial_image.m_distances = rays.MinDistance;
     partial_image.m_width = width;
     partial_image.m_height = height;
 
@@ -123,9 +171,16 @@ Scheduler<FloatType>::trace_rays()
 
   if(num_domains > 1)
   {
-    ROVER_ERROR("compositing not implemented");
     //TODO: composite
-     
+    if(m_render_settings.m_render_mode == volume)
+    {
+      VolumeCompositor compositor;
+      m_result = compositor.composite(m_partial_images);
+    }
+    else
+    {
+      ROVER_ERROR("energy compositing not implemented");
+    }
   }
   else if(num_domains == 1)
   {

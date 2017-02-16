@@ -26,6 +26,7 @@ public:
 
   void add_data_set(vtkmDataSet &dataset)
   {
+    ROVER_INFO("Adding data set");
     m_scheduler->add_data_set(dataset);
   }
 

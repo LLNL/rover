@@ -22,8 +22,7 @@ TEST(rover_hex, test_call)
   vtkmDataSet dataset;
   set_up_lulesh(dataset, camera);
 
-  CameraGenerator64 generator(camera,
-                              dataset.GetCoordinateSystem() );
+  CameraGenerator64 generator(camera);
   Rover64 driver64;
   //
   // Create some basic setting and color table

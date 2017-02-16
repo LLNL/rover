@@ -13,11 +13,10 @@ public:
   virtual void set_data_set(vtkmDataSet &) = 0;
   virtual void trace(Ray32 &rays) = 0;
   virtual void trace(Ray64 &rays) = 0;
-  
-  void set_primary_field(const std::string &primary_field)
-  {
-    m_primary_field = primary_field;
-  }
+  virtual void set_primary_range(const vtkmRange &range) = 0;
+  virtual vtkmRange get_primary_range() = 0;
+
+  virtual void set_primary_field(const std::string &primary_field) = 0;
 
   void set_secondary_field(const std::string &secondary_field)
   {
