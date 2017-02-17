@@ -32,6 +32,16 @@ struct VolumeCompositor::PartialComposite
       return m_depth < other.m_depth;
     }
   }
+
+  inline void blend(const PartialComposite &other)
+  {
+
+    const float one_minus = 1.f - m_alpha;
+    m_pixel[0] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[0])); 
+    m_pixel[1] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[1])); 
+    m_pixel[2] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[2])); 
+    m_alpha += one_minus * other.m_alpha;
+  }
 };
 
 VolumeCompositor::VolumeCompositor()
@@ -57,6 +67,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
     assert(partial_images[i].m_buffer.GetNumChannels() == 4);
     offsets[i] = total_partial_comps;
     total_partial_comps += partial_images[i].m_buffer.GetSize();
+    ROVER_INFO("Domain : "<<i<<" with "<<partial_images[i].m_buffer.GetSize());
   }
 
   ROVER_INFO("Total number of partial composites "<<total_partial_comps);
@@ -179,7 +190,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
     total_unique_pixels += unique_flags[i];
   }
 
-  ROVER_INFO("Total pixels that need compositing"<<total_segments<<" total partials "<<total_partial_comps);
+  ROVER_INFO("Total pixels that need compositing "<<total_segments<<" total partials "<<total_partial_comps);
   ROVER_INFO("Total unique pixels "<<total_unique_pixels);
 
   if(total_segments ==  0)
@@ -223,13 +234,20 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   ROVER_INFO("Total output size "<<total_output_pixels);
   std::vector<PartialComposite> output_partials;
   output_partials.resize(total_output_pixels);
+  PartialComposite bg_color;
+  bg_color.m_pixel[0] = 255;
+  bg_color.m_pixel[1] = 255;
+  bg_color.m_pixel[2] = 255;
+  bg_color.m_alpha = 1.f;
   //
   // Gather the unique pixels into the output
   //
   #pragma omp parallel for 
   for(int i = 0; i < total_unique_pixels; ++i)
   {
-    output_partials[i] = partials[unique_ids[i]];
+    PartialComposite result = partials[unique_ids[i]];
+    result.blend(bg_color);
+    output_partials[i] = result;
   }
 
 
@@ -241,16 +259,16 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   {
     int current_index = pixel_work_ids[i];
     PartialComposite result = partials[current_index];
+    //std::cout<<"Compositing "<<result.m_pixel_id<<" ";
     ++current_index;
     PartialComposite next = partials[current_index];
+    //std::cout<<"("<<(int)result.m_pixel[0]<<" "<<(int)result.m_pixel[1]<<" " <<(int)result.m_pixel[2]<< " " <<result.m_alpha<<") "; 
     // TODO: we could just count the amount of work and make this a for loop(vectorize??)
     while(result.m_pixel_id == next.m_pixel_id)
     {
-      const float one_minus = 1.f - result.m_alpha;
-      result.m_pixel[0] = result.m_pixel[0] + static_cast<unsigned char>(one_minus * static_cast<float>(next.m_pixel[0])); 
-      result.m_pixel[1] = result.m_pixel[1] + static_cast<unsigned char>(one_minus * static_cast<float>(next.m_pixel[1])); 
-      result.m_pixel[2] = result.m_pixel[2] + static_cast<unsigned char>(one_minus * static_cast<float>(next.m_pixel[2])); 
-      result.m_alpha = one_minus * next.m_alpha;
+      //std::cout<<next.m_pixel_id<<" "<<next.m_depth<<" ";
+      result.blend(next);
+ //     std::cout<<"("<<(int)result.m_pixel[0]<<" "<<(int)result.m_pixel[1]<<" " <<(int)result.m_pixel[2]<< " " <<result.m_alpha<<") "; 
       if(current_index + 1 >= total_partial_comps || result.m_alpha >= 1.f) 
       {
         break;
@@ -258,9 +276,19 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
       ++current_index;
       next = partials[current_index];
     }
+//    std::cout<<"\n";
+    if(result.m_alpha < 1.f) result.blend(bg_color);
     result.m_alpha = fmaxf(1.f, result.m_alpha);
     //std::cout<<" Color ("<<(int)result.m_pixel[0]<<" "<<(int)result.m_pixel[1]<<" " <<(int)result.m_pixel[2]<< " " <<(int)result.m_alpha<<")"; 
+    if(result.m_pixel_id == 157174)
+    {
 
+      result.m_pixel[0] = 255; 
+      result.m_pixel[1] = 0; 
+      result.m_pixel[2] = 0; 
+
+      result.m_alpha = 1;
+    }
     output_partials[total_unique_pixels + i] = result;
   }
 
