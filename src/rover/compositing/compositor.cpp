@@ -100,6 +100,8 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 
       pixel_min = std::min(partials[index].m_pixel_id, pixel_min);
       pixel_max = std::max(partials[index].m_pixel_id, pixel_max);
+
+      if(partials[index].m_depth <  0.2) std::cout<<" "<<partials[index].m_depth<<" ("<<i<<")";
     }
     std::cout<<"Domain "<<i<<" pixel range : "<<pixel_min<<" - "<<pixel_max<<"\n";
   }

@@ -156,15 +156,6 @@ Scheduler<FloatType>::trace_rays()
 
       partial_image.m_buffer = rays.Buffers.at(0);
 
-      /*
-      int height = 0;
-      int width = 0;
-      m_ray_generator->get_dims(height, width);
-      vtkm::rendering::CanvasRayTracer canvas(width, height);
-      vtkm::rendering::Camera cam;
-      canvas.WriteToCanvas(rays, cam);
-      canvas.SaveAs("test.pnm"); 
-      */
     }
     m_partial_images.push_back(partial_image);
   }// for each domain
@@ -217,9 +208,12 @@ void Scheduler<FloatType>::save_result(std::string file_name)
       const bool invert = true;
       channel.Normalize(invert);
 
-      vtkmRayTracing::ChannelBuffer<FloatType>  expand = channel.ExpandBuffer(m_result.m_pixel_ids, buffer_size);
+      vtkmRayTracing::ChannelBuffer<FloatType>  expand 
+        = channel.ExpandBuffer(m_result.m_pixel_ids, buffer_size);
+
       FloatType * buffer 
         = get_vtkm_ptr(expand.Buffer);
+
       encoder.EncodeChannel(buffer, width, height);
       encoder.Save(sstream.str());
     }
@@ -227,7 +221,8 @@ void Scheduler<FloatType>::save_result(std::string file_name)
   else
   {
       
-    vtkmRayTracing::ChannelBuffer<FloatType>  expand = m_result.m_buffer.ExpandBuffer(m_result.m_pixel_ids, buffer_size);
+    vtkmRayTracing::ChannelBuffer<FloatType>  expand 
+      = m_result.m_buffer.ExpandBuffer(m_result.m_pixel_ids, buffer_size);
     FloatType * buffer 
       = get_vtkm_ptr(expand.Buffer);
     
