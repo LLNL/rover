@@ -1,7 +1,9 @@
 #include <utils/rover_logging.hpp>
 #include <compositing/compositor.hpp>
+#include <compositing/volume_redistribute.hpp>
 #include <algorithm>
 #include <assert.h>
+
 namespace rover {
 
 struct VolumeCompositor::PartialComposite
@@ -323,6 +325,15 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 
 
 }
+
+#ifdef PARALLEL
+void 
+VolumeCompositor::set_comm_handle(MPI_Comm comm_handle)
+{
+  m_comm_handle = comm_handle;
+}
+#endif
+
 //Explicit function instantiations
 template 
 PartialImage<vtkm::Float32> 

@@ -50,10 +50,6 @@ include(CMake/CMakeBasics.cmake)
 ####################################
 include(CMake/SetupTests.cmake)
 
-####################################
-# Setup the tests 
-####################################
-include(CMake/SetupIncludes.cmake)
 
 ####################################
 # Find CUDA 
@@ -71,6 +67,21 @@ if(ENABLE_CUDA)
 endif()
 
 
+####################################
+# Find MPI 
+####################################
+
+if(ENABLE_MPI)
+  include(FindMPI)
+  if(NOT MPI_FOUND)
+    message(FATAL_ERROR "Enable MPI is true, but MPI was not found")
+  endif()
+endif()
+
+####################################
+# Setup the project wide includes 
+####################################
+include(CMake/SetupIncludes.cmake)
 
 ####################################
 # set the cxx flags 

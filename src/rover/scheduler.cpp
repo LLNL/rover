@@ -56,6 +56,16 @@ Scheduler<FloatType>::set_global_scalar_range()
     vtkmRange local_range = m_domains[i].get_primary_range();
     global_range.Include(local_range);
   }
+#ifdef PARALLEL
+  double rank_min = global_range.Min;
+  double rank_max = global_range.Max;
+  double mpi_min;
+  double mpi_max;
+  MPI_Allreduce(&rank_min, &mpi_min, 1, MPI_DOUBLE, MPI_MIN, m_comm_handle);
+  MPI_Allreduce(&rank_max, &mpi_max, 1, MPI_DOUBLE, MPI_MAX, m_comm_handle);
+  global_range.Min = mpi_min;
+  global_range.Max = mpi_max;
+#endif
 
   ROVER_INFO("Global scalar range "<<global_range);
 
@@ -166,6 +176,9 @@ Scheduler<FloatType>::trace_rays()
     if(m_render_settings.m_render_mode == volume)
     {
       VolumeCompositor compositor;
+#ifdef PARALLEL
+      compositor.set_comm_handle(m_comm_handle);
+#endif
       m_result = compositor.composite(m_partial_images);
     }
     else
@@ -244,6 +257,14 @@ void Scheduler<FloatType>::clear_data_sets()
 {
   m_domains.clear();
 }
+
+#ifdef PARALLEL
+template<typename FloatType>
+void Scheduler<FloatType>::set_comm_handle(MPI_Comm comm_handle)
+{
+  m_comm_handle = comm_handle;
+}
+#endif
 //
 // Explicit instantiation
 template class Scheduler<vtkm::Float32>; template class Scheduler<vtkm::Float64>;

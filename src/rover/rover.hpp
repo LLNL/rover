@@ -10,6 +10,10 @@
 // std includes
 #include <memory>
 
+#ifdef PARALLEL
+#include <mpi.h>
+#endif
+
 namespace rover {
 
 template<typename FloatType>
@@ -18,8 +22,11 @@ class Rover
 public:
   Rover();
   ~Rover();
-
+#ifdef PARALLEL
+  void init(MPI_Comm comm_handle);
+#else
   void init();
+#endif
   void finalize();
 
   void add_data_set(vtkmDataSet &);

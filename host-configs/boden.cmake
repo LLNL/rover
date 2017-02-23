@@ -14,15 +14,15 @@
 # MPI Support
 set(ENABLE_MPI  ON CACHE PATH "")
 
-set(MPI_C_COMPILER  "/usr/local/tools/mvapich2-intel-2.0/bin/mpicc" CACHE PATH "")
+#set(MPI_C_COMPILER  "/usr/local/tools/mvapich2-intel-2.0/bin/mpicc" CACHE PATH "")
 
-set(MPI_CXX_COMPILER "/usr/local/tools/mvapich2-intel-2.0/bin/mpicc" CACHE PATH "")
+#set(MPI_CXX_COMPILER "/usr/local/tools/mvapich2-intel-2.0/bin/mpicc" CACHE PATH "")
 
-set(MPI_Fortran_COMPILER "/usr/local/tools/mvapich2-intel-2.0/bin/mpif90" CACHE PATH "")
+#set(MPI_Fortran_COMPILER "/usr/local/tools/mvapich2-intel-2.0/bin/mpif90" CACHE PATH "")
 
-set(MPIEXEC /usr/bin/srun CACHE PATH "")
+#set(MPIEXEC /usr/bin/srun CACHE PATH "")
 
-set(MPIEXEC_NUMPROC_FLAG -n CACHE PATH "")
+#set(MPIEXEC_NUMPROC_FLAG -n CACHE PATH "")
 
 
 

@@ -10,6 +10,11 @@ class Rover<FloatType>::InternalsType
 {
 protected:
   Scheduler<FloatType>      *m_scheduler;
+#ifdef PARALLEL
+  MPI_Comm                  m_comm_handle;
+  int                       m_rank;
+#endif
+
   void reset_render_mode(RenderMode render_mode)
   {
   }
@@ -17,11 +22,7 @@ protected:
 public: 
   InternalsType()
   {
-#ifdef PARALLEL
-    m_scheduler = new StaticScheduler<FloatType>();
-#else
     m_scheduler = new Scheduler<FloatType>();
-#endif
   }
 
   void add_data_set(vtkmDataSet &dataset)
@@ -34,7 +35,7 @@ public:
   {
     ROVER_INFO("set_render_settings");
     // TODO: make copy constructors to get the members like ray_generator
-#ifdef PARALLEL
+//#ifdef PARALLEL
     // logic to create the appropriate parallel scheduler
     //
     // ray tracing = dynamic scheduler, scattering | no_scattering
@@ -44,11 +45,12 @@ public:
     // Note: I wanted to allow for the case of scattering + global scope. This could 
     //       be benificial in the case where we may or may not scatter in a given 
     //       domain. Thus, avoid waiting for the ray to emerge or throw out the results
-#else
-      if(m_scheduler == NULL) delete m_scheduler;
-      m_scheduler = new Scheduler<FloatType>();
-      m_scheduler->set_render_settings(render_settings);
-#endif
+//#else
+     //if(render_settings compared to old means new schedular)
+     //if(m_scheduler == NULL) delete m_scheduler;
+     //m_scheduler = new Scheduler<FloatType>();
+     m_scheduler->set_render_settings(render_settings);
+//#endif
    }
 
   void set_ray_generator(RayGenerator<FloatType> *ray_generator)
@@ -73,8 +75,24 @@ public:
 
   void execute()
   {
+#ifdef PARALLEL
+    m_scheduler->set_comm_handle(m_comm_handle);
+#endif
     m_scheduler->trace_rays();
   }
+#ifdef PARALLEL
+  void set_comm_handle(MPI_Comm comm_handle)
+  {
+    m_comm_handle = comm_handle;
+    MPI_Comm_rank(m_comm_handle, &m_rank);
+    if(m_rank == 0)
+    {
+      int num_ranks = 0;
+      MPI_Comm_size(m_comm_handle, &num_ranks);
+      ROVER_INFO("MPI Comm size : "<<num_ranks);
+    }
+  }
+#endif
 
 }; //Internals Type
 
@@ -91,12 +109,21 @@ Rover<FloatType>::~Rover()
   
 }
 
+#ifdef PARALLEL
+template<typename FloatType>
+void
+Rover<FloatType>::init(MPI_Comm comm_handle)
+{
+  this->m_internals->set_comm_handle(comm_handle);
+}
+#else
 template<typename FloatType>
 void
 Rover<FloatType>::init()
 {
   // initialize
 }
+#endif
 
 template<typename FloatType>
 void

@@ -6,6 +6,10 @@
 #include <rover_types.hpp>
 #include <ray_generators/ray_generator.hpp>
 #include <vtkm_typedefs.hpp>
+
+#ifdef PARALLEL
+#include <mpi.h>
+#endif
 //
 // Scheduler types:
 //  static: all ranks gets all rays
@@ -35,6 +39,9 @@ public:
   virtual void set_render_settings(const RenderSettings render_settings);
   virtual void add_data_set(vtkmDataSet &data_set);
   virtual void set_ray_generator(RayGenerator<FloatType> *ray_generator);
+#ifdef PARALLEL
+  virtual void set_comm_handle(MPI_Comm comm_handle);
+#endif
   //
   // Getters
   //
@@ -49,6 +56,9 @@ protected:
   std::vector<PartialImage<FloatType>>  m_partial_images;
   RenderSettings                            m_render_settings;
   RayGenerator<FloatType>                  *m_ray_generator;
+#ifdef PARALLEL
+  MPI_Comm                                  m_comm_handle;
+#endif
 private:
 
 };

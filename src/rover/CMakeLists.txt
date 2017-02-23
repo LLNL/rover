@@ -68,3 +68,38 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(rover PRIVATE ${VTKm_INCLUDE_DIRS})
 target_link_libraries(rover ${VTKm_LIBRARIES})
+
+###################################################
+#   Build parallel version
+##################################################
+
+if(MPI_FOUND)
+  message(STATUS "Building parallel rover")
+
+  set(compositing_headers compositing/volume_redistribute.hpp)
+  list(APPEND rover_headers ${compositing_headers})
+
+  if(BUILD_SHARED_LIBS)
+    message(STATUS "Building rover_par as a shared library")
+
+    add_library(rover_par SHARED
+                ${rover_sources}
+                ${rover_headers}
+                $<TARGET_OBJECTS:lodepng>
+                )
+  else()
+    message(STATUS "Building rover_par as a static library")
+
+    add_library(rover_par STATIC
+                ${rover_sources}
+                ${rover_headers}
+                $<TARGET_OBJECTS:lodepng>
+                )
+  endif()
+  
+  add_target_compile_flags(TARGET rover_par
+                           FLAGS "${MPI_CXX_COMPILE_FLAGS} -D PARALLEL")
+  target_include_directories(rover_par PRIVATE ${VTKm_INCLUDE_DIRS})
+  target_link_libraries(rover_par ${VTKm_LIBRARIES} ${MPI_CXX_LIBRARIES})
+
+endif()
