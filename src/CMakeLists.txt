@@ -89,14 +89,14 @@ include(CMake/SetupIncludes.cmake)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXXFLAGS} -std=c++11")
 
 ####################################
-# Add the rover dir 
-####################################
-add_subdirectory(rover)
-
-####################################
 # Add the thirdparty 
 ####################################
 add_subdirectory(thirdparty_builtin)
+
+####################################
+# Add the rover dir 
+####################################
+add_subdirectory(rover)
 
 ####################################
 # Add the test 

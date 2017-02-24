@@ -5,7 +5,6 @@
 ###############################################################################
 
 add_subdirectory(../thirdparty_builtin/lodepng/ ${CMAKE_CURRENT_SOURCE_DIR}/utils/lodepng)
-
 set(rover_headers
     domain.hpp
     rover_exports.h
@@ -78,6 +77,7 @@ if(MPI_FOUND)
 
   set(compositing_headers compositing/volume_redistribute.hpp)
   list(APPEND rover_headers ${compositing_headers})
+  set(DIY_DIR "../thirdparty_builtin/diy2/include")
 
   if(BUILD_SHARED_LIBS)
     message(STATUS "Building rover_par as a shared library")
@@ -99,7 +99,7 @@ if(MPI_FOUND)
   
   add_target_compile_flags(TARGET rover_par
                            FLAGS "${MPI_CXX_COMPILE_FLAGS} -D PARALLEL")
-  target_include_directories(rover_par PRIVATE ${VTKm_INCLUDE_DIRS})
+                         target_include_directories(rover_par PRIVATE ${VTKm_INCLUDE_DIRS} ${DIY_DIR})
   target_link_libraries(rover_par ${VTKm_LIBRARIES} ${MPI_CXX_LIBRARIES})
 
 endif()

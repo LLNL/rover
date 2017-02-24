@@ -1,8 +1,11 @@
 #include <utils/rover_logging.hpp>
 #include <compositing/compositor.hpp>
-#include <compositing/volume_redistribute.hpp>
 #include <algorithm>
 #include <assert.h>
+#include <limits>
+#ifdef PARALLEL
+#include <compositing/volume_redistribute.hpp>
+#endif
 
 namespace rover {
 
@@ -63,6 +66,8 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   int total_partial_comps = 0;
   const int num_partial_images = static_cast<int>(partial_images.size());
   int *offsets = new int[num_partial_images];
+  int *pixel_mins =  new int[num_partial_images];
+  int *pixel_maxs =  new int[num_partial_images];
 
   for(int i = 0; i < num_partial_images; ++i)
   {
@@ -76,11 +81,8 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 
   std::vector<PartialComposite> partials;
   partials.resize(total_partial_comps);
-
   for(int i = 0; i < num_partial_images; ++i)
   {
-    int pixel_min = 100000000;
-    int pixel_max = -1;
     const int image_size = partial_images[i].m_buffer.GetSize();
     #pragma omp parallel for
     for(int j = 0; j < image_size; ++j)
@@ -100,14 +102,62 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
       partials[index].m_alpha = static_cast<float>(partial_images[i].
                                   m_buffer.Buffer.GetPortalConstControl().Get(j*4+3));
 
-      pixel_min = std::min(partials[index].m_pixel_id, pixel_min);
-      pixel_max = std::max(partials[index].m_pixel_id, pixel_max);
-
-      if(partials[index].m_depth <  0.2) std::cout<<" "<<partials[index].m_depth<<" ("<<i<<")";
     }
-    std::cout<<"Domain "<<i<<" pixel range : "<<pixel_min<<" - "<<pixel_max<<"\n";
+
+    //calculate the range of pixel ids each domain has
+    int max_pixel = std::numeric_limits<int>::min();
+    #pragma omp parallel for reduction(max:max_pixel)
+    for(int j = 0; j < image_size; ++j)
+    {
+      int val = static_cast<int>(partial_images[i].m_pixel_ids.GetPortalConstControl().Get(j));
+      if(val > max_pixel)
+      {
+        max_pixel = val;
+      }
+    }
+    int min_pixel = std::numeric_limits<int>::max();
+    #pragma omp parallel for reduction(max:min_pixel)
+    for(int j = 0; j < image_size; ++j)
+    {
+      
+      int val = static_cast<int>(partial_images[i].m_pixel_ids.GetPortalConstControl().Get(j));
+      if(val < min_pixel)
+      {
+        min_pixel = val;
+      }
+
+      assert(min_pixel > -1);
+      pixel_mins[i] = min_pixel;
+      pixel_maxs[i] = max_pixel;
+    }
+
+  }// for each partial image
+  
+  // 
+  // determine the global pixel mins and maxs
+  //
+  int global_min_pixel = std::numeric_limits<int>::max();
+  int global_max_pixel = std::numeric_limits<int>::min();
+  for(int i = 0; i < num_partial_images; ++i)
+  {
+    global_min_pixel = std::min(global_min_pixel, pixel_mins[i]);   
+    global_max_pixel = std::max(global_max_pixel, pixel_maxs[i]);   
   }
+
+#ifdef PARALLEL
+  int rank_min = global_min_pixel;
+  int rank_max = global_max_pixel;
+  int mpi_min;
+  int mpi_max;
+  MPI_Allreduce(&rank_min, &mpi_min, 1, MPI_INT, MPI_MIN, m_comm_handle);
+  MPI_Allreduce(&rank_max, &mpi_max, 1, MPI_INT, MPI_MAX, m_comm_handle);
+  global_min_pixel = mpi_min;
+  global_max_pixel = mpi_max;
+#endif
+
   delete[] offsets;
+  delete[] pixel_mins;
+  delete[] pixel_maxs;
 
   ROVER_INFO("Extacted partial structs");
 
