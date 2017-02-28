@@ -1,5 +1,6 @@
 #include <utils/rover_logging.hpp>
 #include <compositing/compositor.hpp>
+#include <compositing/volume_block.hpp>
 #include <algorithm>
 #include <assert.h>
 #include <limits>
@@ -8,46 +9,6 @@
 #endif
 
 namespace rover {
-
-struct VolumeCompositor::PartialComposite
-{
-  int                    m_pixel_id;
-  float                  m_depth; 
-  unsigned char          m_pixel[3];
-  float                  m_alpha;
-
-  PartialComposite()
-    : m_pixel_id(0),
-      m_depth(0.f),
-      m_alpha(0.f)
-  {
-    m_pixel[0] = 0;
-    m_pixel[1] = 0;
-    m_pixel[2] = 0;
-  }
-
-  bool operator < (const PartialComposite &other) const
-  {
-    if(m_pixel_id != other.m_pixel_id) 
-    {
-      return m_pixel_id < other.m_pixel_id;
-    }
-    else
-    {
-      return m_depth < other.m_depth;
-    }
-  }
-
-  inline void blend(const PartialComposite &other)
-  {
-
-    const float one_minus = 1.f - m_alpha;
-    m_pixel[0] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[0])); 
-    m_pixel[1] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[1])); 
-    m_pixel[2] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[2])); 
-    m_alpha += one_minus * other.m_alpha;
-  }
-};
 
 VolumeCompositor::VolumeCompositor()
 {
@@ -79,7 +40,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 
   ROVER_INFO("Total number of partial composites "<<total_partial_comps);
 
-  std::vector<PartialComposite> partials;
+  std::vector<VolumePartial> partials;
   partials.resize(total_partial_comps);
   for(int i = 0; i < num_partial_images; ++i)
   {
@@ -286,9 +247,9 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 
   const int total_output_pixels = total_unique_pixels + total_segments;
   ROVER_INFO("Total output size "<<total_output_pixels);
-  std::vector<PartialComposite> output_partials;
+  std::vector<VolumePartial> output_partials;
   output_partials.resize(total_output_pixels);
-  PartialComposite bg_color;
+  VolumePartial bg_color;
   bg_color.m_pixel[0] = 255;
   bg_color.m_pixel[1] = 255;
   bg_color.m_pixel[2] = 255;
@@ -299,7 +260,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   #pragma omp parallel for 
   for(int i = 0; i < total_unique_pixels; ++i)
   {
-    PartialComposite result = partials[unique_ids[i]];
+    VolumePartial result = partials[unique_ids[i]];
     result.blend(bg_color);
     output_partials[i] = result;
   }
@@ -312,10 +273,10 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   for(int i = 0; i < total_segments; ++i)
   {
     int current_index = pixel_work_ids[i];
-    PartialComposite result = partials[current_index];
+    VolumePartial result = partials[current_index];
     //std::cout<<"Compositing "<<result.m_pixel_id<<" ";
     ++current_index;
-    PartialComposite next = partials[current_index];
+    VolumePartial next = partials[current_index];
     //std::cout<<"("<<(int)result.m_pixel[0]<<" "<<(int)result.m_pixel[1]<<" " <<(int)result.m_pixel[2]<< " " <<result.m_alpha<<") "; 
     // TODO: we could just count the amount of work and make this a for loop(vectorize??)
     while(result.m_pixel_id == next.m_pixel_id)

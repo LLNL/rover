@@ -19,7 +19,6 @@ public:
   void set_comm_handle(MPI_Comm comm_hanlde);
 #endif
 protected:
-  struct PartialComposite;  
 #ifdef PARALLEL
   MPI_Comm m_comm_handle;
 #endif

@@ -5,6 +5,7 @@
 ###############################################################################
 
 add_subdirectory(../thirdparty_builtin/lodepng/ ${CMAKE_CURRENT_SOURCE_DIR}/utils/lodepng)
+
 set(rover_headers
     domain.hpp
     rover_exports.h
@@ -15,6 +16,7 @@ set(rover_headers
     static_scheduler.hpp
     # compositing
     compositing/compositor.hpp
+    compositing/volume_block.hpp
     # engines
     engine.hpp
     energy_engine.hpp
@@ -64,6 +66,7 @@ else()
               )
 endif()
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty_builtin/diy2/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(rover PRIVATE ${VTKm_INCLUDE_DIRS})
 target_link_libraries(rover ${VTKm_LIBRARIES})
