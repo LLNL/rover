@@ -120,6 +120,17 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   delete[] pixel_mins;
   delete[] pixel_maxs;
 
+#ifdef PARALLEL
+  //
+  // Exchange partials with other ranks
+  //
+
+  volume_redistribute(partials, 
+                      m_comm_handle,
+                      global_min_pixel,
+                      global_max_pixel);
+#endif
+
   ROVER_INFO("Extacted partial structs");
 
   //
@@ -307,7 +318,9 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
     output_partials[total_unique_pixels + i] = result;
   }
 
-
+#ifdef PARALLEL
+  volume_collect(output_partials, m_comm_handle);
+#endif
 
   //
   // pack the output back into a channel buffer
@@ -315,13 +328,14 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   PartialImage<FloatType> output;
   output.m_width = partial_images[0].m_width;
   output.m_height= partial_images[0].m_height;
-  output.m_pixel_ids.Allocate(total_output_pixels);
-  output.m_distances.Allocate(total_output_pixels);
+  const int out_size = output_partials.size();
+  output.m_pixel_ids.Allocate(out_size);
+  output.m_distances.Allocate(out_size);
   //default num channels is 4
-  output.m_buffer.Resize(total_output_pixels);
+  output.m_buffer.Resize(out_size);
   const FloatType inverse = 1.f / 255.f;
   #pragma omp parallel for
-  for(int i = 0; i < total_output_pixels; ++i)
+  for(int i = 0; i < out_size; ++i)
   {
     output.m_pixel_ids.GetPortalControl().Set(i, output_partials[i].m_pixel_id ); 
     output.m_distances.GetPortalControl().Set(i, output_partials[i].m_depth ); 
@@ -331,7 +345,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
     output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(output_partials[i].m_pixel[2])*inverse);
     output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(output_partials[i].m_alpha));
   }
-
+  ROVER_INFO("Compositing results in "<<out_size);
   return output;
 
 

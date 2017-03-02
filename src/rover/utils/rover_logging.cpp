@@ -1,6 +1,11 @@
 #include <utils/rover_logging.hpp>
 #include <rover_exceptions.hpp>
 #include <iostream>
+#include <sstream>
+
+#ifdef PARALLEL
+#include <mpi.h>
+#endif
 
 namespace rover {
 
@@ -8,7 +13,15 @@ Logger* Logger::m_instance  = NULL;
 
 Logger::Logger()
 {
-  m_stream.open("rover.log", std::ofstream::out);
+  std::stringstream log_name;
+  log_name<<"rover";
+#ifdef PARALLEL
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  log_name<<"_"<<rank;
+#endif
+  log_name<<".log";
+  m_stream.open(log_name.str().c_str(), std::ofstream::out);
   if(!m_stream.is_open())
     std::cout<<"Warning: could not open the rover log file\n";
 }

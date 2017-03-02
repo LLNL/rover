@@ -6,7 +6,7 @@
 #include <diy/master.hpp>
 #include <diy/reduce-operations.hpp>
 #include <compositing/volume_block.hpp>
-
+#include <utils/rover_logging.hpp>
 namespace rover{
 
 struct Redistribute
@@ -27,6 +27,8 @@ struct Redistribute
     if(proxy.in_link().size() == 0)
     {
       const int size = volume_block->m_partials.size(); 
+      ROVER_INFO("Processing partials block of size "<<size);
+
       for(int i = 0; i < size; ++i)
       {
         diy::Point<int,DIY_MAX_DIM> point;
@@ -55,7 +57,75 @@ struct Redistribute
       } // for
       
       volume_block->m_partials.resize(total_size);
-  
+      ROVER_INFO("Recieving "<<total_size<<" partials");
+
+      size_t current_offset = 0;
+      for(int i = 0; i < proxy.in_link().size(); ++i)
+      {
+        int gid = proxy.in_link().target(i).gid;
+        assert(gid == i);
+        diy::MemoryBuffer &incoming = proxy.incoming(gid);
+        size_t incoming_size = incoming.size() / sizeof(VolumePartial);
+        std::copy( (VolumePartial*) &incoming.buffer[0],
+                   (VolumePartial*) &incoming.buffer[0] + incoming_size,
+                   &volume_block->m_partials[current_offset] );
+        current_offset += incoming_size;
+      } // for
+
+
+    } // else
+
+  } // operator
+};
+
+struct Collect 
+{
+  const diy::RegularDecomposer<diy::ContinuousBounds> &m_decomposer;
+
+  Collect(const diy::RegularDecomposer<diy::ContinuousBounds> &decomposer)
+    : m_decomposer(decomposer)
+  {}
+
+  void operator()(void *v_block, const diy::ReduceProxy &proxy) const
+  {
+    VolumeBlock *volume_block = static_cast<VolumeBlock*>(v_block);
+    //
+    // first round we have no incoming. Take the partials we have
+    // and sent them to to the right rank
+    //
+    if(proxy.in_link().size() == 0)
+    {
+      const int size = volume_block->m_partials.size(); 
+      ROVER_INFO("Processing partials block of size "<<size);
+
+      for(int i = 0; i < size; ++i)
+      {
+        int dest_gid =  0;
+        diy::BlockID dest = proxy.out_link().target(dest_gid); 
+        proxy.enqueue(dest, volume_block->m_partials[i]);
+      } //for
+
+      volume_block->m_partials.clear();
+
+    } // if
+    else
+    {
+      size_t total_size = 0;
+      //
+      // count the total incoming partials
+      //
+      for(int i = 0; i < proxy.in_link().size(); ++i)
+      {
+        int gid = proxy.in_link().target(i).gid;
+        assert(gid == i);
+        diy::MemoryBuffer &incoming = proxy.incoming(gid);
+        size_t incoming_size = incoming.size() / sizeof(VolumePartial);
+        total_size += incoming_size; 
+      } // for
+      
+      volume_block->m_partials.resize(total_size);
+      ROVER_INFO("Collecting "<<total_size<<" partials");
+
       size_t current_offset = 0;
       for(int i = 0; i < proxy.in_link().size(); ++i)
       {
@@ -101,6 +171,35 @@ void volume_redistribute(std::vector<VolumePartial> &partials,
   decomposer.decompose(world.rank(), assigner, create);
   
   diy::all_to_all(master, assigner, Redistribute(decomposer), magic_k);
+}
+
+void volume_collect(std::vector<VolumePartial> &partials,
+                    MPI_Comm comm)
+{
+  diy::mpi::communicator world(comm);
+  diy::ContinuousBounds global_bounds;
+  global_bounds.min[0] = 0;
+  global_bounds.max[0] = 1;
+  
+  // tells diy to use all availible threads
+  const int num_threads = -1; 
+  const int num_blocks = world.size(); 
+  const int magic_k = 2;
+
+  diy::Master master(world, num_threads);
+  
+  // create an assigner with one block per rank
+  diy::ContiguousAssigner assigner(num_blocks, num_blocks); 
+  AddVolumeBlock create(master, partials);
+
+  const int dims = 1;
+  diy::RegularDecomposer<diy::ContinuousBounds> decomposer(dims, global_bounds, num_blocks);
+  decomposer.decompose(world.rank(), assigner, create);
+  
+  diy::all_to_all(master, assigner, Collect(decomposer), magic_k);
+
+  ROVER_INFO("Ending size: "<<partials.size()<<"\n");
+   
 }
 
 } //namespace rover

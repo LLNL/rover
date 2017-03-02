@@ -13,6 +13,7 @@ protected:
 #ifdef PARALLEL
   MPI_Comm                  m_comm_handle;
   int                       m_rank;
+  int                       m_num_ranks;
 #endif
 
   void reset_render_mode(RenderMode render_mode)
@@ -23,6 +24,10 @@ public:
   InternalsType()
   {
     m_scheduler = new Scheduler<FloatType>();
+#ifdef PARALLEL
+    m_rank = -1;
+    m_num_ranks = -1;
+#endif
   }
 
   void add_data_set(vtkmDataSet &dataset)
@@ -70,12 +75,26 @@ public:
 
   void save_png(const std::string &file_name)
   {
+#ifdef PARALLEL
+    if(m_rank != 0)
+    {
+      return;
+    }
+#endif
     m_scheduler->save_result(file_name);
   }
 
   void execute()
   {
 #ifdef PARALLEL
+    //
+    // Check to see if we have been initialized
+    //
+    if(m_rank == -1)
+    {
+      ROVER_ERROR("Execute call with MPI enbaled, but never initialized with comm handle");
+    }
+
     m_scheduler->set_comm_handle(m_comm_handle);
 #endif
     m_scheduler->trace_rays();
@@ -87,9 +106,8 @@ public:
     MPI_Comm_rank(m_comm_handle, &m_rank);
     if(m_rank == 0)
     {
-      int num_ranks = 0;
-      MPI_Comm_size(m_comm_handle, &num_ranks);
-      ROVER_INFO("MPI Comm size : "<<num_ranks);
+      MPI_Comm_size(m_comm_handle, &m_num_ranks);
+      ROVER_INFO("MPI Comm size : "<<m_num_ranks);
     }
   }
 #endif

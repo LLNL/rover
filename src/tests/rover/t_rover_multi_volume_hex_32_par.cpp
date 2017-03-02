@@ -12,6 +12,8 @@
 #include <ray_generators/camera_generator.hpp>
 #include <utils/vtk_dataset_reader.hpp>
 
+#include <mpi.h>
+
 using namespace rover;
 
 
@@ -19,12 +21,16 @@ TEST(rover_hex, test_call)
 {
 
   try {
+
+  MPI_Init(NULL, NULL);
+
   vtkmCamera camera;
   std::vector<vtkmDataSet> datasets;
   set_up_lulesh(datasets, camera);
 
   CameraGenerator32 generator(camera);
   Rover32 driver32;
+  driver32.init(MPI_COMM_WORLD);
   //
   // Create some basic setting and color table
   //
@@ -43,8 +49,9 @@ TEST(rover_hex, test_call)
   }
   driver32.set_ray_generator(&generator);
   driver32.execute();
-  driver32.save_png("mulit_volume_hex_32");
-
+  driver32.save_png("mulit_volume_hex_32_par");
+  
+  MPI_Finalize();
   }
   catch ( const RoverException &e )
   {

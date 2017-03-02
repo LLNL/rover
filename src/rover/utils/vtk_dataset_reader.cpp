@@ -4,6 +4,10 @@
 #include <fstream>
 #include <cstdlib>
 
+#ifdef PARALLEL 
+#include <mpi.h>
+#endif
+
 namespace rover {
 
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems)
@@ -72,13 +76,54 @@ MultiDomainVTKReader::read_file(const std::string &directory, const std::string 
        return; 
      }
      const int number_of_domains = atoi(tokens.at(1).c_str());
-     std::cout<<"Reading "<<number_of_domains<<" files\n";
+     std::vector<std::string> file_names;
      for(int i = 0; i < number_of_domains; ++i)
      {
         getline(header_file, line);
         full_name = directory + line;
-        std::cout<<"Reading domain "<<full_name<<"\n";
-        vtkm::io::reader::VTKDataSetReader reader(full_name.c_str());
+        file_names.push_back(full_name);
+        std::cout<<"Reading "<<full_name<<"\n";
+     }
+     
+     int begining_domain = 0;
+     int end_domain = number_of_domains - 1; 
+#ifdef PARALLEL
+     //
+     // figure out which data sets to read
+     //
+     int rank;
+     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+     int num_ranks;
+     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+     if(rank == 0)
+     {
+        std::cout<<"Num ranks "<<num_ranks<<"\n";
+     }
+     if(num_ranks < number_of_domains)
+     {
+       int domains_per = number_of_domains / num_ranks;
+       begining_domain = rank * domains_per;
+       end_domain = (rank + 1) * domains_per - 1; 
+       if(rank == num_ranks - 1)
+       {
+         end_domain = number_of_domains - 1;
+       }
+     }
+     else if(num_ranks == number_of_domains)
+     {
+        begining_domain = rank;
+        end_domain = rank;
+     }
+     else
+     {
+       std::cout<<"CANNOT CURRENTLY handle empty data sets\n";
+     }
+
+#endif
+     for(int i = begining_domain; i <= end_domain; ++i)
+     {
+        std::cout<<"Reading "<<number_of_domains<<" files\n";
+        vtkm::io::reader::VTKDataSetReader reader(file_names[i].c_str());
         m_datasets.push_back(reader.ReadDataSet());
         //m_datasets[i].PrintSummary(std::cout);
      }

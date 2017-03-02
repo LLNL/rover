@@ -1,6 +1,8 @@
 #ifndef rover_volume_block_h
 #define rover_volume_block_h
 
+#include <utils/rover_logging.hpp>
+
 #ifdef PARALLEL
 #include <diy/master.hpp>
 #endif
@@ -51,7 +53,11 @@ struct VolumeBlock
 {
   typedef diy::DiscreteBounds Bounds;
 
-  std::vector<VolumePartial>   m_partials;
+  std::vector<VolumePartial>   &m_partials;
+
+  VolumeBlock(std::vector<VolumePartial> &partials)
+    : m_partials(partials)
+  {}
  /* 
   static void* create()
   {
@@ -84,15 +90,15 @@ struct AddVolumeBlock
   AddVolumeBlock(diy::Master &master,std::vector<VolumePartial> &partials)
     : m_master(master), m_partials(partials)
   {}
-                 
+  template<typename BoundsType, typename LinkType>                 
   void operator()(int gid,
-                  const diy::DiscreteBounds &local_bounds,
-                  const diy::DiscreteBounds &local_with_ghost_bounds,
-                  const diy::DiscreteBounds &domain_bounds,
-                  const diy::RegularGridLink &link) const
+                  const BoundsType &local_bounds,
+                  const BoundsType &local_with_ghost_bounds,
+                  const BoundsType &domain_bounds,
+                  const LinkType &link) const
   {
-    VolumeBlock *volume_block = new VolumeBlock();
-    diy::RegularGridLink *rg_link = new diy::RegularGridLink(link);
+    VolumeBlock *volume_block = new VolumeBlock(m_partials);
+    LinkType *rg_link = new LinkType(link);
     diy::Master& master = const_cast<diy::Master&>(m_master);
     int lid = master.add(gid, volume_block, rg_link);
   }
