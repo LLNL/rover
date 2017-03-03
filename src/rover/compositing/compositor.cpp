@@ -129,7 +129,12 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
                       m_comm_handle,
                       global_min_pixel,
                       global_max_pixel);
+  //
+  // update the total partials
+  //
+  total_partial_comps = partials.size();
 #endif
+
 
   ROVER_INFO("Extacted partial structs");
 
@@ -210,7 +215,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   }
 
   int total_unique_pixels = 0;
-  #pragma omp parallel for shared(total_unique_pixels, unique_flags) reduction(+:total_unique_pixels)
+   #pragma omp parallel for shared(total_unique_pixels, unique_flags) reduction(+:total_unique_pixels)
   for(int i = 0; i < total_partial_comps; ++i)
   {
     total_unique_pixels += unique_flags[i];
@@ -285,7 +290,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   {
     int current_index = pixel_work_ids[i];
     VolumePartial result = partials[current_index];
-    //std::cout<<"Compositing "<<result.m_pixel_id<<" ";
+    if(result.m_pixel_id > 193782) std::cout<<"Compositing "<<result.m_pixel_id<<" ";
     ++current_index;
     VolumePartial next = partials[current_index];
     //std::cout<<"("<<(int)result.m_pixel[0]<<" "<<(int)result.m_pixel[1]<<" " <<(int)result.m_pixel[2]<< " " <<result.m_alpha<<") "; 
@@ -321,7 +326,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 #ifdef PARALLEL
   volume_collect(output_partials, m_comm_handle);
 #endif
-
+  
   //
   // pack the output back into a channel buffer
   //
