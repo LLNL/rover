@@ -1,6 +1,5 @@
 #include <utils/rover_logging.hpp>
 #include <compositing/compositor.hpp>
-#include <compositing/volume_block.hpp>
 #include <algorithm>
 #include <assert.h>
 #include <limits>
@@ -9,21 +8,32 @@
 #endif
 
 namespace rover {
-
-VolumeCompositor::VolumeCompositor()
+//--------------------------------------------------------------------------------------------
+template<typename PartialType>
+Compositor<PartialType>::Compositor()
 {
 
 }
 
-VolumeCompositor::~VolumeCompositor()
+//--------------------------------------------------------------------------------------------
+
+template<typename PartialType>
+Compositor<PartialType>::~Compositor()
 {
 
 }
 
-template<typename FloatType> 
-PartialImage<FloatType> 
-VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images)
+//--------------------------------------------------------------------------------------------
+
+template<typename PartialType>
+template<typename FloatType>
+void 
+Compositor<PartialType>::extract(std::vector<PartialImage<FloatType>> &partial_images, 
+                          std::vector<PartialType> &partials,
+                          int &global_min_pixel,
+                          int &global_max_pixel)
 {
+
   int total_partial_comps = 0;
   const int num_partial_images = static_cast<int>(partial_images.size());
   int *offsets = new int[num_partial_images];
@@ -40,32 +50,24 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 
   ROVER_INFO("Total number of partial composites "<<total_partial_comps);
 
-  std::vector<VolumePartial> partials;
   partials.resize(total_partial_comps);
   for(int i = 0; i < num_partial_images; ++i)
   {
+    //
+    //  Extract the partial composites into a contiguous array
+    //
+
     const int image_size = partial_images[i].m_buffer.GetSize();
     #pragma omp parallel for
     for(int j = 0; j < image_size; ++j)
     {
       int index = offsets[i] + j;
-      partials[index].m_pixel_id = static_cast<int>(partial_images[i].m_pixel_ids.GetPortalConstControl().Get(j));
-      partials[index].m_depth = static_cast<float>(partial_images[i].m_distances.GetPortalConstControl().Get(j));
-      partials[index].m_pixel[0] = static_cast<unsigned char>(partial_images[i].
-                                  m_buffer.Buffer.GetPortalConstControl().Get(j*4+0) * 255);
-
-      partials[index].m_pixel[1] = static_cast<unsigned char>(partial_images[i].
-                                  m_buffer.Buffer.GetPortalConstControl().Get(j*4+1) * 255);
-
-      partials[index].m_pixel[2] = static_cast<unsigned char>(partial_images[i].
-                                  m_buffer.Buffer.GetPortalConstControl().Get(j*4+2) * 255);
-
-      partials[index].m_alpha = static_cast<float>(partial_images[i].
-                                  m_buffer.Buffer.GetPortalConstControl().Get(j*4+3));
-
+      partials[index].load_from_partial(partial_images[i], j);
     }
 
-    //calculate the range of pixel ids each domain has
+    //
+    // Calculate the range of pixel ids each domain has
+    //
     int max_pixel = std::numeric_limits<int>::min();
     #pragma omp parallel for reduction(max:max_pixel)
     for(int j = 0; j < image_size; ++j)
@@ -97,8 +99,8 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   // 
   // determine the global pixel mins and maxs
   //
-  int global_min_pixel = std::numeric_limits<int>::max();
-  int global_max_pixel = std::numeric_limits<int>::min();
+  global_min_pixel = std::numeric_limits<int>::max();
+  global_max_pixel = std::numeric_limits<int>::min();
   for(int i = 0; i < num_partial_images; ++i)
   {
     global_min_pixel = std::min(global_min_pixel, pixel_mins[i]);   
@@ -119,30 +121,17 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   delete[] offsets;
   delete[] pixel_mins;
   delete[] pixel_maxs;
+}
 
-#ifdef PARALLEL
-  //
-  // Exchange partials with other ranks
-  //
+//--------------------------------------------------------------------------------------------
 
-  volume_redistribute(partials, 
-                      m_comm_handle,
-                      global_min_pixel,
-                      global_max_pixel);
-  //
-  // update the total partials
-  //
-  total_partial_comps = partials.size();
-#endif
-
-
-  ROVER_INFO("Extacted partial structs");
-
-  //
-  // TODO: check to see if we have less than one
-  //
-  assert(total_partial_comps > 1);
-
+template<typename PartialType>
+void 
+Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials, 
+                                    std::vector<PartialType> &output_partials)
+{
+  
+  const int total_partial_comps = partials.size();
   //
   // Sort the composites
   //
@@ -203,6 +192,7 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
     {
       unique_flag = 1;
     }
+
     work_flags[i]  = work_flag;
     unique_flags[i] = unique_flag;
   }
@@ -263,24 +253,19 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 
   const int total_output_pixels = total_unique_pixels + total_segments;
   ROVER_INFO("Total output size "<<total_output_pixels);
-  std::vector<VolumePartial> output_partials;
+
   output_partials.resize(total_output_pixels);
-  VolumePartial bg_color;
-  bg_color.m_pixel[0] = 255;
-  bg_color.m_pixel[1] = 255;
-  bg_color.m_pixel[2] = 255;
-  bg_color.m_alpha = 1.f;
-  //
+  
+  // 
   // Gather the unique pixels into the output
   //
   #pragma omp parallel for 
   for(int i = 0; i < total_unique_pixels; ++i)
   {
     VolumePartial result = partials[unique_ids[i]];
-    result.blend(bg_color);
     output_partials[i] = result;
   }
-
+ 
 
   //
   // Perform the compositing and output the result in the output 
@@ -289,66 +274,89 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
   for(int i = 0; i < total_segments; ++i)
   {
     int current_index = pixel_work_ids[i];
-    VolumePartial result = partials[current_index];
-    if(result.m_pixel_id > 193782) std::cout<<"Compositing "<<result.m_pixel_id<<" ";
+    PartialType result = partials[current_index];
     ++current_index;
-    VolumePartial next = partials[current_index];
-    //std::cout<<"("<<(int)result.m_pixel[0]<<" "<<(int)result.m_pixel[1]<<" " <<(int)result.m_pixel[2]<< " " <<result.m_alpha<<") "; 
+    PartialType next = partials[current_index];
     // TODO: we could just count the amount of work and make this a for loop(vectorize??)
     while(result.m_pixel_id == next.m_pixel_id)
     {
-      //std::cout<<next.m_pixel_id<<" "<<next.m_depth<<" ";
       result.blend(next);
- //     std::cout<<"("<<(int)result.m_pixel[0]<<" "<<(int)result.m_pixel[1]<<" " <<(int)result.m_pixel[2]<< " " <<result.m_alpha<<") "; 
-      if(current_index + 1 >= total_partial_comps || result.m_alpha >= 1.f) 
+      if(current_index + 1 >= total_partial_comps) 
       {
+        // we could break early for volumes,
+        // but blending past 1.0 alpha is no op.
         break;
       }
       ++current_index;
       next = partials[current_index];
     }
-//    std::cout<<"\n";
-    if(result.m_alpha < 1.f) result.blend(bg_color);
-    result.m_alpha = fmaxf(1.f, result.m_alpha);
-    //std::cout<<" Color ("<<(int)result.m_pixel[0]<<" "<<(int)result.m_pixel[1]<<" " <<(int)result.m_pixel[2]<< " " <<(int)result.m_alpha<<")"; 
-    if(result.m_pixel_id == 157174)
-    {
-
-      result.m_pixel[0] = 255; 
-      result.m_pixel[1] = 0; 
-      result.m_pixel[2] = 0; 
-
-      result.m_alpha = 1;
-    }
     output_partials[total_unique_pixels + i] = result;
   }
 
+  //placeholder 
+  PartialType::composite_default_background(output_partials);
+
+}
+
+//--------------------------------------------------------------------------------------------
+
+template<typename PartialType>
+template<typename FloatType> 
+PartialImage<FloatType> 
+Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial_images)
+{
+  
+  std::vector<PartialType> partials;
+  int global_min_pixel;
+  int global_max_pixel;
+  extract(partial_images, partials, global_min_pixel, global_max_pixel);
+  
 #ifdef PARALLEL
-  volume_collect(output_partials, m_comm_handle);
+  //
+  // Exchange partials with other ranks
+  //
+
+  redistribute(partials, 
+               m_comm_handle,
+               global_min_pixel,
+               global_max_pixel);
+#endif
+
+  const int  total_partial_comps = partials.size();
+
+  ROVER_INFO("Extacted partial structs");
+
+  //
+  // TODO: check to see if we have less than one
+  //
+  assert(total_partial_comps > 1);
+  
+  std::vector<PartialType> output_partials;
+  composite_partials(partials, output_partials);
+   
+#ifdef PARALLEL
+  //
+  // Collect all of the distibuted pixels
+  //
+  collect(output_partials, m_comm_handle);
 #endif
   
   //
   // pack the output back into a channel buffer
   //
+  const int num_channels = partial_images[0].m_buffer.GetNumChannels();
   PartialImage<FloatType> output;
   output.m_width = partial_images[0].m_width;
   output.m_height= partial_images[0].m_height;
   const int out_size = output_partials.size();
   output.m_pixel_ids.Allocate(out_size);
   output.m_distances.Allocate(out_size);
-  //default num channels is 4
+  output.m_buffer.SetNumChannels(num_channels);
   output.m_buffer.Resize(out_size);
-  const FloatType inverse = 1.f / 255.f;
   #pragma omp parallel for
   for(int i = 0; i < out_size; ++i)
   {
-    output.m_pixel_ids.GetPortalControl().Set(i, output_partials[i].m_pixel_id ); 
-    output.m_distances.GetPortalControl().Set(i, output_partials[i].m_depth ); 
-    const int starting_index = i * 4;
-    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 0, static_cast<FloatType>(output_partials[i].m_pixel[0])*inverse);
-    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(output_partials[i].m_pixel[1])*inverse);
-    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(output_partials[i].m_pixel[2])*inverse);
-    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(output_partials[i].m_alpha));
+    output_partials[i].store_into_partial(output, i);
   }
   ROVER_INFO("Compositing results in "<<out_size);
   return output;
@@ -357,20 +365,34 @@ VolumeCompositor::composite(std::vector<PartialImage<FloatType>> &partial_images
 }
 
 #ifdef PARALLEL
+template<typename PartialType>
 void 
-VolumeCompositor::set_comm_handle(MPI_Comm comm_handle)
+Compositor<PartialType>::set_comm_handle(MPI_Comm comm_handle)
 {
   m_comm_handle = comm_handle;
 }
 #endif
 
 //Explicit function instantiations
+template class Compositor<VolumePartial>;
+
 template 
 PartialImage<vtkm::Float32> 
-VolumeCompositor::composite<vtkm::Float32>(std::vector<PartialImage<vtkm::Float32>> &);
+Compositor<VolumePartial>::composite<vtkm::Float32>(std::vector<PartialImage<vtkm::Float32>> &);
 
 template 
 PartialImage<vtkm::Float64> 
-VolumeCompositor::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
+Compositor<VolumePartial>::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
+/*
+template class Compositor<AbsorptionPartial<vtkm::Float32>>;
+template class Compositor<AbsorptionPartial<vtkm::Float64>>;
 
+template 
+PartialImage<vtkm::Float32> 
+Compositor<AbsorptionPartial<vtkm::Float32>>::composite<vtkm::Float32>(std::vector<PartialImage<vtkm::Float32>> &);
+
+template 
+PartialImage<vtkm::Float64> 
+Compositor<AbsorptionPartial<vtkm::Float32>>::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
+*/
 } // namespace rover

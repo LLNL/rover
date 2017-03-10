@@ -175,7 +175,7 @@ Scheduler<FloatType>::trace_rays()
     //TODO: composite
     if(m_render_settings.m_render_mode == volume)
     {
-      VolumeCompositor compositor;
+      Compositor<VolumePartial> compositor;
 #ifdef PARALLEL
       compositor.set_comm_handle(m_comm_handle);
 #endif

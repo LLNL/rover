@@ -6,7 +6,7 @@
 #ifdef PARALLEL
 #include <diy/master.hpp>
 #endif
-namespace {
+namespace rover {
 
 struct VolumePartial
 {
@@ -14,7 +14,7 @@ struct VolumePartial
   float                  m_depth; 
   unsigned char          m_pixel[3];
   float                  m_alpha;
-
+  
   VolumePartial()
     : m_pixel_id(0),
       m_depth(0.f),
@@ -39,55 +39,90 @@ struct VolumePartial
 
   inline void blend(const VolumePartial &other)
   {
-
+    if(m_alpha >= 1.f) return;
     const float one_minus = 1.f - m_alpha;
     m_pixel[0] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[0])); 
     m_pixel[1] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[1])); 
     m_pixel[2] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[2])); 
     m_alpha += one_minus * other.m_alpha;
   }
+
+  template<typename FloatType>
+  inline void load_from_partial(const PartialImage<FloatType> &partial_image, const int &index)
+  {
+    
+    m_pixel_id = static_cast<int>(partial_image.m_pixel_ids.GetPortalConstControl().Get(index));
+    m_depth = static_cast<float>(partial_image.m_distances.GetPortalConstControl().Get(index));
+
+    m_pixel[0] = static_cast<unsigned char>(partial_image.
+                                  m_buffer.Buffer.GetPortalConstControl().Get(index*4+0) * 255);
+
+    m_pixel[1] = static_cast<unsigned char>(partial_image.
+                                  m_buffer.Buffer.GetPortalConstControl().Get(index*4+1) * 255);
+
+    m_pixel[2] = static_cast<unsigned char>(partial_image.
+                                  m_buffer.Buffer.GetPortalConstControl().Get(index*4+2) * 255);
+
+    m_alpha = static_cast<float>(partial_image.
+                                  m_buffer.Buffer.GetPortalConstControl().Get(index*4+3));
+  }
+  
+  template<typename FloatType>
+  inline void store_into_partial(PartialImage<FloatType> &output, const int &index)
+  {
+    const FloatType inverse = 1.f / 255.f;
+    output.m_pixel_ids.GetPortalControl().Set(index, m_pixel_id ); 
+    output.m_distances.GetPortalControl().Set(index, m_depth ); 
+    const int starting_index = index * 4;
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 0, static_cast<FloatType>(m_pixel[0])*inverse);
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(m_pixel[1])*inverse);
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(m_pixel[2])*inverse);
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(m_alpha));
+  }
+
+  static void composite_default_background(std::vector<VolumePartial> &partials)
+  {
+    VolumePartial bg_color;
+    bg_color.m_pixel[0] = 255;
+    bg_color.m_pixel[1] = 255;
+    bg_color.m_pixel[2] = 255;
+    bg_color.m_alpha = 1.f;
+    //
+    // Gather the unique pixels into the output
+    //
+    const int total_pixels = static_cast<int>(partials.size());
+    #pragma omp parallel for 
+    for(int i = 0; i < total_pixels; ++i)
+    { 
+      partials[i].blend(bg_color);
+    }
+
+  }
+ 
 };
+
 
 #ifdef PARALLEL
 struct VolumeBlock
 {
   typedef diy::DiscreteBounds Bounds;
-
-  std::vector<VolumePartial>   &m_partials;
+  typedef VolumePartial       PartialType;
+  std::vector<VolumePartial>  &m_partials;
 
   VolumeBlock(std::vector<VolumePartial> &partials)
     : m_partials(partials)
   {}
- /* 
-  static void* create()
-  {
-    return new VolumeBlock;
-  }
-
-  static void destroy(void* volume_block)
-  {
-    delete static_cast<VolumeBlock*>(volume_block);
-  }
-    
-  static void save(const void *volume_block, diy::BinaryBuffer &buffer)
-  {
-    const VolumeBlock *block = static_cast<const VolumeBlock*>(volume_block);
-    diy::save(buffer, block->m_partials);
-  }
-
-  static void load(const void *volume_block, diy::BinaryBuffer &buffer)
-  {
-    const VolumeBlock *block = static_cast<const VolumeBlock*>(volume_block);
-    diy::load(buffer, block->m_partials);
-  }
-*/
 };
 
-struct AddVolumeBlock
+template<typename BlockType>
+struct AddBlock
 {
-  std::vector<VolumePartial> &m_partials;
+  typedef typename BlockType::PartialType PartialType;
+  typedef BlockType                       Block;
+  std::vector<PartialType> &m_partials;
   const diy::Master &m_master;
-  AddVolumeBlock(diy::Master &master,std::vector<VolumePartial> &partials)
+
+  AddBlock(diy::Master &master,std::vector<PartialType> &partials)
     : m_master(master), m_partials(partials)
   {}
   template<typename BoundsType, typename LinkType>                 
@@ -97,10 +132,10 @@ struct AddVolumeBlock
                   const BoundsType &domain_bounds,
                   const LinkType &link) const
   {
-    VolumeBlock *volume_block = new VolumeBlock(m_partials);
+    Block *block = new Block(m_partials);
     LinkType *rg_link = new LinkType(link);
     diy::Master& master = const_cast<diy::Master&>(m_master);
-    int lid = master.add(gid, volume_block, rg_link);
+    int lid = master.add(gid, block, rg_link);
   }
 }; 
 

@@ -1,11 +1,11 @@
-#ifndef rover_compositing_redistribute_h
-#define rover_compositing_redistribute_h
+#ifndef rover_absorption_redistribute_h
+#define rover_absorption_redistribute_h
 
 #include <diy/assigner.hpp>
 #include <diy/decomposition.hpp>
 #include <diy/master.hpp>
 #include <diy/reduce-operations.hpp>
-#include <compositing/volume_block.hpp>
+#include <compositing/absorption_block.hpp>
 #include <utils/rover_logging.hpp>
 namespace rover{
 //
@@ -13,7 +13,7 @@ namespace rover{
 // that sectoon of the image. Currently, the domain is decomposed
 // in 1-D from min_pixel to max_pixel.
 //
-template<typename BlockType>
+namespace {
 struct Redistribute
 {
   const diy::RegularDecomposer<diy::DiscreteBounds> &m_decomposer;
@@ -24,52 +24,59 @@ struct Redistribute
 
   void operator()(void *v_block, const diy::ReduceProxy &proxy) const
   {
-    BlockType *block = static_cast<BlockType*>(v_block);
+    AbsorptionBlock *volume_block = static_cast<AbsorptionBlock*>(v_block);
     //
     // first round we have no incoming. Take the partials we have
     // and sent them to to the right rank
     //
     if(proxy.in_link().size() == 0)
     {
-      const int size = block->m_partials.size(); 
+      const int size = volume_block->m_partials.size(); 
       ROVER_INFO("Processing partials block of size "<<size);
 
       for(int i = 0; i < size; ++i)
       {
         diy::Point<int,DIY_MAX_DIM> point;
-        point[0] = block->m_partials[i].m_pixel_id;
+        point[0] = volume_block->m_partials[i].m_pixel_id;
         int dest_gid = m_decomposer.point_to_gid(point);
         diy::BlockID dest = proxy.out_link().target(dest_gid); 
-        proxy.enqueue(dest, block->m_partials[i]);
+        proxy.enqueue(dest, volume_block->m_partials[i]);
       } //for
 
-      block->m_partials.clear();
+      volume_block->m_partials.clear();
 
     } // if
     else
     {
+      size_t total_size = 0;
+      //
+      // count the total incoming partials
+      //
       for(int i = 0; i < proxy.in_link().size(); ++i)
       {
         int gid = proxy.in_link().target(i).gid;
-        
-        if(gid == proxy.gid())
-        {
-          continue;
-        }
-        std::vector<typename BlockType::PartialType> incoming_partials;
-        proxy.dequeue(gid, incoming_partials); 
-        const int incoming_size = incoming_partials.size();
-        // TODO: make this a std::copy
-        for(int j = 0; j < incoming_size; ++i)
-        {
-          block->m_partials.push_back(incoming_partials[j]);
-        }
-        /* Fast path for plain old data
+        assert(gid == i);
         diy::MemoryBuffer &incoming = proxy.incoming(gid);
-        size_t incoming_size = incoming.size() / sizeof(VolumePartial);
+        size_t incoming_size = incoming.size() / sizeof(AbsorptionPartial);
         total_size += incoming_size; 
-        */
       } // for
+      
+      volume_block->m_partials.resize(total_size);
+      ROVER_INFO("Recieving "<<total_size<<" partials");
+
+      size_t current_offset = 0;
+      for(int i = 0; i < proxy.in_link().size(); ++i)
+      {
+        int gid = proxy.in_link().target(i).gid;
+        assert(gid == i);
+        diy::MemoryBuffer &incoming = proxy.incoming(gid);
+        size_t incoming_size = incoming.size() / sizeof(AbsorptionPartial);
+        std::copy( (AbsorptionPartial*) &incoming.buffer[0],
+                   (AbsorptionPartial*) &incoming.buffer[0] + incoming_size,
+                   &volume_block->m_partials[current_offset] );
+        current_offset += incoming_size;
+      } // for
+
 
     } // else
 
@@ -79,7 +86,6 @@ struct Redistribute
 //
 // Collect struct sends all data to a single node.
 //
-template<typename BlockType>
 struct Collect 
 {
   const diy::RegularDecomposer<diy::ContinuousBounds> &m_decomposer;
@@ -90,59 +96,68 @@ struct Collect
 
   void operator()(void *v_block, const diy::ReduceProxy &proxy) const
   {
-    BlockType *block = static_cast<BlockType*>(v_block);
+    AbsorptionBlock *volume_block = static_cast<AbsorptionBlock*>(v_block);
     //
     // first round we have no incoming. Take the partials we have
     // and sent them to to the right rank
     //
     if(proxy.in_link().size() == 0)
     {
-      const int size = block->m_partials.size(); 
+      const int size = volume_block->m_partials.size(); 
       ROVER_INFO("Processing partials block of size "<<size);
 
       for(int i = 0; i < size; ++i)
       {
         int dest_gid =  0;
         diy::BlockID dest = proxy.out_link().target(dest_gid); 
-        proxy.enqueue(dest, block->m_partials[i]);
+        proxy.enqueue(dest, volume_block->m_partials[i]);
       } //for
 
-      block->m_partials.clear();
+      volume_block->m_partials.clear();
 
     } // if
     else
     {
-      
+      size_t total_size = 0;
+      //
+      // count the total incoming partials
+      //
       for(int i = 0; i < proxy.in_link().size(); ++i)
       {
         int gid = proxy.in_link().target(i).gid;
-        
-        if(gid == proxy.gid())
-        {
-          continue;
-        }
-        std::vector<typename BlockType::PartialType> incoming_partials;
-        proxy.dequeue(gid, incoming_partials); 
-        const int incoming_size = incoming_partials.size();
-        // TODO: make this a std::copy
-        for(int j = 0; j < incoming_size; ++i)
-        {
-          block->m_partials.push_back(incoming_partials[j]);
-        }
+        assert(gid == i);
+        diy::MemoryBuffer &incoming = proxy.incoming(gid);
+        size_t incoming_size = incoming.size() / sizeof(AbsorptionPartial);
+        total_size += incoming_size; 
       } // for
+      
+      volume_block->m_partials.resize(total_size);
+      ROVER_INFO("Collecting "<<total_size<<" partials");
+
+      size_t current_offset = 0;
+      for(int i = 0; i < proxy.in_link().size(); ++i)
+      {
+        int gid = proxy.in_link().target(i).gid;
+        assert(gid == i);
+        diy::MemoryBuffer &incoming = proxy.incoming(gid);
+        size_t incoming_size = incoming.size() / sizeof(AbsorptionPartial);
+        std::copy( (AbsorptionPartial*) &incoming.buffer[0],
+                   (AbsorptionPartial*) &incoming.buffer[0] + incoming_size,
+                   &volume_block->m_partials[current_offset] );
+        current_offset += incoming_size;
+      } // for
+
+
     } // else
 
   } // operator
 };
-
-template<typename AddBlockType>
-void redistribute_detail(std::vector<typename AddBlockType::PartialType> &partials, 
-                         MPI_Comm comm,
-                         const int &domain_min_pixel,
-                         const int &domain_max_pixel)
+} // namespace anon
+void redistribute(std::vector<AbsorptionPartial> &partials, 
+                  MPI_Comm comm,
+                  const int &domain_min_pixel,
+                  const int &domain_max_pixel)
 {
-  typedef typename AddBlockType::Block Block;
-
   diy::mpi::communicator world(comm);
   diy::DiscreteBounds global_bounds;
   global_bounds.min[0] = domain_min_pixel;
@@ -157,44 +172,20 @@ void redistribute_detail(std::vector<typename AddBlockType::PartialType> &partia
   
   // create an assigner with one block per rank
   diy::ContiguousAssigner assigner(num_blocks, num_blocks); 
-  AddBlockType create(master, partials);
+  AddAbsorptionBlock create(master, partials);
 
   const int dims = 1;
   diy::RegularDecomposer<diy::DiscreteBounds> decomposer(dims, global_bounds, num_blocks);
   decomposer.decompose(world.rank(), assigner, create);
   
-  diy::all_to_all(master, assigner, Redistribute<Block>(decomposer), magic_k);
+  diy::all_to_all(master, assigner, Redistribute(decomposer), magic_k);
 }
-
-
-template<typename T>
-void redistribute(std::vector<T> &partials, 
-                  MPI_Comm comm,
-                  const int &domain_min_pixel,
-                  const int &domain_max_pixel)
-{
-  ROVER_ERROR("Redistribute default template. SHOULD NOT HAPPEN");
-}
-
-template<>
-void redistribute<VolumePartial>(std::vector<VolumePartial> &partials, 
-                                                            MPI_Comm comm,
-                                                            const int &domain_min_pixel,
-                                                            const int &domain_max_pixel)
-{
-  redistribute_detail<AddBlock<VolumeBlock> >(partials,
-                                              comm,
-                                              domain_min_pixel,
-                                              domain_max_pixel);
-}
-
-  
 
 //
 // collect uses the all-to-all construct to perform a gather to
 // the root rank. All other ranks will have no data
 //
-void collect(std::vector<VolumePartial> &partials,
+void collect(std::vector<AbsorptionPartial> &partials,
              MPI_Comm comm)
 {
   diy::mpi::communicator world(comm);
@@ -211,13 +202,13 @@ void collect(std::vector<VolumePartial> &partials,
   
   // create an assigner with one block per rank
   diy::ContiguousAssigner assigner(num_blocks, num_blocks); 
-  AddBlock<VolumeBlock> create(master, partials);
+  AddAbsorptionBlock create(master, partials);
 
   const int dims = 1;
   diy::RegularDecomposer<diy::ContinuousBounds> decomposer(dims, global_bounds, num_blocks);
   decomposer.decompose(world.rank(), assigner, create);
   
-  diy::all_to_all(master, assigner, Collect<VolumeBlock>(decomposer), magic_k);
+  diy::all_to_all(master, assigner, Collect(decomposer), magic_k);
 
   ROVER_INFO("Ending size: "<<partials.size()<<"\n");
    
