@@ -11,7 +11,7 @@ struct VolumePartial
   float                  m_depth; 
   unsigned char          m_pixel[3];
   float                  m_alpha;
-  
+
   VolumePartial()
     : m_pixel_id(0),
       m_depth(0.f),

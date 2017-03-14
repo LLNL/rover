@@ -36,8 +36,8 @@ Domain::set_render_settings(const RenderSettings &settings)
   }
   else
   {
-    ROVER_ERROR("Unable to create the appropriate engine");
-    throw RoverException("Fatal Error: domain unable to create the apporpriate engine\n");
+    //ROVER_ERROR("Unable to create the appropriate engine");
+    //throw RoverException("Fatal Error: domain unable to create the apporpriate engine\n");
   }
 
   m_render_mode = settings.m_render_mode; 

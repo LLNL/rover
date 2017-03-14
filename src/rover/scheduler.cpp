@@ -185,11 +185,11 @@ Scheduler<FloatType>::trace_rays()
     }
     else
     {
-      Compositor<AbsorptionPartial<FloatType>> compositor;
+//      Compositor<AbsorptionPartial<FloatType>> compositor;
 #ifdef PARALLEL
-      compositor.set_comm_handle(m_comm_handle);
+//     compositor.set_comm_handle(m_comm_handle);
 #endif
-      m_result = compositor.composite(m_partial_images);
+//      m_result = compositor.composite(m_partial_images);
     }
   }
   else if(num_domains == 1)

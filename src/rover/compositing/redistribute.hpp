@@ -41,7 +41,6 @@ struct Redistribute
         diy::Point<int,DIY_MAX_DIM> point;
         point[0] = block->m_partials[i].m_pixel_id;
         int dest_gid = m_decomposer.point_to_gid(point);
-        ROVER_INFO("sending to "<<dest_gid); 
         diy::BlockID dest = proxy.out_link().target(dest_gid); 
         proxy.enqueue(dest, block->m_partials[i]);
       } //for
@@ -52,14 +51,11 @@ struct Redistribute
     else
     {
       ROVER_INFO("getting "<<proxy.in_link().size()<<" blocks"); 
+      size_t total = 0;
+#if 1 
       for(int i = 0; i < proxy.in_link().size(); ++i)
       {
         int gid = proxy.in_link().target(i).gid;
-
-        if(gid == proxy.gid())
-        {
-          continue;
-        }
         std::vector<typename BlockType::PartialType> incoming_partials;
         proxy.dequeue(gid, incoming_partials); 
         const int incoming_size = incoming_partials.size();
@@ -69,12 +65,35 @@ struct Redistribute
         {
           block->m_partials.push_back(incoming_partials[j]);
         }
-        /* Fast path for plain old data
-        diy::MemoryBuffer &incoming = proxy.incoming(gid);
-        size_t incoming_size = incoming.size() / sizeof(VolumePartial);
-        total_size += incoming_size; 
-        */
       } // for
+#else
+      for(int i = 0; i < proxy.in_link().size(); ++i)
+      {
+        int gid = proxy.in_link().target(i).gid;
+        /*
+        if(gid == proxy.gid())
+        {
+          continue;
+        }*/
+        diy::MemoryBuffer &incoming = proxy.incoming(gid);
+        size_t incoming_sz = incoming.size() / sizeof(VolumePartial);
+        ROVER_INFO("Incoming size "<<incoming_sz);
+        total += incoming_sz;
+  
+      } // for
+      block->m_partials.resize(total);
+      size_t sz = 0;
+      for(int i = 0; i < proxy.in_link().size(); ++i)
+      {
+        int gid = proxy.in_link().target(i).gid;
+        diy::MemoryBuffer &incoming = proxy.incoming(gid);
+        size_t incoming_sz = incoming.size() / sizeof(VolumePartial);
+        std::copy((VolumePartial*) &incoming.buffer[0],
+                  (VolumePartial*) &incoming.buffer[0] + incoming_sz,
+                  &block->m_partials[sz]);
+        sz += incoming_sz;
+      }
+#endif
 
     } // else
 
@@ -133,7 +152,7 @@ void redistribute<VolumePartial>(std::vector<VolumePartial> &partials,
                                               domain_min_pixel,
                                               domain_max_pixel);
 }
-
+/*
 template<>
 void redistribute<AbsorptionPartial<double>>(std::vector<AbsorptionPartial<double>> &partials, 
                                              MPI_Comm comm,
@@ -157,7 +176,7 @@ void redistribute<AbsorptionPartial<float>>(std::vector<AbsorptionPartial<float>
                                                         domain_min_pixel,
                                                         domain_max_pixel);
 }
-  
+ */ 
 } //namespace rover
 
 #endif

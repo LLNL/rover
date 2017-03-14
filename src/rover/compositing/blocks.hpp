@@ -14,7 +14,6 @@ struct VolumeBlock
   typedef diy::DiscreteBounds Bounds;
   typedef VolumePartial       PartialType;
   std::vector<VolumePartial>  &m_partials;
-
   VolumeBlock(std::vector<VolumePartial> &partials)
     : m_partials(partials)
   {}

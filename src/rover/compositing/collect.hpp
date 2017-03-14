@@ -115,7 +115,7 @@ void collect<VolumePartial>(std::vector<VolumePartial> &partials,
 {
   collect_detail<AddBlock<VolumeBlock>>(partials, comm);
 }
-
+/*
 template<> 
 void collect<AbsorptionPartial<double>>(std::vector<AbsorptionPartial<double>> &partials,
                                         MPI_Comm comm)
@@ -129,7 +129,7 @@ void collect<AbsorptionPartial<float>>(std::vector<AbsorptionPartial<float>> &pa
 {
   collect_detail<AddBlock<AbsorptionBlock<float>>>(partials, comm);
 }
-
+*/
 } // namespace rover
 
 #endif
