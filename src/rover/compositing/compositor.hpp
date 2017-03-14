@@ -2,8 +2,9 @@
 #define rover_compositor_h
 #include <rover_types.hpp>
 
-#include <compositing/volume_block.hpp>
-#include <compositing/absorption_block.hpp>
+
+#include <compositing/volume_partial.hpp>
+#include <compositing/absorption_partial.hpp>
 
 #ifdef PARALLEL
 #include <mpi.h>

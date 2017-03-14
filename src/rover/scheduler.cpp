@@ -1,12 +1,14 @@
-#include <compositing/compositor.hpp>
-#include <ray_generators/camera_generator.hpp>
-#include <scheduler.hpp>
-#include <vtkm_typedefs.hpp>
-#include <utils/png_encoder.hpp>
-#include <vtkm/rendering/CanvasRayTracer.h>
-#include <rover_exceptions.hpp>
+
 #include <assert.h>
+#include <compositing/compositor.hpp>
+#include <scheduler.hpp>
+#include <utils/png_encoder.hpp>
 #include <utils/rover_logging.hpp>
+#include <vtkm/rendering/CanvasRayTracer.h>
+#include <vtkm_typedefs.hpp>
+#include <ray_generators/camera_generator.hpp>
+#include <rover_exceptions.hpp>
+
 
 namespace rover {
 
@@ -183,7 +185,11 @@ Scheduler<FloatType>::trace_rays()
     }
     else
     {
-      ROVER_ERROR("energy compositing not implemented");
+      Compositor<AbsorptionPartial<FloatType>> compositor;
+#ifdef PARALLEL
+      compositor.set_comm_handle(m_comm_handle);
+#endif
+      m_result = compositor.composite(m_partial_images);
     }
   }
   else if(num_domains == 1)

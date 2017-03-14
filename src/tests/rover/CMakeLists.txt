@@ -18,7 +18,8 @@ set(BASIC_TESTS t_rover_smoke
                 t_rover_energy_zoo_32
                 t_rover_volume_zoo_32)
 
-set(MPI_TESTS t_rover_multi_volume_hex_32_par)
+set(MPI_TESTS t_rover_multi_volume_hex_32_par
+              t_rover_multi_energy_hex_32_par)
 
 message(STATUS "Adding rover unit tests")
 

@@ -16,8 +16,8 @@ set(rover_headers
     static_scheduler.hpp
     # compositing
     compositing/compositor.hpp
-    compositing/volume_block.hpp
-    compositing/absorption_block.hpp
+    compositing/volume_partial.hpp
+    compositing/absorption_partial.hpp
     # engines
     engine.hpp
     energy_engine.hpp
@@ -79,8 +79,9 @@ target_link_libraries(rover ${VTKm_LIBRARIES})
 if(MPI_FOUND)
   message(STATUS "Building parallel rover")
 
-  set(compositing_headers compositing/volume_redistribute.hpp
-                          compositing/absorption_redistribute.hpp)
+  set(compositing_headers compositing/blocks.hpp
+                          compositing/collect.hpp
+                          compositing/redistribute.hpp)
   list(APPEND rover_headers ${compositing_headers})
   set(DIY_DIR "../thirdparty_builtin/diy2/include")
 

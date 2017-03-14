@@ -1,11 +1,8 @@
 #ifndef rover_volume_block_h
 #define rover_volume_block_h
 
-#include <utils/rover_logging.hpp>
+#include <rover_types.hpp>
 
-#ifdef PARALLEL
-#include <diy/master.hpp>
-#endif
 namespace rover {
 
 struct VolumePartial
@@ -100,46 +97,6 @@ struct VolumePartial
   }
  
 };
-
-
-#ifdef PARALLEL
-struct VolumeBlock
-{
-  typedef diy::DiscreteBounds Bounds;
-  typedef VolumePartial       PartialType;
-  std::vector<VolumePartial>  &m_partials;
-
-  VolumeBlock(std::vector<VolumePartial> &partials)
-    : m_partials(partials)
-  {}
-};
-
-template<typename BlockType>
-struct AddBlock
-{
-  typedef typename BlockType::PartialType PartialType;
-  typedef BlockType                       Block;
-  std::vector<PartialType> &m_partials;
-  const diy::Master &m_master;
-
-  AddBlock(diy::Master &master,std::vector<PartialType> &partials)
-    : m_master(master), m_partials(partials)
-  {}
-  template<typename BoundsType, typename LinkType>                 
-  void operator()(int gid,
-                  const BoundsType &local_bounds,
-                  const BoundsType &local_with_ghost_bounds,
-                  const BoundsType &domain_bounds,
-                  const LinkType &link) const
-  {
-    Block *block = new Block(m_partials);
-    LinkType *rg_link = new LinkType(link);
-    diy::Master& master = const_cast<diy::Master&>(m_master);
-    int lid = master.add(gid, block, rg_link);
-  }
-}; 
-
-#endif
 
 } // namespace
 #endif

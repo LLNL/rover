@@ -3,8 +3,13 @@
 #include <algorithm>
 #include <assert.h>
 #include <limits>
+
+#include <compositing/volume_partial.hpp>
+#include <compositing/absorption_partial.hpp>
+
 #ifdef PARALLEL
-#include <compositing/volume_redistribute.hpp>
+#include <compositing/redistribute.hpp>
+#include <compositing/collect.hpp>
 #endif
 
 namespace rover {
@@ -42,7 +47,7 @@ Compositor<PartialType>::extract(std::vector<PartialImage<FloatType>> &partial_i
 
   for(int i = 0; i < num_partial_images; ++i)
   {
-    assert(partial_images[i].m_buffer.GetNumChannels() == 4);
+    //assert(partial_images[i].m_buffer.GetNumChannels() == 4);
     offsets[i] = total_partial_comps;
     total_partial_comps += partial_images[i].m_buffer.GetSize();
     ROVER_INFO("Domain : "<<i<<" with "<<partial_images[i].m_buffer.GetSize());
@@ -262,7 +267,7 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
   #pragma omp parallel for 
   for(int i = 0; i < total_unique_pixels; ++i)
   {
-    VolumePartial result = partials[unique_ids[i]];
+    PartialType result = partials[unique_ids[i]];
     output_partials[i] = result;
   }
  
@@ -315,7 +320,6 @@ Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial
   //
   // Exchange partials with other ranks
   //
-
   redistribute(partials, 
                m_comm_handle,
                global_min_pixel,
@@ -324,7 +328,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial
 
   const int  total_partial_comps = partials.size();
 
-  ROVER_INFO("Extacted partial structs");
+  ROVER_INFO("Extracted partial structs "<<total_partial_comps);
 
   //
   // TODO: check to see if we have less than one
@@ -393,6 +397,6 @@ Compositor<AbsorptionPartial<vtkm::Float32>>::composite<vtkm::Float32>(std::vect
 
 template 
 PartialImage<vtkm::Float64> 
-Compositor<AbsorptionPartial<vtkm::Float32>>::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
+Compositor<AbsorptionPartial<vtkm::Float64>>::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
 */
 } // namespace rover
