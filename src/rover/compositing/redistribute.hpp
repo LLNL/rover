@@ -7,6 +7,7 @@
 #include <diy/decomposition.hpp>
 #include <diy/master.hpp>
 #include <diy/reduce-operations.hpp>
+#include <map>
 #include <utils/rover_logging.hpp>
 
 namespace rover{
@@ -35,18 +36,25 @@ struct Redistribute
     {
       const int size = block->m_partials.size(); 
       ROVER_INFO("Processing partials block of size "<<size);
-
+      std::map<diy::BlockID,std::vector<typename BlockType::PartialType>> outgoing;
+       
       for(int i = 0; i < size; ++i)
       {
         diy::Point<int,DIY_MAX_DIM> point;
         point[0] = block->m_partials[i].m_pixel_id;
         int dest_gid = m_decomposer.point_to_gid(point);
         diy::BlockID dest = proxy.out_link().target(dest_gid); 
-        proxy.enqueue(dest, block->m_partials[i]);
+        outgoing[dest].push_back(block->m_partials[i]);
       } //for
-
+      
       block->m_partials.clear();
 
+      typename std::map<diy::BlockID,std::vector<typename BlockType::PartialType>>::iterator it;
+      for( it = outgoing.begin(); it != outgoing.end(); ++it)
+      {
+        proxy.enqueue(it->first, it->second);
+        it->second.clear();
+      }
     } // if
     else
     {
