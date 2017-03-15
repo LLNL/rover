@@ -46,11 +46,7 @@ struct Collect
       for(int i = 0; i < proxy.in_link().size(); ++i)
       {
         int gid = proxy.in_link().target(i).gid;
-        
-        if(gid == proxy.gid())
-        {
-          continue;
-        }
+        //TODO: leave the paritals that start here, here
         std::vector<typename BlockType::PartialType> incoming_partials;
         proxy.dequeue(gid, incoming_partials); 
         const int incoming_size = incoming_partials.size();

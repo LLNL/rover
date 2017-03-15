@@ -65,30 +65,6 @@ struct AddBlock
 namespace diy {
 
 template<>
-struct Serialization<rover::VolumePartial>
-{
-
-  static void save(BinaryBuffer& bb, const rover::VolumePartial &partial)
-  { 
-    diy::save(bb, partial.m_pixel[0]); 
-    diy::save(bb, partial.m_pixel[1]); 
-    diy::save(bb, partial.m_pixel[1]); 
-    diy::save(bb, partial.m_alpha); 
-    diy::save(bb, partial.m_pixel_id);
-    diy::save(bb, partial.m_depth);
-  }
-
-  static void load(BinaryBuffer& bb, rover::VolumePartial &partial)
-  { 
-    diy::load(bb, partial.m_pixel[0]); 
-    diy::load(bb, partial.m_pixel[1]); 
-    diy::load(bb, partial.m_pixel[1]); 
-    diy::load(bb, partial.m_pixel_id);
-    diy::load(bb, partial.m_depth);
-  }
-};
-
-template<>
 struct Serialization<rover::AbsorptionPartial<double>>
 {
 
