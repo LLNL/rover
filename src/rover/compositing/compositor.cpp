@@ -324,6 +324,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial
                m_comm_handle,
                global_min_pixel,
                global_max_pixel);
+  ROVER_INFO("Redistributed");
 #endif
 
   const int  total_partial_comps = partials.size();

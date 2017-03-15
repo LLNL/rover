@@ -69,7 +69,7 @@ struct Redistribute
         const int incoming_size = incoming_partials.size();
         ROVER_INFO("Incoming size "<<incoming_size);
         // TODO: make this a std::copy
-        for(int j = 0; j < incoming_size; ++i)
+        for(int j = 0; j < incoming_size; ++j)
         {
           block->m_partials.push_back(incoming_partials[j]);
         }

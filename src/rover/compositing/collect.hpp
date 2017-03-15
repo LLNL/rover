@@ -29,17 +29,13 @@ struct Collect
     // first round we have no incoming. Take the partials we have
     // and sent them to to the right rank
     //
+     
     if(proxy.in_link().size() == 0)
     {
-      const int size = block->m_partials.size(); 
-      ROVER_INFO("Processing partials block of size "<<size);
-
-      for(int i = 0; i < size; ++i)
-      {
-        int dest_gid =  0;
-        diy::BlockID dest = proxy.out_link().target(dest_gid); 
-        proxy.enqueue(dest, block->m_partials[i]);
-      } //for
+      ROVER_INFO("Collect sending partials vector");
+      int dest_gid =  0;
+      diy::BlockID dest = proxy.out_link().target(dest_gid); 
+      proxy.enqueue(dest, block->m_partials);
 
       block->m_partials.clear();
 
@@ -59,7 +55,7 @@ struct Collect
         proxy.dequeue(gid, incoming_partials); 
         const int incoming_size = incoming_partials.size();
         // TODO: make this a std::copy
-        for(int j = 0; j < incoming_size; ++i)
+        for(int j = 0; j < incoming_size; ++j)
         {
           block->m_partials.push_back(incoming_partials[j]);
         }
