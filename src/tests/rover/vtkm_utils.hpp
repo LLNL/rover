@@ -105,7 +105,7 @@ add_absorption_field(vtkm::cont::DataSet &dataset,
   //
   vtkm::cont::Field cell_field;
   get_cell_assoc_field(dataset, mapping_field_name, cell_field, field_type);
-  vtkm::cont::ArrayHandle<vtkm::Range> range_array = cell_field.GetRange(vtkm::cont::DeviceAdapterTagSerial());
+  vtkm::cont::ArrayHandle<vtkm::Range> range_array = cell_field.GetRange();
   assert(range_array.GetPortalControl().GetNumberOfValues() == 1);
   vtkm::Range scalar_range = range_array.GetPortalControl().Get(0);
   

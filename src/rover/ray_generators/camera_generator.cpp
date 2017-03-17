@@ -31,8 +31,8 @@ CameraGenerator<Precision>::get_rays()
   m_camera.CreateRays(rays, this->m_coordinates); 
   this->m_has_rays = false;
   if(rays.NumRays == 0) std::cout<<"CameraGenerator Warning no rays were generated\n";
-  rays.DebugWidth =  m_camera.GetSubsetWidth();
-  rays.DebugHeight = m_camera.GetSubsetHeight();
+  //rays.DebugWidth =  m_camera.GetSubsetWidth();
+  //rays.DebugHeight = m_camera.GetSubsetHeight();
   return rays;
 }
 
