@@ -80,6 +80,12 @@ VolumeEngine::get_primary_range()
   return m_tracer->GetScalarRange();
 }
 
+void 
+VolumeEngine::set_composite_background(bool on)
+{
+  m_tracer->SetCompositeBackground(on);
+};
+
 void
 VolumeEngine::set_primary_range(const vtkmRange &range)
 {

@@ -14,6 +14,7 @@ public:
   virtual void trace(Ray32 &rays) = 0;
   virtual void trace(Ray64 &rays) = 0;
   virtual void set_primary_range(const vtkmRange &range) = 0;
+  virtual void set_composite_background(bool on) = 0;
   virtual vtkmRange get_primary_range() = 0;
 
   virtual void set_primary_field(const std::string &primary_field) = 0;
@@ -28,7 +29,6 @@ public:
     color_map.Sample(samples, m_color_map);
   }
 
-  
   void set_color_map(const vtkmColorMap &color_map)
   {
     m_color_map = color_map;

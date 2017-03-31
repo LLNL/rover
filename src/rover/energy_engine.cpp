@@ -134,6 +134,12 @@ EnergyEngine::get_primary_range()
   return m_tracer->GetScalarRange();
 }
 
+void 
+EnergyEngine::set_composite_background(bool on)
+{
+  m_tracer->SetCompositeBackground(on);
+};
+
 void
 EnergyEngine::set_primary_range(const vtkmRange &range)
 {

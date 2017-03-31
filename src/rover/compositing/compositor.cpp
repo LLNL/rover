@@ -388,7 +388,7 @@ Compositor<VolumePartial>::composite<vtkm::Float32>(std::vector<PartialImage<vtk
 template 
 PartialImage<vtkm::Float64> 
 Compositor<VolumePartial>::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
-/*
+
 template class Compositor<AbsorptionPartial<vtkm::Float32>>;
 template class Compositor<AbsorptionPartial<vtkm::Float64>>;
 
@@ -399,5 +399,5 @@ Compositor<AbsorptionPartial<vtkm::Float32>>::composite<vtkm::Float32>(std::vect
 template 
 PartialImage<vtkm::Float64> 
 Compositor<AbsorptionPartial<vtkm::Float64>>::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
-*/
+
 } // namespace rover

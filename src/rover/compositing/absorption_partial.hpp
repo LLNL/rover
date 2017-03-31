@@ -47,7 +47,7 @@ struct AbsorptionPartial
     const int starting_index = index * num_bins;
     for(int i = 0; i < num_bins; ++i)
     {
-      m_bins[i] = partial_image.m_buffer.Buffer.GetPortalConstControl().Get(starting_index + 0);
+      m_bins[i] = partial_image.m_buffer.Buffer.GetPortalConstControl().Get(starting_index + i);
     }
   }
   
@@ -56,7 +56,7 @@ struct AbsorptionPartial
     const int num_bins = m_bins.size();
     output.m_pixel_ids.GetPortalControl().Set(index, m_pixel_id ); 
     output.m_distances.GetPortalControl().Set(index, m_depth ); 
-    const int starting_index = num_bins * 4;
+    const int starting_index = num_bins * index;
     for(int  i = 0; i < num_bins; ++i)
     {
       output.m_buffer.Buffer.GetPortalControl().Set(starting_index + i, m_bins[i]);

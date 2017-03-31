@@ -20,6 +20,7 @@ public:
   void set_data_set(vtkmDataSet &dataset);
   void set_render_settings(const RenderSettings &setttings);
   void set_primary_range(const vtkmRange &range);
+  void set_composite_background(bool on);
   vtkmRange get_primary_range();
 protected:
   std::shared_ptr<Engine> m_engine;

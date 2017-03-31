@@ -23,6 +23,7 @@ TEST(rover_hex, test_call)
   MPI_Init(NULL, NULL);
 
   try {
+
   vtkmCamera camera;
   std::vector<vtkmDataSet> datasets;
   set_up_lulesh(datasets, camera);
@@ -43,10 +44,12 @@ TEST(rover_hex, test_call)
 
    
   driver32.set_render_settings(settings);
+
   for(int i = 0; i < datasets.size(); ++i)
   {
     driver32.add_data_set(datasets[i]);
   }
+
   driver32.set_ray_generator(&generator);
   driver32.execute();
   driver32.save_png("multi_energy_hex32_par");

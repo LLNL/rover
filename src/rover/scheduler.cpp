@@ -134,6 +134,13 @@ Scheduler<FloatType>::trace_rays()
   this->set_global_scalar_range();
 
   const int num_domains = static_cast<int>(m_domains.size());
+  //
+  // check to see if we have to composite
+  bool do_compositing = num_domains > 1;
+#ifdef PARALLEL
+  do_compositing = true;
+#endif
+
   for(int i = 0; i < num_domains; ++i)
   {
     if(dynamic_cast<CameraGenerator<FloatType>*>(m_ray_generator) != NULL)
@@ -147,6 +154,10 @@ Scheduler<FloatType>::trace_rays()
     }
     ROVER_INFO("Generating rays for domian "<<i);
     vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
+    if(do_compositing)
+    {
+      m_domains[i].set_composite_background(false);
+    }
     ROVER_INFO("Tracing domain "<<i);
     m_domains[i].trace(rays);
 
@@ -172,7 +183,7 @@ Scheduler<FloatType>::trace_rays()
     m_partial_images.push_back(partial_image);
   }// for each domain
 
-  if(num_domains > 1)
+  if(do_compositing)
   {
     //TODO: composite
     if(m_render_settings.m_render_mode == volume)
@@ -185,11 +196,11 @@ Scheduler<FloatType>::trace_rays()
     }
     else
     {
-//      Compositor<AbsorptionPartial<FloatType>> compositor;
+      Compositor<AbsorptionPartial<FloatType>> compositor;
 #ifdef PARALLEL
-//     compositor.set_comm_handle(m_comm_handle);
+     compositor.set_comm_handle(m_comm_handle);
 #endif
-//      m_result = compositor.composite(m_partial_images);
+      m_result = compositor.composite(m_partial_images);
     }
   }
   else if(num_domains == 1)
@@ -226,9 +237,9 @@ void Scheduler<FloatType>::save_result(std::string file_name)
       vtkmRayTracing::ChannelBuffer<FloatType> channel = m_result.m_buffer.GetChannel( i );
       const bool invert = true;
       channel.Normalize(invert);
-
+      const FloatType default_value = 0.f;
       vtkmRayTracing::ChannelBuffer<FloatType>  expand 
-        = channel.ExpandBuffer(m_result.m_pixel_ids, buffer_size);
+        = channel.ExpandBuffer(m_result.m_pixel_ids, buffer_size, default_value);
 
       FloatType * buffer 
         = get_vtkm_ptr(expand.Buffer);

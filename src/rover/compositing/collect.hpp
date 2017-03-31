@@ -29,27 +29,33 @@ struct Collect
     // first round we have no incoming. Take the partials we have
     // and sent them to to the right rank
     //
-     
-    if(proxy.in_link().size() == 0)
+    const int collection_rank = 0; 
+    if(proxy.in_link().size() == 0 && proxy.gid() != collection_rank)
     {
-      ROVER_INFO("Collect sending partials vector");
-      int dest_gid =  0;
+      ROVER_INFO("Collect sending partials vector "<<block->m_partials.size());
+      int dest_gid = collection_rank;
       diy::BlockID dest = proxy.out_link().target(dest_gid); 
       proxy.enqueue(dest, block->m_partials);
 
       block->m_partials.clear();
 
     } // if
-    else
+    else if(proxy.gid() == collection_rank)
     {
       
       for(int i = 0; i < proxy.in_link().size(); ++i)
       {
         int gid = proxy.in_link().target(i).gid;
+        if(gid == collection_rank)
+        {
+          continue;
+        }
         //TODO: leave the paritals that start here, here
+        ROVER_INFO("dequeuing from "<<gid);
         std::vector<typename BlockType::PartialType> incoming_partials;
         proxy.dequeue(gid, incoming_partials); 
         const int incoming_size = incoming_partials.size();
+        ROVER_INFO("dequeuing "<<incoming_size);
         // TODO: make this a std::copy
         for(int j = 0; j < incoming_size; ++j)
         {
@@ -107,7 +113,7 @@ void collect<VolumePartial>(std::vector<VolumePartial> &partials,
 {
   collect_detail<AddBlock<VolumeBlock>>(partials, comm);
 }
-/*
+
 template<> 
 void collect<AbsorptionPartial<double>>(std::vector<AbsorptionPartial<double>> &partials,
                                         MPI_Comm comm)
@@ -121,7 +127,7 @@ void collect<AbsorptionPartial<float>>(std::vector<AbsorptionPartial<float>> &pa
 {
   collect_detail<AddBlock<AbsorptionBlock<float>>>(partials, comm);
 }
-*/
+
 } // namespace rover
 
 #endif

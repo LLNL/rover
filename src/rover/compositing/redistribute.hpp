@@ -160,7 +160,7 @@ void redistribute<VolumePartial>(std::vector<VolumePartial> &partials,
                                               domain_min_pixel,
                                               domain_max_pixel);
 }
-/*
+
 template<>
 void redistribute<AbsorptionPartial<double>>(std::vector<AbsorptionPartial<double>> &partials, 
                                              MPI_Comm comm,
@@ -184,7 +184,7 @@ void redistribute<AbsorptionPartial<float>>(std::vector<AbsorptionPartial<float>
                                                         domain_min_pixel,
                                                         domain_max_pixel);
 }
- */ 
+
 } //namespace rover
 
 #endif

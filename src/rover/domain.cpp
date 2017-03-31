@@ -82,6 +82,12 @@ Domain::set_primary_range(const vtkmRange &range)
   m_engine->set_primary_range(range);
 }
 
+void 
+Domain::set_composite_background(bool on)
+{
+  m_engine->set_composite_background(on);
+}
+
 vtkmRange
 Domain::get_primary_range()
 {
