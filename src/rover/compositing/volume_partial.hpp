@@ -37,11 +37,13 @@ struct VolumePartial
   inline void blend(const VolumePartial &other)
   {
     if(m_alpha >= 1.f) return;
-    const float one_minus = 1.f - m_alpha;
-    m_pixel[0] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[0])); 
-    m_pixel[1] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[1])); 
-    m_pixel[2] +=  static_cast<unsigned char>(one_minus * static_cast<float>(other.m_pixel[2])); 
-    m_alpha += one_minus * other.m_alpha;
+    const float opacity = (1.f - m_alpha) * other.m_alpha;
+    m_pixel[0] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[0])); 
+    m_pixel[1] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[1])); 
+    m_pixel[2] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[2])); 
+    m_alpha += opacity;
+    m_alpha = m_alpha > 1.f ? 1.f : m_alpha;
+    
   }
 
   template<typename FloatType>
