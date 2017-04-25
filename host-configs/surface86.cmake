@@ -40,5 +40,5 @@ set(ENABLE_CUDA OFF CACHE PATH "")
 set(TBB_DIR "/usr/gapps/visit/strawman/uberenv_libs/spack/opt/spack/chaos_5_x86_64_ib/intel-14.0.3/tbb-4.4.3-al6fuqhyuhr6ju4daik3mfwk5j7gcyvw" CACHE PATH "")
 
 # vtkm from uberenv
-set(VTKM_DIR "/usr/workspace/wsb/larsen30/rover_dev/rover_vtkm/install" CACHE PATH "")
+set(VTKM_DIR "/usr/workspace/wsb/larsen30/vtk-m/install" CACHE PATH "")
 

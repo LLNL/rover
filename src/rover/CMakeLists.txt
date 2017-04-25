@@ -49,6 +49,7 @@ set(rover_sources
     utils/vtk_dataset_reader.cpp
    )
 
+   
 if(BUILD_SHARED_LIBS)
   message(STATUS "Building rover as a shared library")
 
@@ -71,6 +72,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty_builtin/diy2/inclu
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(rover PRIVATE ${VTKm_INCLUDE_DIRS})
 target_link_libraries(rover ${VTKm_LIBRARIES})
+
+if(TBB_FOUND)
+   target_link_libraries(rover ${TBB_LIBRARIES})
+endif()
 
 ###################################################
 #   Build parallel version
@@ -108,4 +113,7 @@ if(MPI_FOUND)
                          target_include_directories(rover_par PRIVATE ${VTKm_INCLUDE_DIRS} ${DIY_DIR})
   target_link_libraries(rover_par ${VTKm_LIBRARIES} ${MPI_CXX_LIBRARIES})
 
+  if(TBB_FOUND)
+     target_link_libraries(rover_par ${TBB_LIBRARIES})
+  endif()
 endif()
