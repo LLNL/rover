@@ -13,6 +13,8 @@ public:
   virtual void set_data_set(vtkmDataSet &) = 0;
   virtual void trace(Ray32 &rays) = 0;
   virtual void trace(Ray64 &rays) = 0;
+  virtual void init_rays(Ray32 &rays) = 0;
+  virtual void init_rays(Ray64 &rays) = 0;
   virtual void set_primary_range(const vtkmRange &range) = 0;
   virtual void set_composite_background(bool on) = 0;
   virtual vtkmRange get_primary_range() = 0;

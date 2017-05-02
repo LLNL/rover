@@ -19,6 +19,7 @@ typedef vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::Float32, 4> > vtkmColorMap;
 typedef vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::Float32, 4> > vtkmColorBuffer;
 typedef vtkm::rendering::raytracing::Camera                   vtkmCamera;
 typedef vtkm::cont::ArrayHandle<vtkm::Id>                     IdHandle;
+typedef vtkm::Vec<vtkm::Float32,3>                            vtkmVec3f;
 //
 // Utility method for getting raw pointer 
 //

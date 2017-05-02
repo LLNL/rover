@@ -60,6 +60,12 @@ bool RayGenerator<Precision>::get_has_rays() const
 }
 
 template<typename Precision>
+void RayGenerator<Precision>::reset() 
+{
+  m_has_rays = true;
+}
+
+template<typename Precision>
 int RayGenerator<Precision>::get_size() const
 {
   return m_height * m_width; 

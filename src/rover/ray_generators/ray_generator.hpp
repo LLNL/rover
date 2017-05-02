@@ -16,6 +16,7 @@ public:
   void get_dims(int &height, int &width) const;
   int  get_size() const;
   bool get_has_rays() const;
+  void reset();
 protected:
   vtkmRayTracing::Ray<Precision> m_rays; 
   int  m_height;

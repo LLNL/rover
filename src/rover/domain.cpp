@@ -65,6 +65,18 @@ Domain::get_data_set()
 }
 
 void
+Domain::init_rays(Ray32 &rays)
+{
+  m_engine->init_rays(rays);
+}
+
+void
+Domain::init_rays(Ray64 &rays)
+{
+  m_engine->init_rays(rays);
+}
+
+void
 Domain::trace(Ray32 &rays)
 {
   m_engine->trace(rays);

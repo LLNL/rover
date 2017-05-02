@@ -53,7 +53,7 @@ protected:
   void set_global_scalar_range();
   std::vector<Domain>                       m_domains;
   PartialImage<FloatType>                   m_result;
-  std::vector<PartialImage<FloatType>>  m_partial_images;
+  std::vector<PartialImage<FloatType>>      m_partial_images;
   RenderSettings                            m_render_settings;
   RayGenerator<FloatType>                  *m_ray_generator;
 #ifdef PARALLEL

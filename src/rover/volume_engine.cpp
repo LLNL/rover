@@ -37,6 +37,18 @@ VolumeEngine::set_primary_field(const std::string &primary_field)
 }
 
 void 
+VolumeEngine::init_rays(Ray32 &rays)
+{
+  rays.Buffers.at(0).InitConst(0.);
+}
+
+void 
+VolumeEngine::init_rays(Ray64 &rays)
+{
+  rays.Buffers.at(0).InitConst(0.);
+}
+
+void 
 VolumeEngine::trace(Ray32 &rays)
 {
   if(m_tracer == NULL)

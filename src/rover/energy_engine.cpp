@@ -67,6 +67,7 @@ EnergyEngine::trace(Ray32 &rays)
 
   ROVER_INFO("Energy Engine trace32");
 #warning "Make method in channel buffer to set number of channels on device"
+#warning "Who sets init of rays when rays are passed in from bounce"
   int num_bins = detect_num_bins();
 
   rays.Buffers.at(0).SetNumChannels(num_bins);
@@ -75,6 +76,26 @@ EnergyEngine::trace(Ray32 &rays)
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
   m_tracer->SetColorMap(m_color_map);
   m_tracer->Trace(rays);
+
+}
+
+void 
+EnergyEngine::init_rays(Ray32 &rays)
+{
+  
+  int num_bins = detect_num_bins();
+  rays.Buffers.at(0).SetNumChannels(num_bins);
+  rays.Buffers.at(0).InitConst(1.);
+
+}
+
+void 
+EnergyEngine::init_rays(Ray64 &rays)
+{
+  
+  int num_bins = detect_num_bins();
+  rays.Buffers.at(0).SetNumChannels(num_bins);
+  rays.Buffers.at(0).InitConst(1.);
 
 }
 
@@ -93,10 +114,6 @@ EnergyEngine::trace(Ray64 &rays)
   }
 
   ROVER_INFO("Energy Engine trace64");
-  int num_bins = detect_num_bins();
-
-  rays.Buffers.at(0).SetNumChannels(num_bins);
-  rays.Buffers.at(0).InitConst(1.);
 
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
   m_tracer->SetColorMap(m_color_map);

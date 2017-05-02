@@ -17,6 +17,8 @@ public:
   vtkmDataSet get_data_set();
   void trace(Ray32 &rays);
   void trace(Ray64 &rays);
+  void init_rays(Ray32 &rays);
+  void init_rays(Ray64 &rays);
   void set_data_set(vtkmDataSet &dataset);
   void set_render_settings(const RenderSettings &setttings);
   void set_primary_range(const vtkmRange &range);

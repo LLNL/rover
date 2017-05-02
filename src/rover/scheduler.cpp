@@ -15,6 +15,7 @@ namespace rover {
 template<typename FloatType>
 Scheduler<FloatType>::Scheduler()
 {
+  m_ray_generator = NULL;
 }
 
 template<typename FloatType>
@@ -123,7 +124,11 @@ template<typename FloatType>
 void 
 Scheduler<FloatType>::trace_rays()
 {
-
+  if(m_ray_generator == NULL)
+  {
+    throw RoverException("Error: ray generator must be set before execute is called");
+  }
+  m_ray_generator->reset();
   // TODO while (m_geerator.has_rays())
   ROVER_INFO("Tracing rays");
 
@@ -154,10 +159,13 @@ Scheduler<FloatType>::trace_rays()
     }
     ROVER_INFO("Generating rays for domian "<<i);
     vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
+    m_domains[i].init_rays(rays);
+
     if(do_compositing)
     {
       m_domains[i].set_composite_background(false);
     }
+
     ROVER_INFO("Tracing domain "<<i);
     m_domains[i].trace(rays);
 

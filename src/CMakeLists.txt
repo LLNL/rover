@@ -99,6 +99,11 @@ add_subdirectory(thirdparty_builtin)
 add_subdirectory(rover)
 
 ####################################
+# Add the examples dir 
+####################################
+add_subdirectory(examples)
+
+####################################
 # Add the test 
 ####################################
 if(ENABLE_TESTS)
