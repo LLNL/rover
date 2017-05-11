@@ -64,7 +64,6 @@ VolumeEngine::trace(Ray32 &rays)
   rays.Buffers.at(0).InitConst(0.);
   m_tracer->SetColorMap(m_color_map);
   m_tracer->Trace(rays);
-
 }
 
 void 
@@ -104,4 +103,16 @@ VolumeEngine::set_primary_range(const vtkmRange &range)
   return m_tracer->SetScalarRange(range);
 }
 
+void
+VolumeEngine::set_samples(const vtkm::Bounds &global_bounds, const int &samples)
+{
+  const vtkm::Float32 num_samples = static_cast<float>(samples);
+  vtkm::Vec<vtkm::Float32,3> totalExtent;
+  totalExtent[0] = vtkm::Float32(global_bounds.X.Max - global_bounds.X.Min);
+  totalExtent[1] = vtkm::Float32(global_bounds.Y.Max - global_bounds.Y.Min);
+  totalExtent[2] = vtkm::Float32(global_bounds.Z.Max - global_bounds.Z.Min);
+  vtkm::Float32 sample_distance = vtkm::Magnitude(totalExtent) / num_samples;
+  m_tracer->SetSampleDistance(sample_distance);
+}
+  
 }; //namespace rover

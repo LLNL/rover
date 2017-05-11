@@ -23,11 +23,15 @@ public:
   void set_render_settings(const RenderSettings &setttings);
   void set_primary_range(const vtkmRange &range);
   void set_composite_background(bool on);
+  vtkm::Bounds get_domain_bounds();
   vtkmRange get_primary_range();
+  void set_global_bounds(vtkm::Bounds bounds);
 protected:
   std::shared_ptr<Engine> m_engine;
   vtkmDataSet             m_data_set;
-  RenderMode              m_render_mode;
+  vtkm::Bounds            m_global_bounds;
+  vtkm::Bounds            m_domain_bounds;
+  RenderSettings          m_render_settings;
 
 }; // class domain
 } // namespace rover

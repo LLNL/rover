@@ -46,15 +46,19 @@ struct Redistribute
         diy::BlockID dest = proxy.out_link().target(dest_gid); 
         outgoing[dest].push_back(block->m_partials[i]);
       } //for
-      
+       
       block->m_partials.clear();
-
-      typename std::map<diy::BlockID,std::vector<typename BlockType::PartialType>>::iterator it;
-      for( it = outgoing.begin(); it != outgoing.end(); ++it)
+      
+      ROVER_INFO("out setup ");
+      
+      for(int i = 0; i < proxy.out_link().size(); ++i)
       {
-        proxy.enqueue(it->first, it->second);
-        it->second.clear();
+        int dest_gid = proxy.out_link().target(i).gid;
+        diy::BlockID dest = proxy.out_link().target(dest_gid); 
+        proxy.enqueue(dest, outgoing[dest]);
+        //outgoing[dest].clear();
       }
+
     } // if
     else
     {
@@ -65,9 +69,10 @@ struct Redistribute
       {
         int gid = proxy.in_link().target(i).gid;
         std::vector<typename BlockType::PartialType> incoming_partials;
+        ROVER_INFO("dequing from "<<gid);
         proxy.dequeue(gid, incoming_partials); 
         const int incoming_size = incoming_partials.size();
-        ROVER_INFO("Incoming size "<<incoming_size);
+        ROVER_INFO("Incoming size "<<incoming_size<<" from "<<gid);
         // TODO: make this a std::copy
         for(int j = 0; j < incoming_size; ++j)
         {

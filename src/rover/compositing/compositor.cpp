@@ -38,6 +38,10 @@ Compositor<PartialType>::extract(std::vector<PartialImage<FloatType>> &partial_i
                           int &global_min_pixel,
                           int &global_max_pixel)
 {
+  vtkmTimer tot_timer;  
+  vtkmTimer timer;  
+  double time = 0;
+  DataLogger::GetInstance()->OpenLogEntry("compositing_extract");
 
   int total_partial_comps = 0;
   const int num_partial_images = static_cast<int>(partial_images.size());
@@ -56,6 +60,9 @@ Compositor<PartialType>::extract(std::vector<PartialImage<FloatType>> &partial_i
   ROVER_INFO("Total number of partial composites "<<total_partial_comps);
 
   partials.resize(total_partial_comps);
+
+  timer.Reset();
+
   for(int i = 0; i < num_partial_images; ++i)
   {
     //
@@ -100,7 +107,9 @@ Compositor<PartialType>::extract(std::vector<PartialImage<FloatType>> &partial_i
     }
 
   }// for each partial image
-  
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("merge_partials",time); 
+  timer.Reset();
   // 
   // determine the global pixel mins and maxs
   //
@@ -126,6 +135,9 @@ Compositor<PartialType>::extract(std::vector<PartialImage<FloatType>> &partial_i
   delete[] offsets;
   delete[] pixel_mins;
   delete[] pixel_maxs;
+
+  time = tot_timer.GetElapsedTime();
+  DataLogger::GetInstance()->CloseLogEntry(time); 
 }
 
 //--------------------------------------------------------------------------------------------
@@ -133,9 +145,8 @@ Compositor<PartialType>::extract(std::vector<PartialImage<FloatType>> &partial_i
 template<typename PartialType>
 void 
 Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials, 
-                                    std::vector<PartialType> &output_partials)
+                                            std::vector<PartialType> &output_partials)
 {
-  
   const int total_partial_comps = partials.size();
   //
   // Sort the composites
@@ -310,12 +321,29 @@ template<typename FloatType>
 PartialImage<FloatType> 
 Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial_images)
 {
-  
+  const int x = 250;
+  const int y = 413;
+ 
+  std::cout<<"begin \n";
+  for(int i = 0; i < partial_images.size(); ++i)
+  {
+    partial_images[i].print_pixel(x,y);
+  }
+
+  DataLogger::GetInstance()->OpenLogEntry("compositing");
+  vtkmTimer tot_timer; 
+  vtkmTimer timer; 
+  double time = 0;
+
   std::vector<PartialType> partials;
   int global_min_pixel;
   int global_max_pixel;
+
   extract(partial_images, partials, global_min_pixel, global_max_pixel);
-  
+  time = timer.GetElapsedTime(); 
+  DataLogger::GetInstance()->AddLogData("extract",time);
+  timer.Reset();
+
 #ifdef PARALLEL
   //
   // Exchange partials with other ranks
@@ -326,6 +354,10 @@ Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial
                global_max_pixel);
   ROVER_INFO("Redistributed");
 #endif
+
+  time = timer.GetElapsedTime(); 
+  DataLogger::GetInstance()->AddLogData("redistribute",time);
+  timer.Reset();
 
   const int  total_partial_comps = partials.size();
 
@@ -339,6 +371,9 @@ Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial
   std::vector<PartialType> output_partials;
   composite_partials(partials, output_partials);
    
+  time = timer.GetElapsedTime(); 
+  DataLogger::GetInstance()->AddLogData("do_composite",time);
+  timer.Reset();
 #ifdef PARALLEL
   //
   // Collect all of the distibuted pixels
@@ -346,6 +381,9 @@ Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial
   collect(output_partials, m_comm_handle);
 #endif
   
+  time = timer.GetElapsedTime(); 
+  DataLogger::GetInstance()->AddLogData("collect",time);
+  timer.Reset();
   //
   // pack the output back into a channel buffer
   //
@@ -363,10 +401,20 @@ Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial
   {
     output_partials[i].store_into_partial(output, i);
   }
+
+  std::cout<<"out \n";
+  output.print_pixel(x,y);
+  output.make_red_pixel(x,y);
+
   ROVER_INFO("Compositing results in "<<out_size);
+
+  time = timer.GetElapsedTime(); 
+  DataLogger::GetInstance()->AddLogData("pack_partial",time);
+
+  time = tot_timer.GetElapsedTime(); 
+  DataLogger::GetInstance()->CloseLogEntry(time);
+
   return output;
-
-
 }
 
 #ifdef PARALLEL

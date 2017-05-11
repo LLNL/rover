@@ -29,6 +29,8 @@ CameraGenerator<Precision>::get_rays()
 {
   vtkmRayTracing::Ray<Precision> rays;
   m_camera.CreateRays(rays, this->m_coordinates); 
+  //vtkm::Vec<vtkm::Int32,2> pixel(250,413);
+  //m_camera.CreateDebugRay(pixel,rays); 
   this->m_has_rays = false;
   if(rays.NumRays == 0) std::cout<<"CameraGenerator Warning no rays were generated\n";
   //rays.DebugWidth =  m_camera.GetSubsetWidth();

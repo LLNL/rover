@@ -2,6 +2,8 @@
 #define rover_loggin_h
 
 #include <fstream>
+#include <stack>
+#include <sstream>
 
 namespace rover {
 
@@ -19,6 +21,29 @@ protected:
   static class Logger* m_instance;
 };
 
+class DataLogger 
+{
+public:
+  ~DataLogger();
+  static DataLogger *GetInstance();
+  void OpenLogEntry(const std::string &entryName);
+  void CloseLogEntry(const double &entryTime);
+
+  template<typename T>
+  void AddLogData(const std::string key, const T &value)
+  {
+    this->Stream<<key<<" "<<value<<"\n";
+  }
+
+  std::stringstream& GetStream();
+
+protected:
+  DataLogger();
+  DataLogger(DataLogger const &);
+  std::stringstream Stream;
+  static class DataLogger* Instance;
+  std::stack<std::string> Entries;
+};
 
 #define ROVER_INFO(msg) rover::Logger::get_instance()->get_stream() <<"<Info>\n" \
   <<"  message: "<< msg <<"\n  file: " <<__FILE__<<"\n  line:  "<<__LINE__<<std::endl;

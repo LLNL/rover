@@ -3,9 +3,11 @@
 
 #include <vtkm/cont/DataSet.h>
 #include <vtkm/cont/DeviceAdapterListTag.h>
+#include <vtkm/cont/Timer.h>
 #include <vtkm/rendering/ColorTable.h>
 #include <vtkm/rendering/raytracing/Camera.h>
 #include <vtkm/rendering/raytracing/Ray.h>
+#include <vtkm/rendering/raytracing/Logger.h>
 
 namespace rover {
 namespace vtkmRayTracing = vtkm::rendering::raytracing;
@@ -20,6 +22,8 @@ typedef vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::Float32, 4> > vtkmColorBuffer;
 typedef vtkm::rendering::raytracing::Camera                   vtkmCamera;
 typedef vtkm::cont::ArrayHandle<vtkm::Id>                     IdHandle;
 typedef vtkm::Vec<vtkm::Float32,3>                            vtkmVec3f;
+typedef vtkm::cont::Timer<>                                   vtkmTimer;
+typedef vtkm::rendering::raytracing::Logger                   vtkmLogger;
 //
 // Utility method for getting raw pointer 
 //

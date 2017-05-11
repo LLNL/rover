@@ -148,6 +148,8 @@ void
 Rover<FloatType>::finalize()
 {
   // finalize
+  //std::string log = DataLogger::GetInstance()->GetStream().str();
+  //std::cout<<log;
 }
 
 template<typename FloatType>

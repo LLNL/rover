@@ -21,16 +21,18 @@ Domain::set_render_settings(const RenderSettings &settings)
   // Create the correct engine
   //
 
-  if(m_render_mode != volume && settings.m_render_mode == volume)
+  if(m_render_settings.m_render_mode != volume && 
+     settings.m_render_mode == volume)
   {
     m_engine = std::make_shared<VolumeEngine>(); 
-
   }
-  else if(m_render_mode != energy && settings.m_render_mode == energy)
+  else if(m_render_settings.m_render_mode != energy && 
+          settings.m_render_mode == energy)
   {
     m_engine = std::make_shared<EnergyEngine>();
   }
-  else if(m_render_mode != surface && settings.m_render_mode == surface)
+  else if(m_render_settings.m_render_mode != surface && 
+          settings.m_render_mode == surface)
   {
     std::cout<<"ray tracing not implemented\n";
   }
@@ -40,14 +42,13 @@ Domain::set_render_settings(const RenderSettings &settings)
     //throw RoverException("Fatal Error: domain unable to create the apporpriate engine\n");
   }
 
-  m_render_mode = settings.m_render_mode; 
+  m_render_settings = settings; 
 
   ROVER_INFO("Primary field " << settings.m_primary_field);
 
   m_engine->set_primary_field(settings.m_primary_field);
   m_engine->set_secondary_field(settings.m_secondary_field);
   m_engine->set_color_table(settings.m_color_table);
-
 
 }
 
@@ -56,6 +57,7 @@ Domain::set_data_set(vtkmDataSet &dataset)
 {
   m_engine->set_data_set(dataset);
   m_data_set = dataset;
+  m_domain_bounds = m_data_set.GetCoordinateSystem().GetBounds();
 }
 
 vtkmDataSet
@@ -79,12 +81,16 @@ Domain::init_rays(Ray64 &rays)
 void
 Domain::trace(Ray32 &rays)
 {
+  m_engine->set_samples(m_global_bounds, 
+                        m_render_settings.m_volume_settings.m_num_samples);
   m_engine->trace(rays);
 }
 
 void
 Domain::trace(Ray64 &rays)
 {
+  m_engine->set_samples(m_global_bounds, 
+                        m_render_settings.m_volume_settings.m_num_samples);
   m_engine->trace(rays);
 }
 
@@ -104,6 +110,18 @@ vtkmRange
 Domain::get_primary_range()
 {
   return m_engine->get_primary_range();
+}
+
+vtkm::Bounds
+Domain::get_domain_bounds()
+{
+  return m_domain_bounds;
+}
+
+void
+Domain::set_global_bounds(vtkm::Bounds bounds)
+{
+  m_global_bounds = bounds;
 }
 
 } // namespace rover 

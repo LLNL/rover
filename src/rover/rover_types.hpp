@@ -77,6 +77,52 @@ struct PartialImage
   IdHandle                                 m_pixel_ids;
   vtkmRayTracing::ChannelBuffer<FloatType> m_buffer;
   vtkm::cont::ArrayHandle<FloatType>       m_distances;
+
+  void print_pixel(const int x, const int y)
+  {
+    const int size = m_pixel_ids.GetPortalControl().GetNumberOfValues();
+    const int num_channels = m_buffer.GetNumChannels();
+    int debug = m_width * ( m_height - y) + x; 
+
+    for(int i = 0; i < size; ++i)
+    {
+      if(m_pixel_ids.GetPortalControl().Get(i) == debug)
+      {
+        std::cout<<"$$$$ found it\n";
+        int offset = i * num_channels;
+        for(int j = 0; j < num_channels ; ++j)
+        {
+          //m_buffer.Buffer.GetPortalControl().Set(offset + j, 0.f);
+          std::cout<<m_buffer.Buffer.GetPortalControl().Get(offset + j)<<" ";
+        }
+        std::cout<<"\n";
+      }
+    }
+
+  
+  }// print
+
+  void make_red_pixel(const int x, const int y)
+    {
+      const int size = m_pixel_ids.GetPortalControl().GetNumberOfValues();
+      const int num_channels = m_buffer.GetNumChannels();
+      int debug = m_width * ( m_height - y) + x; 
+
+      for(int i = 0; i < size; ++i)
+      {
+        if(m_pixel_ids.GetPortalControl().Get(i) == debug)
+        {
+          std::cout<<"$$$$ red\n";
+          int offset = i * num_channels;
+          m_buffer.Buffer.GetPortalControl().Set(offset , 1.f);
+          for(int j = 1; j < num_channels -1; ++j)
+          {
+            m_buffer.Buffer.GetPortalControl().Set(offset + j, 0.f);
+          }
+          m_buffer.Buffer.GetPortalControl().Set(offset + num_channels-1,1.f);
+        }
+      }
+    }
 };
 
 } // namespace rover

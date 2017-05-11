@@ -26,7 +26,8 @@
 namespace rover {
 
 template<typename FloatType>
-class Scheduler {
+class Scheduler 
+{
 public:
   Scheduler();
   virtual ~Scheduler();
@@ -51,6 +52,7 @@ public:
   FloatType *    get_color_buffer();
 protected:
   void set_global_scalar_range();
+  void set_global_bounds();
   std::vector<Domain>                       m_domains;
   PartialImage<FloatType>                   m_result;
   std::vector<PartialImage<FloatType>>      m_partial_images;

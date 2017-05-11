@@ -484,9 +484,9 @@ void TemplateDriver(Options &options, Precision)
   {
     settings.m_primary_field = "nodal_noise";
     vtkmColorTable color_table("cool2warm");
-    //color_table.AddAlphaControlPoint(0.0, .01);
-    //color_table.AddAlphaControlPoint(0.5, .02);
-    //color_table.AddAlphaControlPoint(1.0, .01);
+    color_table.AddAlphaControlPoint(0.0, .01);
+    color_table.AddAlphaControlPoint(0.5, .02);
+    color_table.AddAlphaControlPoint(1.0, .01);
     settings.m_color_table = color_table;
   }
   else
@@ -505,19 +505,19 @@ void TemplateDriver(Options &options, Precision)
   driver.add_data_set(vtkm_data_set);
   for(int t = 0; t < options.m_time_steps; ++t)
   {
-        data_set.Update(time);
-        driver.execute();
-        std::stringstream ss;
-        ss<<"noise_"<<t;
-        driver.save_png(ss.str());
-        time += options.m_time_delta;
+    data_set.Update(time);
+    driver.execute();
+    std::stringstream ss;
+    ss<<"noise_"<<t;
+    driver.save_png(ss.str());
+    time += options.m_time_delta;
   } //for each time step
   
 
   // 
   // cleanup
   //
-  //alpine.Close();
+  driver.finalize();
   Finalize();
 };
 

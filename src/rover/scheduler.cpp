@@ -47,11 +47,7 @@ Scheduler<FloatType>::set_global_scalar_range()
 {
 
   const int num_domains = static_cast<int>(m_domains.size());
-  if(num_domains == 1)
-  {
-    // Nothing to do
-    return;
-  }
+
   vtkmRange global_range;
 
   for(int i = 0; i < num_domains; ++i) 
@@ -75,6 +71,94 @@ Scheduler<FloatType>::set_global_scalar_range()
   for(int i = 0; i < num_domains; ++i) 
   {
     m_domains[i].set_primary_range(global_range);
+  }
+}
+
+template<typename FloatType>
+void
+Scheduler<FloatType>::set_global_bounds()
+{
+
+  const int num_domains = static_cast<int>(m_domains.size());
+
+  vtkm::Bounds global_bounds;
+
+  for(int i = 0; i < num_domains; ++i) 
+  {
+    vtkm::Bounds local_bounds = m_domains[i].get_domain_bounds();
+    global_bounds.Include(local_bounds);
+  }
+
+#ifdef PARALLEL
+
+  double x_min = global_bounds.X.Min;
+  double x_max = global_bounds.X.Max;
+  double y_min = global_bounds.Y.Min;
+  double y_max = global_bounds.Y.Max;
+  double z_min = global_bounds.Z.Min;
+  double z_max = global_bounds.Z.Max;
+  double global_x_min = 0;
+  double global_x_max = 0;
+  double global_y_min = 0;
+  double global_y_max = 0;
+  double global_z_min = 0;
+  double global_z_max = 0;
+
+  MPI_Allreduce((void *)(&x_min),
+                (void *)(&global_x_min), 
+                1,
+                MPI_DOUBLE,
+                MPI_MIN,
+                m_comm_handle);
+
+  MPI_Allreduce((void *)(&x_max),
+                (void *)(&global_x_max),
+                1,
+                MPI_DOUBLE,
+                MPI_MAX,
+                m_comm_handle);
+
+  MPI_Allreduce((void *)(&y_min),
+                (void *)(&global_y_min), 
+                1,
+                MPI_DOUBLE,
+                MPI_MIN,
+                m_comm_handle);
+
+  MPI_Allreduce((void *)(&y_max),
+                (void *)(&global_y_max),
+                1,
+                MPI_DOUBLE,
+                MPI_MAX,
+                m_comm_handle);
+
+  MPI_Allreduce((void *)(&z_min),
+                (void *)(&global_z_min), 
+                1,
+                MPI_DOUBLE,
+                MPI_MIN,
+                m_comm_handle);
+
+  MPI_Allreduce((void *)(&z_max),
+                (void *)(&global_z_max),
+                1,
+                MPI_DOUBLE,
+                MPI_MAX,
+                m_comm_handle);
+
+  global_bounds.X.Min = global_x_min;
+  global_bounds.X.Max = global_x_max;
+  global_bounds.Y.Min = global_y_min;
+  global_bounds.Y.Max = global_y_max;
+  global_bounds.Z.Min = global_z_min;
+  global_bounds.Z.Max = global_z_max;
+#endif
+
+  ROVER_INFO("Global bounds "<<global_bounds);
+
+  for(int i = 0; i < num_domains; ++i) 
+  {
+    m_domains[i].set_global_bounds(global_bounds);
   }
 }
 
@@ -124,19 +208,27 @@ template<typename FloatType>
 void 
 Scheduler<FloatType>::trace_rays()
 {
+  vtkmTimer tot_timer;
+  vtkmTimer timer;
+  double time = 0;
+  DataLogger::GetInstance()->OpenLogEntry("schedule_trace");
+
   if(m_ray_generator == NULL)
   {
     throw RoverException("Error: ray generator must be set before execute is called");
   }
+
   m_ray_generator->reset();
   // TODO while (m_geerator.has_rays())
   ROVER_INFO("Tracing rays");
 
   int height = 0;
   int width = 0;
+
   m_ray_generator->get_dims(height, width);
   
   this->set_global_scalar_range();
+  this->set_global_bounds();
 
   const int num_domains = static_cast<int>(m_domains.size());
   //
@@ -148,6 +240,11 @@ Scheduler<FloatType>::trace_rays()
 
   for(int i = 0; i < num_domains; ++i)
   {
+    vtkmTimer domain_timer;
+    std::stringstream domain_s;
+    domain_s<<"trace_domain_"<<i;
+    DataLogger::GetInstance()->OpenLogEntry(domain_s.str());
+    vtkmLogger::GetInstance()->Clear();
     if(dynamic_cast<CameraGenerator<FloatType>*>(m_ray_generator) != NULL)
     {
       //
@@ -158,8 +255,14 @@ Scheduler<FloatType>::trace_rays()
       generator->set_coordinates(m_domains[i].get_data_set().GetCoordinateSystem());
     }
     ROVER_INFO("Generating rays for domian "<<i);
+
+    timer.Reset();
+
     vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
     m_domains[i].init_rays(rays);
+
+    time = timer.GetElapsedTime();
+    DataLogger::GetInstance()->AddLogData("domain_init_rays", time);
 
     if(do_compositing)
     {
@@ -167,7 +270,12 @@ Scheduler<FloatType>::trace_rays()
     }
 
     ROVER_INFO("Tracing domain "<<i);
+
+    timer.Reset();
     m_domains[i].trace(rays);
+    time = timer.GetElapsedTime();
+    DataLogger::GetInstance()->AddLogData("domain_trace", time);
+    DataLogger::GetInstance()->GetStream()<<vtkmLogger::GetInstance()->GetStream().str();
 
     PartialImage<FloatType> partial_image;
     partial_image.m_pixel_ids = rays.PixelIdx;
@@ -188,9 +296,19 @@ Scheduler<FloatType>::trace_rays()
       partial_image.m_buffer = rays.Buffers.at(0);
 
     }
-    m_partial_images.push_back(partial_image);
-  }// for each domain
 
+    timer.Reset();
+    m_partial_images.push_back(partial_image);
+    time = timer.GetElapsedTime(); 
+    DataLogger::GetInstance()->AddLogData("domain_push_back", time);
+
+    time = domain_timer.GetElapsedTime();
+
+    DataLogger::GetInstance()->CloseLogEntry(time);
+
+  }// for each domain
+  
+  timer.Reset();
   if(do_compositing)
   {
     //TODO: composite
@@ -219,7 +337,17 @@ Scheduler<FloatType>::trace_rays()
   {
     ROVER_ERROR("Invalid number of domains: "<<num_domains);
   }
+
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("compositing", time);
+  timer.Reset();
+
   m_partial_images.clear();
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("clear", time);
+
+  double tot_time = tot_timer.GetElapsedTime();
+  DataLogger::GetInstance()->CloseLogEntry(tot_time);
 }
 
 template<typename FloatType>

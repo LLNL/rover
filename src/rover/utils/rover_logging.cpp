@@ -56,5 +56,48 @@ Logger::write(const int level, const std::string &message, const char *file, int
   m_stream<<"  message: "<<message<<" \n  file: "<<file<<" \n  line: "<<line<<"\n";
 }
 
+// ---------------------------------------------------------------------------------------
+
+DataLogger* DataLogger::Instance  = NULL;
+
+DataLogger::DataLogger()
+{
+}
+
+DataLogger::~DataLogger()
+{
+  Stream.str("");
+}
+
+DataLogger* 
+DataLogger::GetInstance()
+{
+  if(DataLogger::Instance == NULL)
+  {
+    DataLogger::Instance =  new DataLogger();
+  }
+  return DataLogger::Instance;
+}
+
+std::stringstream& 
+DataLogger::GetStream() 
+{
+  return Stream;
+}
+
+void
+DataLogger::OpenLogEntry(const std::string &entryName)
+{
+    Stream<<entryName<<" "<<"<\n";
+    Entries.push(entryName);
+}
+void 
+DataLogger::CloseLogEntry(const double &entryTime)
+{
+  this->Stream<<"total_time "<<entryTime<<"\n";
+  this->Stream<<this->Entries.top()<<" >\n";
+  Entries.pop();
+}
+
 } // namespace rover
 

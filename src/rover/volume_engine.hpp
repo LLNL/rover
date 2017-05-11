@@ -21,6 +21,7 @@ public:
   void set_primary_range(const vtkmRange &range);
   void set_primary_field(const std::string &primary_field);
   void set_composite_background(bool on);
+  void set_samples(const vtkm::Bounds &global_bounds, const int &samples);
   vtkmRange get_primary_range();
 };
 
