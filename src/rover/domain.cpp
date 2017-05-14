@@ -60,7 +60,7 @@ Domain::set_data_set(vtkmDataSet &dataset)
   m_domain_bounds = m_data_set.GetCoordinateSystem().GetBounds();
 }
 
-vtkmDataSet
+const vtkmDataSet&
 Domain::get_data_set()
 {
   return m_data_set;

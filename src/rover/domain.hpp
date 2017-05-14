@@ -14,7 +14,7 @@ class Domain
 public:
   Domain();
   ~Domain();
-  vtkmDataSet get_data_set();
+  const vtkmDataSet& get_data_set();
   void trace(Ray32 &rays);
   void trace(Ray64 &rays);
   void init_rays(Ray32 &rays);

@@ -229,9 +229,11 @@ struct DataSet
     open_simplex_noise(59142, &ctx_zonal);
     open_simplex_noise(82031, &ctx_nodal2);
 
-    m_nodal_scalars = new Precision[m_point_size]; 
+    m_nodal_scalars  = new Precision[m_point_size]; 
     m_nodal2_scalars = new Precision[m_point_size]; 
-    m_zonal_scalars = new Precision[m_cell_size]; 
+    m_zonal_scalars  = new Precision[m_cell_size]; 
+    std::cout<<"Point size "<<m_point_size<<"\n";
+    std::cout<<"Cell size "<<m_cell_size<<"\n";
   }    
 
   inline void GetCoord(const int &x, const int &y, const int &z, double *coord)
@@ -347,6 +349,9 @@ struct DataSet
     if(m_nodal_scalars) delete[] m_nodal_scalars; 
     if(m_nodal_scalars) delete[] m_nodal2_scalars; 
     if(m_zonal_scalars) delete[] m_zonal_scalars; 
+    open_simplex_noise_free(ctx_nodal);
+    open_simplex_noise_free(ctx_zonal);
+    open_simplex_noise_free(ctx_nodal2);
   }
 private:
 DataSet()
@@ -503,15 +508,15 @@ void TemplateDriver(Options &options, Precision)
 #endif
 
   driver.add_data_set(vtkm_data_set);
-  for(int t = 0; t < options.m_time_steps; ++t)
-  {
-    data_set.Update(time);
-    driver.execute();
-    std::stringstream ss;
-    ss<<"noise_"<<t;
-    driver.save_png(ss.str());
-    time += options.m_time_delta;
-  } //for each time step
+  //for(int t = 0; t < options.m_time_steps; ++t)
+  //{
+  //  data_set.Update(time);
+  //  driver.execute();
+  //  std::stringstream ss;
+  //  ss<<"noise_"<<t;
+  //  driver.save_png(ss.str());
+  //  time += options.m_time_delta;
+  //} //for each time step
   
 
   // 

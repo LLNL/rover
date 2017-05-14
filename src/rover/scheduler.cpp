@@ -171,7 +171,7 @@ Scheduler<FloatType>::add_data_set(vtkmDataSet &dataset)
   domain.set_render_settings(m_render_settings);
   domain.set_data_set(dataset);
   dataset.PrintSummary(std::cout); 
-  domain.get_data_set().PrintSummary(std::cout); 
+  //domain.get_data_set().PrintSummary(std::cout); 
   m_domains.push_back(domain);
 }
 
@@ -251,7 +251,7 @@ Scheduler<FloatType>::trace_rays()
       // Setting the coordinate system miminizes the number of rays generated
       //
       CameraGenerator<FloatType> *generator = dynamic_cast<CameraGenerator<FloatType>*>(m_ray_generator);
-      m_domains[i].get_data_set().PrintSummary(std::cout);
+      //m_domains[i].get_data_set().PrintSummary(std::cout);
       generator->set_coordinates(m_domains[i].get_data_set().GetCoordinateSystem());
     }
     ROVER_INFO("Generating rays for domian "<<i);
