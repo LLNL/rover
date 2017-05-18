@@ -247,19 +247,25 @@ struct DataSet
   {
     const int offset = z * m_point_dims[0] * m_point_dims[1] +
                        y * m_point_dims[0] + x;
+    assert(offset >= 0);
+    assert(offset < m_point_size);
     m_nodal_scalars[offset] = val;
   } 
   inline void SetPoint2(const double &val, const int &x, const int &y, const int &z)
   {
     const int offset = z * m_point_dims[0] * m_point_dims[1] +
                        y * m_point_dims[0] + x;
+    assert(offset >= 0);
+    assert(offset < m_point_size);
     m_nodal2_scalars[offset] = val;
   } 
 
   inline void SetCell(const double &val, const int &x, const int &y, const int &z)
   {
     const int offset = z * m_cell_dims[0] * m_cell_dims[1] +
-                       y * m_cell_dims[1] + x;
+                       y * m_cell_dims[0] + x;
+    assert(offset >= 0);
+    assert(offset < m_cell_size);
     m_zonal_scalars[offset] = val;
   } 
   void Update(double time)
@@ -280,11 +286,10 @@ struct DataSet
           double val3 = open_simplex_noise4(ctx_zonal, coord[0], coord[1], coord[2], coord[3]);
           SetPoint(val,x,y,z);
           SetPoint2(val2,x,y,z);
-          if(x < m_point_dims[0] - 1 &&
-             y < m_point_dims[1] - 1 &&
-             z < m_point_dims[2] - 1) 
+          if(x < m_cell_dims[0] &&
+             y < m_cell_dims[1] &&
+             z < m_cell_dims[2]) 
           {
-
             SetCell(val3, x, y, z);
           }
 
@@ -508,15 +513,15 @@ void TemplateDriver(Options &options, Precision)
 #endif
 
   driver.add_data_set(vtkm_data_set);
-  //for(int t = 0; t < options.m_time_steps; ++t)
-  //{
-  //  data_set.Update(time);
-  //  driver.execute();
-  //  std::stringstream ss;
-  //  ss<<"noise_"<<t;
-  //  driver.save_png(ss.str());
-  //  time += options.m_time_delta;
-  //} //for each time step
+  for(int t = 0; t < options.m_time_steps; ++t)
+  {
+    data_set.Update(time);
+    driver.execute();
+    std::stringstream ss;
+    ss<<"noise_"<<t;
+    driver.save_png(ss.str());
+    time += options.m_time_delta;
+  } //for each time step
   
 
   // 

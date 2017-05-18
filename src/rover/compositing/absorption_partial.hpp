@@ -18,7 +18,11 @@ struct AbsorptionPartial
   {
 
   }
+  void print()
+  {
 
+  }
+  
   bool operator < (const AbsorptionPartial<FloatType> &other) const
   {
     //

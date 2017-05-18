@@ -39,13 +39,25 @@ VolumeEngine::set_primary_field(const std::string &primary_field)
 void 
 VolumeEngine::init_rays(Ray32 &rays)
 {
-  rays.Buffers.at(0).InitConst(0.);
+  vtkm::cont::ArrayHandle<vtkm::Float32> signature;
+  signature.Allocate(4);
+  signature.GetPortalControl().Set(0,1.f);
+  signature.GetPortalControl().Set(1,1.f);
+  signature.GetPortalControl().Set(2,1.f);
+  signature.GetPortalControl().Set(3,0.f);
+  rays.Buffers.at(0).InitChannels(signature);
 }
 
 void 
 VolumeEngine::init_rays(Ray64 &rays)
 {
-  rays.Buffers.at(0).InitConst(0.);
+  vtkm::cont::ArrayHandle<vtkm::Float64> signature;
+  signature.Allocate(4);
+  signature.GetPortalControl().Set(0,1.);
+  signature.GetPortalControl().Set(1,1.);
+  signature.GetPortalControl().Set(2,1.);
+  signature.GetPortalControl().Set(3,0.);
+  rays.Buffers.at(0).InitChannels(signature);
 }
 
 void 

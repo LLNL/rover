@@ -2,7 +2,7 @@
 #define rover_volume_block_h
 
 #include <rover_types.hpp>
-
+#include <limits>
 namespace rover {
 
 struct VolumePartial
@@ -22,6 +22,13 @@ struct VolumePartial
     m_pixel[2] = 0;
   }
 
+  void print()
+  {
+    std::cout<<"[id : "<<m_pixel_id<<", red : "<<(int)m_pixel[0]<<","
+             <<" green : "<<(int)m_pixel[1]<<", blue : "<<(int)m_pixel[2]
+             <<", alpha "<<m_alpha<<", depth : "<<m_depth<<"]\n";
+  }
+
   bool operator < (const VolumePartial &other) const
   {
     if(m_pixel_id != other.m_pixel_id) 
@@ -37,11 +44,11 @@ struct VolumePartial
   inline void blend(const VolumePartial &other)
   {
     if(m_alpha >= 1.f) return;
-    const float opacity = (1.f - m_alpha) * other.m_alpha;
+    const float opacity = (1.f - m_alpha);
     m_pixel[0] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[0])); 
     m_pixel[1] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[1])); 
     m_pixel[2] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[2])); 
-    m_alpha += opacity;
+    m_alpha += opacity * other.m_alpha;
     m_alpha = m_alpha > 1.f ? 1.f : m_alpha;
     
   }

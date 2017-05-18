@@ -148,6 +148,16 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
                                             std::vector<PartialType> &output_partials)
 {
   const int total_partial_comps = partials.size();
+  for(int i = 0 ; i < total_partial_comps; ++i)
+  {
+    
+    if(partials[i].m_pixel_id ==81671) 
+    {
+      //std::cout<<" FOUND "<<i<<"\n";
+      //partials[i].print();
+    }
+  }
+
   //
   // Sort the composites
   //
@@ -296,6 +306,14 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
     // TODO: we could just count the amount of work and make this a for loop(vectorize??)
     while(result.m_pixel_id == next.m_pixel_id)
     {
+      if(result.m_pixel_id == 81671) 
+      {
+        std::cout<<"Blending current : ";
+        result.print();
+        std::cout<<"with nex : ";
+        next.print();
+      }
+      
       result.blend(next);
       if(current_index + 1 >= total_partial_comps) 
       {
@@ -306,6 +324,8 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
       ++current_index;
       next = partials[current_index];
     }
+    if(result.m_pixel_id == 81671) result.print();
+    //result.print();
     output_partials[total_unique_pixels + i] = result;
   }
 
@@ -321,8 +341,8 @@ template<typename FloatType>
 PartialImage<FloatType> 
 Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial_images)
 {
-  const int x = 250;
-  const int y = 413;
+  const int x = 171;
+  const int y = 337;
  
   std::cout<<"begin \n";
   for(int i = 0; i < partial_images.size(); ++i)
