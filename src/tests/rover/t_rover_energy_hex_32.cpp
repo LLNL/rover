@@ -40,6 +40,7 @@ TEST(rover_hex, test_call)
   driver32.execute();
   driver32.save_png("hex32");
 
+  driver32.finalize();  
   }
   catch ( const RoverException &e )
   {
@@ -49,8 +50,5 @@ TEST(rover_hex, test_call)
   {
     std::cout<<"VTKM exception "<<error.GetMessage()<<"\n";
   }
-  
-  //Rover64 driver64;
-  //driver64.about();
 }
 

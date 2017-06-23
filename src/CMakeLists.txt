@@ -11,7 +11,12 @@ cmake_minimum_required(VERSION 3.3)
 ####################################
 
 project(rover)
-
+set(ROVER_MAJOR_VERSION 0)
+set(ROVER_MINOR_VERSION 1)
+set(ROVER_PATCH_VERSION 0)
+set(ROVER_VERSION
+    ${ROVER_MAJOR_VERSION}.${ROVER_MINOR_VERSION}.${ROVER_PATCH_VERSION}
+    )
 ####################################
 # Build Options 
 ####################################
@@ -49,7 +54,6 @@ include(CMake/CMakeBasics.cmake)
 # Setup the tests 
 ####################################
 include(CMake/SetupTests.cmake)
-
 
 ####################################
 # Find CUDA 
@@ -109,3 +113,4 @@ add_subdirectory(examples)
 if(ENABLE_TESTS)
   add_subdirectory(tests)
 endif()
+

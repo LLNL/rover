@@ -40,6 +40,7 @@ TEST(rover_hex, test_call)
   driver64.set_ray_generator(&generator);
   driver64.execute();
   driver64.save_png("volume_hex_64");
+  driver64.finalize();
 
   }
   catch ( const RoverException &e )
@@ -53,7 +54,5 @@ TEST(rover_hex, test_call)
     ASSERT_EQ("vtkm_exception", "it_happened");
   }
   
-  //Rover64 driver64;
-  //driver64.about();
 }
 

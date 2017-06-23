@@ -39,7 +39,7 @@ TEST(rover_hex, test_call)
   driver64.set_ray_generator(&generator);
   driver64.execute();
   driver64.save_png("hex64");
-
+  driver64.finalize();
   }
   catch ( const RoverException &e )
   {
@@ -50,7 +50,5 @@ TEST(rover_hex, test_call)
     std::cout<<"VTKM exception "<<error.GetMessage()<<"\n";
   }
   
-  //Rover64 driver64;
-  //driver64.about();
 }
 

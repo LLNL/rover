@@ -88,11 +88,9 @@ struct PartialImage
     {
       if(m_pixel_ids.GetPortalControl().Get(i) == debug)
       {
-        std::cout<<"$$$$ found it\n";
         int offset = i * num_channels;
         for(int j = 0; j < num_channels ; ++j)
         {
-          //m_buffer.Buffer.GetPortalControl().Set(offset + j, 0.f);
           std::cout<<m_buffer.Buffer.GetPortalControl().Get(offset + j)<<" ";
         }
         std::cout<<"\n";
@@ -112,7 +110,6 @@ struct PartialImage
       {
         if(m_pixel_ids.GetPortalControl().Get(i) == debug)
         {
-          std::cout<<"$$$$ red\n";
           int offset = i * num_channels;
           m_buffer.Buffer.GetPortalControl().Set(offset , 1.f);
           for(int j = 1; j < num_channels -1; ++j)

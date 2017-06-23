@@ -54,6 +54,7 @@ TEST(rover_hex, test_call)
   driver32.execute();
   driver32.save_png("multi_energy_hex32_par");
 
+  driver32.finalize();
   MPI_Finalize();
 
   }

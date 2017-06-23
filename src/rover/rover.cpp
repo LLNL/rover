@@ -25,7 +25,7 @@ public:
   {
     m_scheduler = new Scheduler<FloatType>();
 #ifdef PARALLEL
-    m_rank = -1;
+    m_rank = 1;
     m_num_ranks = -1;
 #endif
   }
@@ -147,9 +147,10 @@ template<typename FloatType>
 void
 Rover<FloatType>::finalize()
 {
-  // finalize
-  //std::string log = DataLogger::GetInstance()->GetStream().str();
-  //std::cout<<log;
+  // finaliz
+  std::string log = DataLogger::GetInstance()->GetStream().str();
+  std::cout<<log;
+  DataLogger::GetInstance()->WriteLog();
 }
 
 template<typename FloatType>

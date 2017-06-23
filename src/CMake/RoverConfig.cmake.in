@@ -1,0 +1,8 @@
+get_filename_component(ROVER_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(ROVER_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/include/rover")
+
+set(ROVER_LIBRARIES rover)
+
+if(MPI_FOUND)
+  list(APPEND ROVER_LIBRARIES rover_par)
+endif()

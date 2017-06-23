@@ -45,6 +45,7 @@ TEST(rover_hex, test_call)
   driver32.execute();
   driver32.save_png("mulit_volume_hex_32");
 
+  driver32.finalize();
   }
   catch ( const RoverException &e )
   {
@@ -57,6 +58,6 @@ TEST(rover_hex, test_call)
 
     ASSERT_EQ("vtkm_exception", "it_happened");
   }
-  
+
 }
 

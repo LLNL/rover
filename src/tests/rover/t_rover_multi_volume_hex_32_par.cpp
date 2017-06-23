@@ -51,6 +51,7 @@ TEST(rover_hex, test_call)
   driver32.execute();
   driver32.save_png("mulit_volume_hex_32_par");
   
+  driver32.finalize();
   MPI_Finalize();
   }
   catch ( const RoverException &e )

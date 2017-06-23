@@ -85,6 +85,28 @@ DataLogger::GetStream()
   return Stream;
 }
 
+void 
+DataLogger::WriteLog() 
+{
+  std::stringstream log_name;
+  std::ofstream stream;
+  log_name<<"rover_data";
+#ifdef PARALLEL
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  log_name<<"_"<<rank;
+#endif
+  log_name<<".log";
+  stream.open(log_name.str().c_str(), std::ofstream::out);
+  if(!stream.is_open())
+  {
+    std::cerr<<"Warning: could not open the rover data log file\n";
+    return;
+  }
+  stream<<Stream.str(); 
+  stream.close();
+}
+
 void
 DataLogger::OpenLogEntry(const std::string &entryName)
 {

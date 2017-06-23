@@ -6,6 +6,8 @@
 
 add_subdirectory(../thirdparty_builtin/lodepng/ ${CMAKE_CURRENT_SOURCE_DIR}/utils/lodepng)
 
+set(targets_export_name "${PROJECT_NAME}Targets")
+
 set(rover_headers
     domain.hpp
     rover_exports.h
@@ -25,6 +27,7 @@ set(rover_headers
     # ray generators headers
     ray_generators/ray_generator.hpp
     ray_generators/camera_generator.hpp
+    vtkm_typedefs.hpp
     # utils headers
     utils/png_encoder.hpp
     utils/rover_logging.hpp
@@ -77,6 +80,14 @@ if(TBB_FOUND)
    target_link_libraries(rover ${TBB_LIBRARIES})
 endif()
 
+# install target for mpi ver
+install(TARGETS rover
+         #EXPORT rover 
+        EXPORT ${targets_export_name} 
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION lib
+)
 ###################################################
 #   Build parallel version
 ##################################################
@@ -117,3 +128,26 @@ if(MPI_FOUND)
      target_link_libraries(rover_par ${TBB_LIBRARIES})
   endif()
 endif()
+
+  # install target for mpi ver
+  install(TARGETS rover_par
+          #EXPORT rover 
+          EXPORT ${targets_export_name}  
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib
+          RUNTIME DESTINATION lib
+  )
+
+########################################
+# Extra Install Targets for rover 
+########################################
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+  "../CMake/RoverConfig.cmake.in" ${CMAKE_CURRENT_BINARY_DIR}/RoverConfig.cmake
+  INSTALL_DESTINATION "/lib" )
+
+
+install(EXPORT "${targets_export_name}" DESTINATION "lib/")
+install(FILES ${rover_headers} DESTINATION include/rover)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/RoverConfig.cmake  DESTINATION lib/)

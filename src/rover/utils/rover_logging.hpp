@@ -36,7 +36,7 @@ public:
   }
 
   std::stringstream& GetStream();
-
+  void WriteLog();
 protected:
   DataLogger();
   DataLogger(DataLogger const &);

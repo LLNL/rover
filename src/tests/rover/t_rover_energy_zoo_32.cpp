@@ -40,6 +40,7 @@ TEST(rover_hex, test_call)
   driver32.set_ray_generator(&generator);
   driver32.execute();
   driver32.save_png("energy_zoo_32");
+  driver32.finalize();
 
   }
   catch ( const RoverException &e )
@@ -53,6 +54,6 @@ TEST(rover_hex, test_call)
 
     ASSERT_EQ("vtkm_exception", "it_happened");
   }
-  
+
 }
 
