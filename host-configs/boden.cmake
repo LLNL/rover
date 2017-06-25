@@ -39,5 +39,5 @@ set(ENABLE_CUDA OFF CACHE PATH "")
 set(TBB_DIR "/Users/larsen30/tbb" CACHE PATH "")
 
 # vtkm from uberenv
-set(VTKM_DIR "/Users/larsen30/rover_vtkm/install" CACHE PATH "")
+set(VTKM_DIR "/Users/larsen30/vtk-m/install" CACHE PATH "")
 

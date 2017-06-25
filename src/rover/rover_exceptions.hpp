@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <string>
+
 namespace rover {
 
 class RoverException : public std::runtime_error

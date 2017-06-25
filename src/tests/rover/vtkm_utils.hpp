@@ -45,8 +45,8 @@ template<typename OutType>
 struct FieldToMaterialFunctor
 {
   vtkm::Id m_size; // input array size
-  vtkm::Int32 m_bins;
-  vtkm::Int32 m_num_mats;
+  vtkm::Id m_bins;
+  vtkm::Id m_num_mats;
   vtkm::Range m_range;
   vtkm::cont::ArrayHandle<OutType> m_mat_lookup;
   vtkm::cont::ArrayHandle<OutType> *m_output_array;
@@ -78,7 +78,7 @@ struct FieldToMaterialFunctor
       vtkm::Float32 normalized_value = (field_value - m_range.Min) * inv_diff;
       vtkm::Id mat_index = static_cast<vtkm::Float32>(m_num_mats - 1) * normalized_value;
 
-      mat_index = vtkm::Min(m_num_mats - 1, vtkm::Max(0, mat_index)); 
+      mat_index = vtkm::Min(m_num_mats - 1, vtkm::Max(vtkm::Id(0), mat_index)); 
 
       vtkm::Id mat_starting_index = mat_index * m_bins;
       vtkm::Id starting_index = i * m_bins;

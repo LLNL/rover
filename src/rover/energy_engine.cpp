@@ -6,7 +6,7 @@ namespace rover {
 struct ArraySizeFunctor
 {
   vtkm::Id  *m_size;
-  ArraySizeFunctor(vtkm::Int32 *size)
+  ArraySizeFunctor(vtkm::Id *size)
    : m_size(size)
   {}
 

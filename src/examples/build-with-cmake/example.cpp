@@ -3,7 +3,7 @@
 
 int main(void)
 {
-  Rover32 rover;
-  rover.info();
+  rover::Rover32 rover;
+  rover.about();
 }
 

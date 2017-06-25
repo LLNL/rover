@@ -6,7 +6,7 @@
 
 add_subdirectory(../thirdparty_builtin/lodepng/ ${CMAKE_CURRENT_SOURCE_DIR}/utils/lodepng)
 
-set(targets_export_name "${PROJECT_NAME}Targets")
+set(targets_export_name "RoverTargets")
 
 set(rover_headers
     domain.hpp
@@ -71,13 +71,26 @@ else()
               )
 endif()
 
+##########################################
+# Ensure we use c++11
+##########################################
+
+set_target_properties(rover PROPERTIES
+                      CXX_STANDARD 11
+                      CXX_STANDARD_REQUIRED YES
+                      CXX_EXTENTIONS NO)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty_builtin/diy2/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(rover PRIVATE ${VTKm_INCLUDE_DIRS})
-target_link_libraries(rover ${VTKm_LIBRARIES})
+
+# PUBLIC keyword pushes these libs into RoverTargets.cmake
+# and they are automatically pulled into downstream projects
+target_link_libraries(rover PUBLIC ${VTKm_LIBRARIES})
+target_include_directories(rover PUBLIC ${VTKm_INCLUDE_DIRS})
 
 if(TBB_FOUND)
-   target_link_libraries(rover ${TBB_LIBRARIES})
+  target_link_libraries(rover PUBLIC ${TBB_LIBRARIES})
+  target_include_directories(rover PUBLIC ${TBB_INCLUDE_DIRS})
 endif()
 
 # install target for mpi ver
@@ -87,6 +100,8 @@ install(TARGETS rover
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         RUNTIME DESTINATION lib
+        INCLUDES DESTINATION include/rover  # this exports the includes into 
+                                            # the RoverTargets.cmake
 )
 ###################################################
 #   Build parallel version
@@ -100,6 +115,7 @@ if(MPI_FOUND)
                           compositing/redistribute.hpp)
   list(APPEND rover_headers ${compositing_headers})
   set(DIY_DIR "../thirdparty_builtin/diy2/include")
+
 
   if(BUILD_SHARED_LIBS)
     message(STATUS "Building rover_par as a shared library")
@@ -119,13 +135,24 @@ if(MPI_FOUND)
                 )
   endif()
   
+  ##########################################
+  # Ensure we use c++11
+  ##########################################
+
+  set_target_properties(rover_par PROPERTIES
+                        CXX_STANDARD 11
+                        CXX_STANDARD_REQUIRED YES
+                        CXX_EXTENTIONS NO)
+
   add_target_compile_flags(TARGET rover_par
                            FLAGS "${MPI_CXX_COMPILE_FLAGS} -D PARALLEL")
-                         target_include_directories(rover_par PRIVATE ${VTKm_INCLUDE_DIRS} ${DIY_DIR})
-  target_link_libraries(rover_par ${VTKm_LIBRARIES} ${MPI_CXX_LIBRARIES})
+  target_include_directories(rover_par PRIVATE ${DIY_DIR})
+  target_include_directories(rover_par PUBLIC ${VTKm_INCLUDE_DIRS})
+  target_link_libraries(rover_par PUBLIC ${VTKm_LIBRARIES} ${MPI_CXX_LIBRARIES})
 
   if(TBB_FOUND)
-     target_link_libraries(rover_par ${TBB_LIBRARIES})
+    target_link_libraries(rover_par PUBLIC ${TBB_LIBRARIES})
+    target_include_directories(rover_par PUBLIC ${TBB_INCLUDE_DIRS})
   endif()
 endif()
 
@@ -136,6 +163,8 @@ endif()
           LIBRARY DESTINATION lib
           ARCHIVE DESTINATION lib
           RUNTIME DESTINATION lib
+          INCLUDES DESTINATION include/rover  # this exports the includes into 
+                                              # the RoverTargets.cmake
   )
 
 ########################################
@@ -148,6 +177,19 @@ configure_package_config_file(
   INSTALL_DESTINATION "/lib" )
 
 
+########################################
+# Preserve install directory structure 
+########################################
+macro(install_headers_with_directory header_list)
+
+  foreach(header ${${header_list}})
+    string(REGEX MATCH "(.*)[/\\]" DIR ${header}) 
+    install(FILES ${header} DESTINATION include/rover/${DIR})
+  endforeach(header)
+
+endmacro(install_headers_with_directory)
+
 install(EXPORT "${targets_export_name}" DESTINATION "lib/")
-install(FILES ${rover_headers} DESTINATION include/rover)
+install_headers_with_directory(rover_headers)
+#install(FILES ${rover_headers} DESTINATION include/rover)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/RoverConfig.cmake  DESTINATION lib/)

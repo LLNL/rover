@@ -1,5 +1,34 @@
+
 get_filename_component(ROVER_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
 set(ROVER_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/include/rover")
+
+#############################
+# Import Rover Targets
+#############################
+
+include("@CMAKE_INSTALL_PREFIX@/lib/@targets_export_name@.cmake")
+
+#############################
+# Import VTKm
+#############################
+
+# allow override to VTKm dir
+if(NOT VTKM_DIR)
+  set(VTKM_DIR "@VTKM_DIR@")
+  message(STATUS "Rover automatically found VTKM_DIR: ${VTKM_DIR}")
+else()
+  message(STATUS "Rover using provided path  VTKM_DIR: ${VTKM_DIR}")
+endif()
+
+set(VTKm_DIR ${VTKM_DIR}/lib)
+find_package(VTKm CONFIG REQUIRED OPTIONAL_COMPONENTS Rendering) 
+#message(STATUS "Found VTKm Include Dirs: ${VTKm_INCLUDE_DIRS}")
+set(VTKM_FOUND TRUE)
+
+#############################
+# Set Rover Libraries 
+#############################
 
 set(ROVER_LIBRARIES rover)
 

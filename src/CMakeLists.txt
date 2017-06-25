@@ -41,7 +41,7 @@ if(TBB_DIR)
   set(ENV{TBB_ROOT} ${TBB_DIR})
 endif()
 
-find_package(VTKm REQUIRED OPTIONAL_COMPONENTS Rendering)
+find_package(VTKm CONFIG REQUIRED OPTIONAL_COMPONENTS Rendering)
 message(STATUS "Found VTKm Include Dirs: ${VTKm_INCLUDE_DIRS}")
 set(VTKM_FOUND TRUE)
 
@@ -86,11 +86,6 @@ endif()
 # Setup the project wide includes 
 ####################################
 include(CMake/SetupIncludes.cmake)
-
-####################################
-# set the cxx flags 
-####################################
-set(CMAKE_CXX_FLAGS "${CMAKE_CXXFLAGS} -std=c++11")
 
 ####################################
 # Add the thirdparty 

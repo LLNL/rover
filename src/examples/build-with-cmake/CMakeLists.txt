@@ -4,8 +4,13 @@ project(using_with_cmake)
 
 include ("FindRover.cmake")
 
-include_directories(${ROVER_INCLUDE_DIRS})
-message(STATUS "VTKm dirs ${VTKm_INCLUDE_DIRS}")
+#include_directories(${ROVER_INCLUDE_DIRS})
+#message(STATUS "VTKm dirs ${VTKm_INCLUDE_DIRS}")
 add_executable(example example.cpp)
 
-target_link_libraries(example rover)
+target_link_libraries(example ${ROVER_LIBRARIES})
+
+set_target_properties(example PROPERTIES
+                      CXX_STANDARD 11
+                      CXX_STANDARD_REQUIRED YES
+                      CXX_EXTENTIONS NO)
