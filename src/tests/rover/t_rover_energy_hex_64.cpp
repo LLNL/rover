@@ -22,8 +22,10 @@ TEST(rover_hex, test_call)
   vtkmCamera camera;
   vtkmDataSet dataset;
   set_up_lulesh(dataset, camera);
+  std::vector<vtkm::cont::DataSet> datasets;
+  datasets.push_back(dataset);
   const int num_bins = 10; 
-  add_absorption_field(dataset, "speed", num_bins, vtkm::Float32());
+  add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
 
   CameraGenerator64 generator(camera);
   Rover64 driver64;

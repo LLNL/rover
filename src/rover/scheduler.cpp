@@ -32,13 +32,6 @@ Scheduler<FloatType>::set_render_settings(const RenderSettings render_settings)
   //  m_render_mode and m_scattering_mode
   //
   m_render_settings = render_settings;
-  // TODO: make copy constructor so the mesh stuctures are not rebuilt when moving from
-  //       volume to energy and vice versa
-  const int num_domains = static_cast<int>(m_domains.size());
-  for(int i = 0; i < num_domains; ++i) 
-  {
-    m_domains[i].set_render_settings(m_render_settings);
-  }
 }
 
 template<typename FloatType>
@@ -168,10 +161,8 @@ Scheduler<FloatType>::add_data_set(vtkmDataSet &dataset)
 {
   ROVER_INFO("Adding domain "<<m_domains.size());
   Domain domain;
-  domain.set_render_settings(m_render_settings);
   domain.set_data_set(dataset);
   dataset.PrintSummary(std::cout); 
-  //domain.get_data_set().PrintSummary(std::cout); 
   m_domains.push_back(domain);
 }
 
@@ -198,7 +189,7 @@ Scheduler<FloatType>::get_color_buffer()
     throw RoverException("cannot call get_color_buffer while using energy mode");
   }
   ROVER_ERROR("This should not be called"); 
-  return get_vtkm_ptr(m_partial_images.at(100).m_buffer.Buffer);
+  return get_vtkm_ptr(m_partial_images.at(-1).m_buffer.Buffer);
 }
 
 //
@@ -208,6 +199,7 @@ template<typename FloatType>
 void 
 Scheduler<FloatType>::trace_rays()
 {
+  ROVER_INFO("tracing_rays");
   vtkmTimer tot_timer;
   vtkmTimer timer;
   double time = 0;
@@ -227,10 +219,21 @@ Scheduler<FloatType>::trace_rays()
 
   m_ray_generator->get_dims(height, width);
   
+  //
+  // ensure that the render settings are set
+  //
+  // TODO: make copy constructor so the mesh stuctures are not rebuilt when moving from
+  //       volume to energy and vice versa
+  const int num_domains = static_cast<int>(m_domains.size());
+  ROVER_INFO("scheduer set render settings for "<<num_domains<<" domains ");
+  for(int i = 0; i < num_domains; ++i) 
+  {
+    m_domains[i].set_render_settings(m_render_settings);
+  }
+
   this->set_global_scalar_range();
   this->set_global_bounds();
 
-  const int num_domains = static_cast<int>(m_domains.size());
   //
   // check to see if we have to composite
   bool do_compositing = num_domains > 1;
@@ -257,7 +260,7 @@ Scheduler<FloatType>::trace_rays()
     ROVER_INFO("Generating rays for domian "<<i);
 
     timer.Reset();
-
+  
     vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
     m_domains[i].init_rays(rays);
 
@@ -287,6 +290,11 @@ Scheduler<FloatType>::trace_rays()
     {
       partial_image.m_buffer = rays.Buffers.at(0);
       assert(partial_image.m_buffer.GetNumChannels() > 0);
+      if(m_render_settings.m_secondary_field != "")
+      {
+        partial_image.m_emission_buffer = rays.GetBuffer("emission");;
+        assert(partial_image.m_emission_buffer.GetNumChannels() > 0);
+      }
     }
     else
     {
@@ -314,7 +322,7 @@ Scheduler<FloatType>::trace_rays()
     //TODO: composite
     if(m_render_settings.m_render_mode == volume)
     {
-      Compositor<VolumePartial> compositor;
+      Compositor<VolumePartial<FloatType>> compositor;
 #ifdef PARALLEL
       compositor.set_comm_handle(m_comm_handle);
 #endif
@@ -322,15 +330,39 @@ Scheduler<FloatType>::trace_rays()
     }
     else
     {
-      Compositor<AbsorptionPartial<FloatType>> compositor;
+      if(m_render_settings.m_secondary_field != "")
+      {
+        Compositor<EmissionPartial<FloatType>> compositor;
 #ifdef PARALLEL
-     compositor.set_comm_handle(m_comm_handle);
+        compositor.set_comm_handle(m_comm_handle);
 #endif
-      m_result = compositor.composite(m_partial_images);
+        m_result = compositor.composite(m_partial_images);
+      }
+      else
+      {
+        Compositor<AbsorptionPartial<FloatType>> compositor;
+#ifdef PARALLEL
+        compositor.set_comm_handle(m_comm_handle);
+#endif
+        m_result = compositor.composite(m_partial_images);
+      }
     }
   }
   else if(num_domains == 1)
   {
+    //
+    // if enegry and no compositing we need to add
+    // the energy buffer to the absorption buffer
+    //
+    if(m_render_settings.m_render_mode == energy &&
+      m_render_settings.m_secondary_field != "")
+    {
+      for(int i = 0; i < 10; ++i)
+      {
+        std::cout<<" "<<m_partial_images[0].m_emission_buffer.Buffer.GetPortalControl().Get(i);
+      }
+      m_partial_images[0].m_buffer.AddBuffer(m_partial_images[0].m_emission_buffer);
+    }
     m_result = m_partial_images[0];
   }
   else 

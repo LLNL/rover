@@ -18,7 +18,6 @@ VolumeEngine::set_data_set(vtkm::cont::DataSet &dataset)
 {
   if(m_tracer) delete m_tracer;
   m_tracer = new vtkm::rendering::ConnectivityProxy(dataset);
-  m_tracer->SetScalarField(this->m_primary_field);
 }
 
 
@@ -26,14 +25,6 @@ void
 VolumeEngine::set_primary_field(const std::string &primary_field)
 {
   m_primary_field = primary_field;
-  if(m_tracer == NULL)
-  {
-    return;
-  }
-  else
-  {
-    m_tracer->SetScalarField(this->m_primary_field);
-  }
 }
 
 void 
@@ -72,6 +63,10 @@ VolumeEngine::trace(Ray32 &rays)
   {
     throw RoverException("Primary field is not set. Unable to render\n");
   }
+  else
+  {
+    m_tracer->SetScalarField(this->m_primary_field);
+  }
   ROVER_INFO("tracing  rays");
   rays.Buffers.at(0).InitConst(0.);
   m_tracer->SetColorMap(m_color_map);
@@ -89,6 +84,10 @@ VolumeEngine::trace(Ray64 &rays)
   if(this->m_primary_field == "")
   {
     throw RoverException("Primary field is not set. Unable to render\n");
+  }
+  else
+  {
+    m_tracer->SetScalarField(this->m_primary_field);
   }
 
   ROVER_INFO("tracing  rays");

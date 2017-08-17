@@ -26,7 +26,7 @@ public:
     
   }
 
-  void set_secondary_field(const std::string &secondary_field)
+  virtual void set_secondary_field(const std::string &secondary_field)
   {
     m_secondary_field = secondary_field;
   }

@@ -9,12 +9,13 @@
 namespace rover {
 
 //--------------------------------------Volume Block Structure-----------------------------------
+template<typename FloatType>
 struct VolumeBlock
 {
-  typedef diy::DiscreteBounds Bounds;
-  typedef VolumePartial       PartialType;
-  std::vector<VolumePartial>  &m_partials;
-  VolumeBlock(std::vector<VolumePartial> &partials)
+  typedef diy::DiscreteBounds            Bounds;
+  typedef VolumePartial<FloatType>       PartialType;
+  std::vector<VolumePartial<FloatType>> &m_partials;
+  VolumeBlock(std::vector<VolumePartial<FloatType>> &partials)
     : m_partials(partials)
   {}
 };
@@ -29,6 +30,19 @@ struct AbsorptionBlock
   std::vector<AbsorptionPartial<FloatType>>   &m_partials;
 
   AbsorptionBlock(std::vector<AbsorptionPartial<FloatType>> &partials)
+    : m_partials(partials)
+  {}
+};
+
+//--------------------------------------Emission Block Structure------------------------------
+template<typename FloatType>
+struct EmissionBlock
+{
+  typedef diy::DiscreteBounds Bounds;
+  typedef EmissionPartial<FloatType> PartialType; 
+  std::vector<EmissionPartial<FloatType>>   &m_partials;
+
+  EmissionBlock(std::vector<EmissionPartial<FloatType>> &partials)
     : m_partials(partials)
   {}
 };
@@ -101,6 +115,86 @@ struct Serialization<rover::AbsorptionPartial<float>>
     diy::load(bb, partial.m_depth);
   }
 };
+
+template<>
+struct Serialization<rover::EmissionPartial<double>>
+{
+
+  static void save(BinaryBuffer& bb, const rover::EmissionPartial<double> &partial)
+  { 
+    diy::save(bb, partial.m_bins); 
+    diy::save(bb, partial.m_emission_bins); 
+    diy::save(bb, partial.m_pixel_id);
+    diy::save(bb, partial.m_depth);
+  }
+
+  static void load(BinaryBuffer& bb, rover::EmissionPartial<double> &partial)
+  { 
+    diy::load(bb, partial.m_bins); 
+    diy::load(bb, partial.m_emission_bins); 
+    diy::load(bb, partial.m_pixel_id);
+    diy::load(bb, partial.m_depth);
+  }
+};
+
+template<>
+struct Serialization<rover::EmissionPartial<float>>
+{
+
+  static void save(BinaryBuffer& bb, const rover::EmissionPartial<float> &partial)
+  { 
+    diy::save(bb, partial.m_bins); 
+    diy::save(bb, partial.m_emission_bins); 
+    diy::save(bb, partial.m_pixel_id);
+    diy::save(bb, partial.m_depth);
+  }
+
+  static void load(BinaryBuffer& bb, rover::EmissionPartial<float> &partial)
+  { 
+    diy::load(bb, partial.m_bins); 
+    diy::load(bb, partial.m_emission_bins); 
+    diy::load(bb, partial.m_pixel_id);
+    diy::load(bb, partial.m_depth);
+  }
+};
+
+//template<>
+//struct Serialization<rover::VolumePartial<double>>
+//{
+//
+//  static void save(BinaryBuffer& bb, const rover::VolumePartial<double> &partial)
+//  { 
+//    diy::save(bb, partial.m_bins); 
+//    diy::save(bb, partial.m_pixel_id);
+//    diy::save(bb, partial.m_depth);
+//  }
+//
+//  static void load(BinaryBuffer& bb, rover::VolumePartial<double> &partial)
+//  { 
+//    diy::load(bb, partial.m_bins); 
+//    diy::load(bb, partial.m_pixel_id);
+//    diy::load(bb, partial.m_depth);
+//  }
+//};
+//
+//template<>
+//struct Serialization<rover::VolumePartial<float>>
+//{
+//
+//  static void save(BinaryBuffer& bb, const rover::VolumePartial<float> &partial)
+//  { 
+//    diy::save(bb, partial.m_bins); 
+//    diy::save(bb, partial.m_pixel_id);
+//    diy::save(bb, partial.m_depth);
+//  }
+//
+//  static void load(BinaryBuffer& bb, rover::VolumePartial<float> &partial)
+//  { 
+//    diy::load(bb, partial.m_bins); 
+//    diy::load(bb, partial.m_pixel_id);
+//    diy::load(bb, partial.m_depth);
+//  }
+//};
 
 } // namespace diy
 

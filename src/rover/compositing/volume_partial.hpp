@@ -5,8 +5,10 @@
 #include <limits>
 namespace rover {
 
+template<typename FloatType>
 struct VolumePartial
 {
+  typedef FloatType ValueType;
   int                    m_pixel_id;
   float                  m_depth; 
   unsigned char          m_pixel[3];
@@ -53,8 +55,7 @@ struct VolumePartial
     
   }
 
-  template<typename FloatType>
-  inline void load_from_partial(const PartialImage<FloatType> &partial_image, const int &index)
+  inline void load_from_partial(const PartialImage<ValueType> &partial_image, const int &index)
   {
     
     m_pixel_id = static_cast<int>(partial_image.m_pixel_ids.GetPortalConstControl().Get(index));
@@ -73,7 +74,6 @@ struct VolumePartial
                                   m_buffer.Buffer.GetPortalConstControl().Get(index*4+3));
   }
   
-  template<typename FloatType>
   inline void store_into_partial(PartialImage<FloatType> &output, const int &index)
   {
     const FloatType inverse = 1.f / 255.f;

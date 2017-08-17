@@ -12,36 +12,49 @@
 #include <ray_generators/camera_generator.hpp>
 #include <utils/vtk_dataset_reader.hpp>
 
+#include <mpi.h>
+
 using namespace rover;
 
 
 TEST(rover_hex, test_call)
 {
 
+  MPI_Init(NULL, NULL);
+
   try {
+
   vtkmCamera camera;
-  vtkmDataSet dataset;
-  set_up_zoo(dataset, camera);
-  std::vector<vtkm::cont::DataSet> datasets;
-  datasets.push_back(dataset);
+  std::vector<vtkmDataSet> datasets;
+  set_up_lulesh(datasets, camera);
   const int num_bins = 10;
-  add_absorption_field(datasets, "var_point", num_bins, vtkm::Float32());
+
+
+  add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
+  add_emission_field(datasets, "speed", num_bins, vtkm::Float32());
 
   CameraGenerator32 generator(camera);
   Rover32 driver32;
-  //
-  // Create some basic setting and color table
-  //
+  driver32.init(MPI_COMM_WORLD);
+
   RenderSettings settings;
+  settings.m_primary_field   = "absorption";
+  settings.m_secondary_field = "emission";
   settings.m_render_mode = rover::energy;
-  settings.m_primary_field = "absorption";
-  
+   
   driver32.set_render_settings(settings);
-  driver32.add_data_set(dataset);
+
+  for(int i = 0; i < datasets.size(); ++i)
+  {
+    driver32.add_data_set(datasets[i]);
+  }
+
   driver32.set_ray_generator(&generator);
   driver32.execute();
-  driver32.save_png("energy_zoo_32");
+  driver32.save_png("multi_energy_hex32_emission_par");
+
   driver32.finalize();
+  MPI_Finalize();
 
   }
   catch ( const RoverException &e )
@@ -55,6 +68,6 @@ TEST(rover_hex, test_call)
 
     ASSERT_EQ("vtkm_exception", "it_happened");
   }
-
+  
 }
 

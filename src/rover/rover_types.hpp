@@ -66,7 +66,26 @@ struct RenderSettings
     m_scattering_type = non_scattering;
     m_ray_scope       = global_rays;
   }
+  
+  void print()
+  {
+    std::cout<<"******* Settings *********\n";
+    if(m_render_mode == energy)
+    {
+      std::cout<<"Render Mode: ENERGY\n";
+    }
+    else
+    {
+      std::cout<<"Render Mode: VOLUME\n";
+    }
 
+    std::cout<<"Primary field: "<<m_primary_field<<"\n";
+    std::cout<<"Secondary field: "<<m_secondary_field<<"\n";
+     
+    std::cout<<"*************************\n";
+
+
+  }
 };
 
 template<typename FloatType>
@@ -75,7 +94,8 @@ struct PartialImage
   int                                      m_height;
   int                                      m_width;
   IdHandle                                 m_pixel_ids;
-  vtkmRayTracing::ChannelBuffer<FloatType> m_buffer;
+  vtkmRayTracing::ChannelBuffer<FloatType> m_buffer;         //holds either color or absorption
+  vtkmRayTracing::ChannelBuffer<FloatType> m_emission_buffer;
   vtkm::cont::ArrayHandle<FloatType>       m_distances;
 
   void print_pixel(const int x, const int y)

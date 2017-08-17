@@ -29,10 +29,8 @@ TEST(rover_hex, test_call)
   set_up_lulesh(datasets, camera);
   const int num_bins = 10;
 
-  for(int i = 0; i < datasets.size(); ++i)
-  {
-    add_absorption_field(datasets[i], "speed", num_bins, vtkm::Float32());
-  }
+
+ add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
 
   CameraGenerator32 generator(camera);
   Rover32 driver32;

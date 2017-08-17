@@ -3,8 +3,9 @@
 #include <rover_types.hpp>
 
 
-#include <compositing/volume_partial.hpp>
 #include <compositing/absorption_partial.hpp>
+#include <compositing/emission_partial.hpp>
+#include <compositing/volume_partial.hpp>
 
 #ifdef PARALLEL
 #include <mpi.h>
@@ -18,17 +19,17 @@ class Compositor
 public:
   Compositor();
   ~Compositor();
-  template<typename FloatType> 
-  PartialImage<FloatType> composite(std::vector<PartialImage<FloatType>> &partial_images);
+  PartialImage<typename PartialType::ValueType> 
+  composite(std::vector<PartialImage<typename PartialType::ValueType>> &partial_images);
 #ifdef PARALLEL
   void set_comm_handle(MPI_Comm comm_hanlde);
 #endif
 protected:
-  template<typename FloatType>
-  void extract(std::vector<PartialImage<FloatType>> &partial_images, 
+  void extract(std::vector<PartialImage<typename PartialType::ValueType>> &partial_images, 
                std::vector<PartialType> &partials,
                int &global_min_pixel,
                int &global_max_pixel);
+
   void composite_partials(std::vector<PartialType> &partials, 
                           std::vector<PartialType> &output_partials);
 

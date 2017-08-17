@@ -5,7 +5,9 @@
 #include <vtkm/filter/CellAverage.h>
 #include "material_database.hpp"
 #include <assert.h>
-
+#ifdef PARALLEL
+#include <mpi.h>
+#endif
 template<typename OutType>
 void get_cell_assoc_field(vtkm::cont::DataSet &dataset,
                           std::string field_name,
@@ -23,15 +25,13 @@ void get_cell_assoc_field(vtkm::cont::DataSet &dataset,
   else
   {
     ROVER_INFO("Re-centering point associated field "<<field_name);
-    vtkm::filter::ResultField result; 
+    vtkm::filter::Result result; 
     vtkm::filter::CellAverage cell_average;
     cell_average.SetOutputFieldName("test_ave");
     result = cell_average.Execute( dataset, dataset.GetField(field_name));
     vtkm::cont::ArrayHandle<OutType> out_array;
     out_array.Allocate(dataset.GetCellSet().GetNumberOfCells());
     bool valid = result.FieldAs(out_array);
-    if(valid) std::cout<<"VALID\n";
-    if(!valid) std::cout<<"InVALID\n";
     output_name = field_name + "_cell"; 
     output_field = vtkm::cont::Field(  output_name,
                                        vtkm::cont::Field::ASSOC_CELL_SET,
@@ -93,9 +93,48 @@ struct FieldToMaterialFunctor
 
 };
 
+vtkm::Range
+get_global_range(std::vector<vtkm::cont::Field> fields)
+{
+  vtkm::Range range;
+  for(int i = 0; i < fields.size(); ++i)
+  {
+    vtkm::cont::ArrayHandle<vtkm::Range> range_array = fields[i].GetRange();
+    vtkm::Range scalar_range = range_array.GetPortalControl().Get(0);
+    range.Include(scalar_range);
+  }
+   
+#ifdef PARALLEL
+  
+    vtkm::Float64 local_min = range.Min;
+    vtkm::Float64 local_max = range.Max;
+    
+    vtkm::Float64 global_min = 0;
+    vtkm::Float64 global_max = 0;
+
+    MPI_Allreduce((void *)(&local_min),
+                  (void *)(&global_min), 
+                  1,
+                  MPI_DOUBLE,
+                  MPI_MIN,
+                  MPI_COMM_WORLD);
+
+    MPI_Allreduce((void *)(&local_max),
+                  (void *)(&global_max),
+                  1,
+                  MPI_DOUBLE,
+                  MPI_MAX,
+                  MPI_COMM_WORLD);
+    range.Min = global_min;
+    range.Max = global_max;
+#endif
+
+  return range;
+}
+
 template<typename FieldType>
 void
-add_absorption_field(vtkm::cont::DataSet &dataset, 
+add_absorption_field(std::vector<vtkm::cont::DataSet> &datasets, 
                      std::string mapping_field_name, 
                      const int num_bins,
                      FieldType field_type)
@@ -103,12 +142,16 @@ add_absorption_field(vtkm::cont::DataSet &dataset,
   //
   //  Make sure the field is cell associated
   //
-  vtkm::cont::Field cell_field;
-  get_cell_assoc_field(dataset, mapping_field_name, cell_field, field_type);
-  vtkm::cont::ArrayHandle<vtkm::Range> range_array = cell_field.GetRange();
-  assert(range_array.GetPortalControl().GetNumberOfValues() == 1);
-  vtkm::Range scalar_range = range_array.GetPortalControl().Get(0);
-  
+  std::vector<vtkm::cont::Field> fields; 
+
+  for(int i = 0; i < datasets.size(); ++i)
+  {
+    vtkm::cont::Field cell_field;
+    get_cell_assoc_field(datasets[i], mapping_field_name, cell_field, field_type);
+    fields.push_back(cell_field);
+  }
+
+  vtkm::Range scalar_range = get_global_range(fields);
   //
   // create the lookup materials table
   //
@@ -121,31 +164,97 @@ add_absorption_field(vtkm::cont::DataSet &dataset,
   vtkm::cont::ArrayHandle<FieldType> mat_lookup;
   int num_elements;
   db_reader.get_elements(mat_names, num_bins, mat_lookup, num_elements);
-  vtkm::cont::ArrayHandle<FieldType> output_array;
-  
-  FieldToMaterialFunctor<FieldType> matFunctor(num_bins,
-                                               num_elements,
-                                               &output_array,
-                                               scalar_range,
-                                               mat_lookup);
-  //
-  // reset the type list to floats and doubles only
-  //
-  try
+
+  for(int i = 0; i < datasets.size(); ++i)
   {
-      cell_field.GetData().ResetTypeList( vtkm::TypeListTagFieldScalar() ).CastAndCall(matFunctor);
+    vtkm::cont::ArrayHandle<FieldType> output_array;
+    FieldToMaterialFunctor<FieldType> matFunctor(num_bins,
+                                                 num_elements,
+                                                 &output_array,
+                                                 scalar_range,
+                                                 mat_lookup);
+    //
+    // reset the type list to floats and doubles only
+    //
+    try
+    {
+        fields[i].GetData().ResetTypeList( vtkm::TypeListTagFieldScalar() ).CastAndCall(matFunctor);
+    }
+    catch (vtkm::cont::Error error)
+    {
+      std::cout<<"Failed to add absorption field. mapping field not a floating point value. "<<error.GetMessage()<<"\n";
+      return;
+    }
+
+    
+      datasets[i].AddField( vtkm::cont::Field(  "absorption",
+                            vtkm::cont::Field::ASSOC_CELL_SET,
+                            datasets[i].GetField(mapping_field_name).GetAssocCellSet(),
+                            output_array));
   }
-  catch (vtkm::cont::Error error)
+}
+template<typename FieldType>
+void
+add_emission_field(std::vector<vtkm::cont::DataSet> &datasets, 
+                   std::string mapping_field_name, 
+                   const int num_bins,
+                   FieldType field_type)
+{
+  //
+  //  Make sure the field is cell associated
+  //
+  std::vector<vtkm::cont::Field> fields; 
+
+  for(int i = 0; i < datasets.size(); ++i)
   {
-    std::cout<<"Failed to add absorption field. mapping field not a floating point value. "<<error.GetMessage()<<"\n";
-    return;
+    vtkm::cont::Field cell_field;
+    get_cell_assoc_field(datasets[i], mapping_field_name, cell_field, field_type);
+    fields.push_back(cell_field);
   }
 
-  
-    dataset.AddField( vtkm::cont::Field(  "absorption",
-                                          vtkm::cont::Field::ASSOC_CELL_SET,
-                                          dataset.GetField(mapping_field_name).GetAssocCellSet(),
-                                          output_array));
+  vtkm::Range scalar_range = get_global_range(fields);
+  //
+  // create the lookup materials table
+  //
+  rover::MaterialDatabase db_reader;   
+  std::vector<std::string> mat_names;
+
+  mat_names.push_back("Na");
+  mat_names.push_back("N");
+  mat_names.push_back("Pu");
+  mat_names.push_back("U");
+
+  vtkm::cont::ArrayHandle<FieldType> mat_lookup;
+  int num_elements;
+  db_reader.get_elements(mat_names, num_bins, mat_lookup, num_elements);
+
+  for(int i = 0; i < datasets.size(); ++i)
+  {
+    vtkm::cont::ArrayHandle<FieldType> output_array;
+    FieldToMaterialFunctor<FieldType> matFunctor(num_bins,
+                                                 num_elements,
+                                                 &output_array,
+                                                 scalar_range,
+                                                 mat_lookup);
+    //
+    // reset the type list to floats and doubles only
+    //
+    try
+    {
+        fields[i].GetData().ResetTypeList( vtkm::TypeListTagFieldScalar() ).CastAndCall(matFunctor);
+    }
+    catch (vtkm::cont::Error error)
+    {
+      std::cout<<"Failed to add absorption field. mapping field not a floating point value. "<<error.GetMessage()<<"\n";
+      return;
+    }
+
+    
+      datasets[i].AddField( vtkm::cont::Field(  "emission",
+                            vtkm::cont::Field::ASSOC_CELL_SET,
+                            datasets[i].GetField(mapping_field_name).GetAssocCellSet(),
+                            output_array));
+  }
 }
 
 #endif

@@ -153,19 +153,32 @@ void redistribute(std::vector<T> &partials,
                   MPI_Comm comm,
                   const int &domain_min_pixel,
                   const int &domain_max_pixel);
-
+// ----------------------------- VolumePartial Specialization------------------------------------------
 template<>
-void redistribute<VolumePartial>(std::vector<VolumePartial> &partials, 
-                                                            MPI_Comm comm,
-                                                            const int &domain_min_pixel,
-                                                            const int &domain_max_pixel)
+void redistribute<VolumePartial<float>>(std::vector<VolumePartial<float>> &partials, 
+                                                                           MPI_Comm comm,
+                                                                           const int &domain_min_pixel,
+                                                                           const int &domain_max_pixel)
 {
-  redistribute_detail<AddBlock<VolumeBlock> >(partials,
-                                              comm,
-                                              domain_min_pixel,
-                                              domain_max_pixel);
+  redistribute_detail<AddBlock<VolumeBlock<float>>>(partials,
+                                                    comm,
+                                                    domain_min_pixel,
+                                                    domain_max_pixel);
 }
 
+template<>
+void redistribute<VolumePartial<double>>(std::vector<VolumePartial<double>> &partials, 
+                                                                             MPI_Comm comm,
+                                                                             const int &domain_min_pixel,
+                                                                             const int &domain_max_pixel)
+{
+  redistribute_detail<AddBlock<VolumeBlock<double>>>(partials,
+                                                     comm,
+                                                     domain_min_pixel,
+                                                     domain_max_pixel);
+}
+
+// ----------------------------- AbsorpPartial Specialization------------------------------------------
 template<>
 void redistribute<AbsorptionPartial<double>>(std::vector<AbsorptionPartial<double>> &partials, 
                                              MPI_Comm comm,
@@ -188,6 +201,31 @@ void redistribute<AbsorptionPartial<float>>(std::vector<AbsorptionPartial<float>
                                                         comm,
                                                         domain_min_pixel,
                                                         domain_max_pixel);
+}
+
+// ----------------------------- EmissPartial Specialization------------------------------------------
+template<>
+void redistribute<EmissionPartial<double>>(std::vector<EmissionPartial<double>> &partials, 
+                                          MPI_Comm comm,
+                                          const int &domain_min_pixel,
+                                          const int &domain_max_pixel)
+{
+  redistribute_detail<AddBlock<EmissionBlock<double>>>(partials,
+                                                       comm,
+                                                       domain_min_pixel,
+                                                       domain_max_pixel);
+}
+
+template<>
+void redistribute<EmissionPartial<float>>(std::vector<EmissionPartial<float>> &partials, 
+                                            MPI_Comm comm,
+                                            const int &domain_min_pixel,
+                                            const int &domain_max_pixel)
+{
+  redistribute_detail<AddBlock<EmissionBlock<float>>>(partials,
+                                                      comm,
+                                                      domain_min_pixel,
+                                                      domain_max_pixel);
 }
 
 } //namespace rover

@@ -14,6 +14,11 @@ Domain::~Domain()
 {
 }
 
+//
+// This should be called at the last possible moment by the
+// scheduler so that the settings data sets / setting can 
+// be called in any order
+//
 void
 Domain::set_render_settings(const RenderSettings &settings)
 {
@@ -21,6 +26,7 @@ Domain::set_render_settings(const RenderSettings &settings)
   // Create the correct engine
   //
 
+  ROVER_INFO("Setting render settings");
   if(m_render_settings.m_render_mode != volume && 
      settings.m_render_mode == volume)
   {
@@ -43,21 +49,32 @@ Domain::set_render_settings(const RenderSettings &settings)
   }
 
   m_render_settings = settings; 
+  m_render_settings.print();
 
-  ROVER_INFO("Primary field " << settings.m_primary_field);
-
-  m_engine->set_primary_field(settings.m_primary_field);
-  m_engine->set_secondary_field(settings.m_secondary_field);
-  m_engine->set_color_table(settings.m_color_table);
-
+  m_engine->set_data_set(m_data_set);
+  set_engine_fields();
 }
 
 void 
 Domain::set_data_set(vtkmDataSet &dataset)
 {
+  ROVER_INFO("Setting dataset");
   m_engine->set_data_set(dataset);
   m_data_set = dataset;
   m_domain_bounds = m_data_set.GetCoordinateSystem().GetBounds();
+}
+
+void 
+Domain::set_engine_fields()
+{
+  ROVER_INFO("Primary field: " << m_render_settings.m_primary_field);
+  ROVER_INFO("Secondary field: " << m_render_settings.m_secondary_field);
+
+  if(m_render_settings.m_primary_field == "")
+    throw RoverException("Fatal Error: primary field not set\n");
+  m_engine->set_primary_field(m_render_settings.m_primary_field);
+  m_engine->set_secondary_field(m_render_settings.m_secondary_field);
+  m_engine->set_color_table(m_render_settings.m_color_table);
 }
 
 const vtkmDataSet&
@@ -109,6 +126,7 @@ Domain::set_composite_background(bool on)
 vtkmRange
 Domain::get_primary_range()
 {
+  assert(m_render_settings.m_primary_field != "");
   return m_engine->get_primary_range();
 }
 

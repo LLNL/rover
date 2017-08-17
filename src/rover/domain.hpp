@@ -32,7 +32,7 @@ protected:
   vtkm::Bounds            m_global_bounds;
   vtkm::Bounds            m_domain_bounds;
   RenderSettings          m_render_settings;
-
+  void                    set_engine_fields();
 }; // class domain
 } // namespace rover
 #endif

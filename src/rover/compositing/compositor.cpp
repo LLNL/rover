@@ -4,15 +4,188 @@
 #include <assert.h>
 #include <limits>
 
-#include <compositing/volume_partial.hpp>
-#include <compositing/absorption_partial.hpp>
-
 #ifdef PARALLEL
 #include <compositing/redistribute.hpp>
 #include <compositing/collect.hpp>
 #endif
 
 namespace rover {
+namespace detail
+{
+template<template <typename> class PartialType, typename FloatType>
+void BlendPartials(const int &total_segments, 
+                   const int &total_partial_comps,
+                   std::vector<int> &pixel_work_ids,
+                   std::vector<PartialType<FloatType>> &partials,
+                   std::vector<PartialType<FloatType>> &output_partials,
+                   const int output_offset)
+{
+  //
+  // Perform the compositing and output the result in the output 
+  //
+  #pragma omp parallel for
+  for(int i = 0; i < total_segments; ++i)
+  {
+    int current_index = pixel_work_ids[i];
+    PartialType<FloatType> result = partials[current_index];
+    ++current_index;
+    PartialType<FloatType> next = partials[current_index];
+    // TODO: we could just count the amount of work and make this a for loop(vectorize??)
+    while(result.m_pixel_id == next.m_pixel_id)
+    {
+      result.blend(next);
+      if(current_index + 1 >= total_partial_comps) 
+      {
+        // we could break early for volumes,
+        // but blending past 1.0 alpha is no op.
+        break;
+      }
+      ++current_index;
+      next = partials[current_index];
+    }
+    output_partials[output_offset + i] = result;
+  }
+
+  //placeholder 
+  PartialType<FloatType>::composite_default_background(output_partials);
+
+}
+template<typename T>
+void
+BlendEmission(const int &total_segments, 
+              const int &total_partial_comps,
+              std::vector<int> &pixel_work_ids,
+              std::vector<EmissionPartial<T>> &partials,
+              std::vector<EmissionPartial<T>> &output_partials,
+              const int output_offset)
+{
+  std::cout<<"**** EMISSION ****\n";
+  //
+  // Perform the compositing and output the result in the output 
+  // This code computes the optical depth (total absorption)
+  // along each rays path.
+  //
+  #pragma omp parallel for
+  for(int i = 0; i < total_segments; ++i)
+  {
+    int current_index = pixel_work_ids[i];
+    EmissionPartial<T> result = partials[current_index];
+    ++current_index;
+    EmissionPartial<T> next = partials[current_index];
+    // TODO: we could just count the amount of work and make this a for loop(vectorize??)
+    while(result.m_pixel_id == next.m_pixel_id)
+    {
+      result.blend(next);
+      if(current_index + 1 >= total_partial_comps) 
+      {
+        // we could break early for volumes,
+        // but blending past 1.0 alpha is no op.
+        break;
+      }
+      ++current_index;
+      next = partials[current_index];
+    }
+    output_partials[output_offset + i] = result;
+  }
+
+  //placeholder 
+  //EmissionPartial::composite_default_background(output_partials);
+  // TODO: now blend source signature with output 
+  
+  //
+  //  Emission bins contain the amout of energy that leaves each
+  //  ray segment. To compute the amount of energy that reaches 
+  //  the detector, we must multiply the segments emissed energy
+  //  by the optical depth of the remaining path to the detector.
+  //  To calculate the optical depth of the remaining path, we
+  //  do perform a reverse scan of absorption for each pixel id 
+  //
+  #pragma omp parallel for
+  for(int i = 0; i < total_segments; ++i)
+  {
+    std::cout<<"seg "<<i<<"\n";
+    const int segment_start = pixel_work_ids[i];
+    int current_index = segment_start;
+    //
+    //  move forward to the end of the segment
+    //
+    while(current_index != (total_partial_comps - 1) && 
+          partials[current_index].m_pixel_id == partials[current_index + 1].m_pixel_id)
+    {
+      ++current_index;
+    }
+    std::cout<<"Segment size"<<current_index - segment_start +1<<"\n";
+    //
+    // now move backwards accumulating absorption for each segment
+    //
+    while(current_index - 1 != segment_start - 1)
+    {
+      //std::cout<<"*this "<<current_index - 1<<" that "<<current_index<<"\n";
+      partials[current_index - 1].blend(partials[current_index]);  
+      // mult this segments emission by the absorption in front
+      partials[current_index - 1].blend_emission(partials[current_index]);  
+      // add remaining emissed engery to the output 
+      output_partials[i].add_emission(partials[current_index - 1]);
+      --current_index;
+    }
+  }
+
+
+}
+template<>
+void BlendPartials<EmissionPartial, float>(const int &total_segments, 
+                                           const int &total_partial_comps,
+                                           std::vector<int> &pixel_work_ids,
+                                           std::vector<EmissionPartial<float>> &partials,
+                                           std::vector<EmissionPartial<float>> &output_partials,
+                                           const int output_offset)
+{
+
+  BlendEmission(total_segments, 
+                total_partial_comps,
+                pixel_work_ids,
+                partials,
+                output_partials,
+                output_offset);
+}
+
+template<>
+void BlendPartials<EmissionPartial, double>(const int &total_segments, 
+                                            const int &total_partial_comps,
+                                            std::vector<int> &pixel_work_ids,
+                                            std::vector<EmissionPartial<double>> &partials,
+                                            std::vector<EmissionPartial<double>> &output_partials,
+                                            const int output_offset)
+{
+
+  BlendEmission(total_segments, 
+                total_partial_comps,
+                pixel_work_ids,
+                partials,
+                output_partials,
+                output_offset);
+}
+
+template<template <typename> class PartialType, typename FloatType>
+void HandleEmission(PartialType<FloatType> &partial)
+{
+  // no-op default template
+}
+
+template<>
+void HandleEmission<EmissionPartial, float>(EmissionPartial<float> &partial)
+{
+  partial.add_emission(); 
+}
+
+template<>
+void HandleEmission<EmissionPartial, double>(EmissionPartial<double> &partial)
+{
+  partial.add_emission(); 
+}
+
+} // namespace detail
+
 //--------------------------------------------------------------------------------------------
 template<typename PartialType>
 Compositor<PartialType>::Compositor()
@@ -31,9 +204,8 @@ Compositor<PartialType>::~Compositor()
 //--------------------------------------------------------------------------------------------
 
 template<typename PartialType>
-template<typename FloatType>
 void 
-Compositor<PartialType>::extract(std::vector<PartialImage<FloatType>> &partial_images, 
+Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::ValueType>> &partial_images, 
                           std::vector<PartialType> &partials,
                           int &global_min_pixel,
                           int &global_max_pixel)
@@ -280,47 +452,31 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
   for(int i = 0; i < total_unique_pixels; ++i)
   {
     PartialType result = partials[unique_ids[i]];
+#warning "need to add source signature and emission at the same time
+    //detail::HandleEmission(result);
     output_partials[i] = result;
-  }
- 
 
-  //
-  // Perform the compositing and output the result in the output 
-  //
-  #pragma omp parallel for
-  for(int i = 0; i < total_segments; ++i)
-  {
-    int current_index = pixel_work_ids[i];
-    PartialType result = partials[current_index];
-    ++current_index;
-    PartialType next = partials[current_index];
-    // TODO: we could just count the amount of work and make this a for loop(vectorize??)
-    while(result.m_pixel_id == next.m_pixel_id)
-    {
-      result.blend(next);
-      if(current_index + 1 >= total_partial_comps) 
-      {
-        // we could break early for volumes,
-        // but blending past 1.0 alpha is no op.
-        break;
-      }
-      ++current_index;
-      next = partials[current_index];
-    }
-    output_partials[total_unique_pixels + i] = result;
   }
-
-  //placeholder 
-  PartialType::composite_default_background(output_partials);
+   
+  //
+  // perform compositing if there are more than
+  // one segment per ray
+  //
+  std::cout<<"****BLENDING****\n";
+  detail::BlendPartials(total_segments, 
+                        total_partial_comps,
+                        pixel_work_ids,
+                        partials,
+                        output_partials,
+                        total_unique_pixels);
 
 }
 
 //--------------------------------------------------------------------------------------------
 
 template<typename PartialType>
-template<typename FloatType> 
-PartialImage<FloatType> 
-Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial_images)
+PartialImage<typename PartialType::ValueType> 
+Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType::ValueType>> &partial_images)
 {
   //const int x = 171;
   //const int y = 337;
@@ -383,7 +539,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<FloatType>> &partial
   // pack the output back into a channel buffer
   //
   const int num_channels = partial_images[0].m_buffer.GetNumChannels();
-  PartialImage<FloatType> output;
+  PartialImage<typename PartialType::ValueType> output;
   output.m_width = partial_images[0].m_width;
   output.m_height= partial_images[0].m_height;
   const int out_size = output_partials.size();
@@ -418,25 +574,14 @@ Compositor<PartialType>::set_comm_handle(MPI_Comm comm_handle)
 #endif
 
 //Explicit function instantiations
-template class Compositor<VolumePartial>;
-
-template 
-PartialImage<vtkm::Float32> 
-Compositor<VolumePartial>::composite<vtkm::Float32>(std::vector<PartialImage<vtkm::Float32>> &);
-
-template 
-PartialImage<vtkm::Float64> 
-Compositor<VolumePartial>::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
+template class Compositor<VolumePartial<vtkm::Float32>>;
+template class Compositor<VolumePartial<vtkm::Float64>>;
 
 template class Compositor<AbsorptionPartial<vtkm::Float32>>;
 template class Compositor<AbsorptionPartial<vtkm::Float64>>;
 
-template 
-PartialImage<vtkm::Float32> 
-Compositor<AbsorptionPartial<vtkm::Float32>>::composite<vtkm::Float32>(std::vector<PartialImage<vtkm::Float32>> &);
+template class Compositor<EmissionPartial<vtkm::Float32>>;
+template class Compositor<EmissionPartial<vtkm::Float64>>;
 
-template 
-PartialImage<vtkm::Float64> 
-Compositor<AbsorptionPartial<vtkm::Float64>>::composite<vtkm::Float64>(std::vector<PartialImage<vtkm::Float64>> &);
 
 } // namespace rover

@@ -108,10 +108,17 @@ void collect(std::vector<T> &partials,
              MPI_Comm comm);
 
 template<> 
-void collect<VolumePartial>(std::vector<VolumePartial> &partials,
-                            MPI_Comm comm)
+void collect<VolumePartial<float>>(std::vector<VolumePartial<float>> &partials,
+                                  MPI_Comm comm)
 {
-  collect_detail<AddBlock<VolumeBlock>>(partials, comm);
+  collect_detail<AddBlock<VolumeBlock<float>>>(partials, comm);
+}
+
+template<> 
+void collect<VolumePartial<double>>(std::vector<VolumePartial<double>> &partials,
+                                   MPI_Comm comm)
+{
+  collect_detail<AddBlock<VolumeBlock<double>>>(partials, comm);
 }
 
 template<> 
@@ -126,6 +133,20 @@ void collect<AbsorptionPartial<float>>(std::vector<AbsorptionPartial<float>> &pa
                                        MPI_Comm comm)
 {
   collect_detail<AddBlock<AbsorptionBlock<float>>>(partials, comm);
+}
+
+template<> 
+void collect<EmissionPartial<double>>(std::vector<EmissionPartial<double>> &partials,
+                                      MPI_Comm comm)
+{
+  collect_detail<AddBlock<EmissionBlock<double>>>(partials, comm);
+}
+
+template<> 
+void collect<EmissionPartial<float>>(std::vector<EmissionPartial<float>> &partials,
+                                     MPI_Comm comm)
+{
+  collect_detail<AddBlock<EmissionBlock<float>>>(partials, comm);
 }
 
 } // namespace rover
