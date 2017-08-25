@@ -20,6 +20,7 @@ void BlendPartials(const int &total_segments,
                    std::vector<PartialType<FloatType>> &output_partials,
                    const int output_offset)
 {
+  ROVER_INFO("Blending partials volume or absoption");
   //
   // Perform the compositing and output the result in the output 
   //
@@ -60,6 +61,7 @@ BlendEmission(const int &total_segments,
               const int output_offset)
 {
   std::cout<<"**** EMISSION ****\n";
+  ROVER_INFO("Blending partials with emission");
   //
   // Perform the compositing and output the result in the output 
   // This code computes the optical depth (total absorption)
@@ -78,8 +80,6 @@ BlendEmission(const int &total_segments,
       result.blend(next);
       if(current_index + 1 >= total_partial_comps) 
       {
-        // we could break early for volumes,
-        // but blending past 1.0 alpha is no op.
         break;
       }
       ++current_index;
@@ -103,7 +103,6 @@ BlendEmission(const int &total_segments,
   #pragma omp parallel for
   for(int i = 0; i < total_segments; ++i)
   {
-    std::cout<<"seg "<<i<<"\n";
     const int segment_start = pixel_work_ids[i];
     int current_index = segment_start;
     //
@@ -114,18 +113,20 @@ BlendEmission(const int &total_segments,
     {
       ++current_index;
     }
-    std::cout<<"Segment size"<<current_index - segment_start +1<<"\n";
     //
     // now move backwards accumulating absorption for each segment
     //
+    // add the emission of the last segment
+    output_partials[output_offset + i].add_emission(partials[current_index]);
+   
     while(current_index - 1 != segment_start - 1)
     {
-      //std::cout<<"*this "<<current_index - 1<<" that "<<current_index<<"\n";
       partials[current_index - 1].blend(partials[current_index]);  
       // mult this segments emission by the absorption in front
       partials[current_index - 1].blend_emission(partials[current_index]);  
       // add remaining emissed engery to the output 
-      output_partials[i].add_emission(partials[current_index - 1]);
+      output_partials[output_offset + i].add_emission(partials[current_index - 1]);
+
       --current_index;
     }
   }
@@ -453,7 +454,7 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
   {
     PartialType result = partials[unique_ids[i]];
 #warning "need to add source signature and emission at the same time
-    //detail::HandleEmission(result);
+    detail::HandleEmission(result);
     output_partials[i] = result;
 
   }
@@ -463,6 +464,7 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
   // one segment per ray
   //
   std::cout<<"****BLENDING****\n";
+  std::cout<<"$$$output offset "<<total_unique_pixels<<"\n";
   detail::BlendPartials(total_segments, 
                         total_partial_comps,
                         pixel_work_ids,

@@ -304,7 +304,7 @@ Scheduler<FloatType>::trace_rays()
       partial_image.m_buffer = rays.Buffers.at(0);
 
     }
-
+    partial_image.print_pixel(313,161);
     timer.Reset();
     m_partial_images.push_back(partial_image);
     time = timer.GetElapsedTime(); 
@@ -355,12 +355,8 @@ Scheduler<FloatType>::trace_rays()
     // the energy buffer to the absorption buffer
     //
     if(m_render_settings.m_render_mode == energy &&
-      m_render_settings.m_secondary_field != "")
+       m_render_settings.m_secondary_field != "")
     {
-      for(int i = 0; i < 10; ++i)
-      {
-        std::cout<<" "<<m_partial_images[0].m_emission_buffer.Buffer.GetPortalControl().Get(i);
-      }
       m_partial_images[0].m_buffer.AddBuffer(m_partial_images[0].m_emission_buffer);
     }
     m_result = m_partial_images[0];
@@ -403,7 +399,7 @@ void Scheduler<FloatType>::save_result(std::string file_name)
       std::stringstream sstream;
       sstream<<file_name<<"_"<<i<<".png";
       vtkmRayTracing::ChannelBuffer<FloatType> channel = m_result.m_buffer.GetChannel( i );
-      const bool invert = true;
+      const bool invert = false;
       channel.Normalize(invert);
       const FloatType default_value = 0.f;
       vtkmRayTracing::ChannelBuffer<FloatType>  expand 

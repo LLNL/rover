@@ -53,7 +53,10 @@ EnergyEngine::set_secondary_field(const std::string &field)
 {
   m_secondary_field = field;
   ROVER_INFO("Energy Engine setting secondary field "<<field);
-  m_tracer->SetEmissionField(this->m_secondary_field);
+  if(m_secondary_field != "")
+  {
+    m_tracer->SetEmissionField(this->m_secondary_field);
+  }
 }
 
 template<typename Precision>

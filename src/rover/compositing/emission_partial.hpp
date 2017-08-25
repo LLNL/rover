@@ -21,10 +21,26 @@ struct EmissionPartial
   {
 
   }
-
+  void alter_bin(int bin, FloatType value)
+  {
+    m_bins[bin] = value; 
+    m_emission_bins[bin] = value; 
+  }
   void print()
   {
-
+    std::cout<<"Partial id "<<m_pixel_id<<"\n";
+    std::cout<<"Absorption : ";
+    for(int i = 0; i < m_bins.size(); ++i)
+    {
+      std::cout<<m_bins[i]<<" ";
+    }
+    std::cout<<"\n";
+    std::cout<<"Emission: ";
+    for(int i = 0; i < m_bins.size(); ++i)
+    {
+      std::cout<<m_emission_bins[i]<<" ";
+    }
+    std::cout<<"\n";
   }
   
   bool operator < (const EmissionPartial<FloatType> &other) const

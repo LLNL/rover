@@ -503,7 +503,9 @@ void TemplateDriver(Options &options, Precision)
   {
     settings.m_primary_field = "absorption";
     settings.m_render_mode = rover::energy;
-    add_absorption_field(vtkm_data_set, "nodal_noise", options.m_bins, Precision());
+    std::vector<vtkm::cont::DataSet> datasets;
+    datasets.push_back(vtkm_data_set);
+    add_absorption_field(datasets, "nodal_noise", options.m_bins, Precision());
   }
 
   driver.set_ray_generator(&generator);

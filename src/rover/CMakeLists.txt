@@ -27,6 +27,7 @@ set(rover_headers
     # ray generators headers
     ray_generators/ray_generator.hpp
     ray_generators/camera_generator.hpp
+    ray_generators/visit_generator.hpp
     vtkm_typedefs.hpp
     # utils headers
     utils/png_encoder.hpp
@@ -46,6 +47,7 @@ set(rover_sources
     # ray generators
     ray_generators/ray_generator.cpp
     ray_generators/camera_generator.cpp
+    ray_generators/visit_generator.cpp
     # utils sources
     utils/png_encoder.cpp
     utils/rover_logging.cpp

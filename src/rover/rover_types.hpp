@@ -102,6 +102,7 @@ struct PartialImage
   {
     const int size = m_pixel_ids.GetPortalControl().GetNumberOfValues();
     const int num_channels = m_buffer.GetNumChannels();
+    bool has_emission = m_emission_buffer.Buffer.GetNumberOfValues() != 0;
     int debug = m_width * ( m_height - y) + x; 
 
     for(int i = 0; i < size; ++i)
@@ -112,11 +113,14 @@ struct PartialImage
         for(int j = 0; j < num_channels ; ++j)
         {
           std::cout<<m_buffer.Buffer.GetPortalControl().Get(offset + j)<<" ";
+          if(has_emission)
+          {
+            std::cout<<"("<<m_emission_buffer.Buffer.GetPortalControl().Get(offset + j)<<") ";
+          }
         }
         std::cout<<"\n";
       }
     }
-
   
   }// print
 
