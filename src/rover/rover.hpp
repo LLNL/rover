@@ -22,6 +22,7 @@ class Rover
 public:
   Rover();
   ~Rover();
+  typedef FloatType Precision;
 #ifdef PARALLEL
   void init(MPI_Comm comm_handle);
 #else
@@ -36,6 +37,7 @@ public:
   void execute();
   void about();
   void save_png(const std::string &file_name);
+  vtkmRayTracing::ChannelBuffer<FloatType> get_intensities();
 private:
   class InternalsType;
   std::shared_ptr<InternalsType> m_internals; 

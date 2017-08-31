@@ -379,6 +379,13 @@ Scheduler<FloatType>::trace_rays()
 }
 
 template<typename FloatType>
+vtkmRayTracing::ChannelBuffer<FloatType> 
+Scheduler<FloatType>::get_intensities()
+{
+  return m_result.m_buffer;
+}
+
+template<typename FloatType>
 void Scheduler<FloatType>::save_result(std::string file_name) 
 {
   int height = 0;

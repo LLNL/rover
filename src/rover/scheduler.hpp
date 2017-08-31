@@ -50,6 +50,7 @@ public:
   RenderSettings get_render_settings() const;
   vtkmDataSet    get_data_set(const int &domain);
   FloatType *    get_color_buffer();
+  vtkmRayTracing::ChannelBuffer<FloatType> get_intensities();
 protected:
   void set_global_scalar_range();
   void set_global_bounds();

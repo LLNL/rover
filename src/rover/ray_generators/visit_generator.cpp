@@ -100,23 +100,24 @@ VisitGenerator<Precision>::get_rays()
   const Precision y_factor = - (2. * m_params.m_image_pan[1] * m_params.m_image_zoom + 1.);
   const Precision y_start  = y_factor * near_height + near_dy / 2.;
   const Precision y_end    = y_factor * far_height + far_dy / 2.;
+
   for(int y = 0; y < y_size; ++y)
   {
     const Precision near_y = y_start + Precision(y) * near_dy;
-    const Precision far_y = y_start + Precision(y) * far_dy;
+    const Precision far_y = y_end + Precision(y) * far_dy;
     #pragma omp parallel for
     for(int x = 0; x < x_size; ++x)
     {
       const int id = y * x_size + x;    
 
       Precision near_x = x_start + Precision(x) * near_dx;
-      Precision far_x = x_start + Precision(x) * far_dx;
+      Precision far_x = x_end + Precision(x) * far_dx;
 
       vtkm::Vec<Precision,3> start;
       vtkm::Vec<Precision,3> end;
       start = near_origin + near_x * view_side + near_y * m_params.m_view_up;
       end = far_origin + far_x * view_side + far_y * m_params.m_view_up;
-      
+
       vtkm::Vec<Precision,3> dir = end - start;
       vtkm::Normalize(dir);
 

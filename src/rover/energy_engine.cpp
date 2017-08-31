@@ -114,7 +114,7 @@ EnergyEngine::init_rays(Ray64 &rays)
   int num_bins = detect_num_bins();
   rays.Buffers.at(0).SetNumChannels(num_bins);
   rays.Buffers.at(0).InitConst(1.);
-
+  init_emission(rays, num_bins);
 }
 
 void 

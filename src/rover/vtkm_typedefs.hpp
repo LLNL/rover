@@ -24,6 +24,7 @@ typedef vtkm::cont::ArrayHandle<vtkm::Id>                     IdHandle;
 typedef vtkm::Vec<vtkm::Float32,3>                            vtkmVec3f;
 typedef vtkm::cont::Timer<>                                   vtkmTimer;
 typedef vtkm::rendering::raytracing::Logger                   vtkmLogger;
+
 //
 // Utility method for getting raw pointer 
 //

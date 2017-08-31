@@ -111,6 +111,10 @@ public:
     }
   }
 #endif
+  vtkmRayTracing::ChannelBuffer<FloatType> get_intensities()
+  {
+    return m_scheduler->get_intensities();
+  }
 
 }; //Internals Type
 
@@ -218,14 +222,20 @@ Rover<FloatType>::about()
   print_type(FloatType());
   std::cout<<"Other important information\n";
 }
-template<typename FloatType>
 
+template<typename FloatType>
 void
 Rover<FloatType>::save_png(const std::string &file_name)
 {
   m_internals->save_png(file_name);
 }
 
+template<typename FloatType>
+vtkmRayTracing::ChannelBuffer<FloatType> 
+Rover<FloatType>::get_intensities()
+{
+  return m_internals->get_intensities();
+}
 // Explicit instantiations
 template class Rover<vtkm::Float32>; 
 template class Rover<vtkm::Float64>; 
