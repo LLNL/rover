@@ -56,6 +56,7 @@ struct RenderSettings
   std::string    m_secondary_field;
   VolumeSettings m_volume_settings;
   EnergySettings m_energy_settings;
+  bool           m_path_lengths;
   //
   // Default settings
   // 
@@ -65,6 +66,7 @@ struct RenderSettings
     m_render_mode     = volume;
     m_scattering_type = non_scattering;
     m_ray_scope       = global_rays;
+    m_path_lengths    = false;
   }
   
   void print()
@@ -88,6 +90,8 @@ struct RenderSettings
   }
 };
 
+
+
 template<typename FloatType>
 struct PartialImage
 {
@@ -97,7 +101,8 @@ struct PartialImage
   vtkmRayTracing::ChannelBuffer<FloatType> m_buffer;         //holds either color or absorption
   vtkmRayTracing::ChannelBuffer<FloatType> m_emission_buffer;
   vtkm::cont::ArrayHandle<FloatType>       m_distances;
-
+  vtkm::cont::ArrayHandle<FloatType>       m_path_lengths;
+  std::vector<FloatType>                   m_source_sig;  
   void print_pixel(const int x, const int y)
   {
     const int size = m_pixel_ids.GetPortalControl().GetNumberOfValues();
@@ -145,6 +150,7 @@ struct PartialImage
       }
     }
 };
+
 
 } // namespace rover
 #endif

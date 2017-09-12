@@ -162,7 +162,7 @@ Scheduler<FloatType>::add_data_set(vtkmDataSet &dataset)
   ROVER_INFO("Adding domain "<<m_domains.size());
   Domain domain;
   domain.set_data_set(dataset);
-  dataset.PrintSummary(std::cout); 
+  //dataset.PrintSummary(std::cout); 
   m_domains.push_back(domain);
 }
 
@@ -214,7 +214,7 @@ Scheduler<FloatType>::trace_rays()
   // TODO while (m_geerator.has_rays())
   ROVER_INFO("Tracing rays");
 
-  int height = 0;
+  int height = 0 ;
   int width = 0;
 
   m_ray_generator->get_dims(height, width);
@@ -263,7 +263,14 @@ Scheduler<FloatType>::trace_rays()
   
     vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
     m_domains[i].init_rays(rays);
-
+    //
+    // add path lengths if they were requested
+    //
+    if(m_render_settings.m_path_lengths)
+    {
+      rays.AddBuffer(1, "path_lengths");
+      rays.GetBuffer("path_lengths").InitConst(0);
+    }
     time = timer.GetElapsedTime();
     DataLogger::GetInstance()->AddLogData("domain_init_rays", time);
 
@@ -280,11 +287,21 @@ Scheduler<FloatType>::trace_rays()
     DataLogger::GetInstance()->AddLogData("domain_trace", time);
     DataLogger::GetInstance()->GetStream()<<vtkmLogger::GetInstance()->GetStream().str();
 
+    //
+    // Create a partial image result from the completed rays
+    //
+
+    ROVER_INFO("Schedule: creating partial image in domain "<<i);
     PartialImage<FloatType> partial_image;
     partial_image.m_pixel_ids = rays.PixelIdx;
     partial_image.m_distances = rays.MinDistance;
     partial_image.m_width = width;
     partial_image.m_height = height;
+
+    if(m_render_settings.m_path_lengths)
+    {
+      partial_image.m_path_lengths = rays.GetBuffer("path_lengths").Buffer;
+    }
 
     if(m_render_settings.m_render_mode == energy)
     {
@@ -300,22 +317,26 @@ Scheduler<FloatType>::trace_rays()
     {
       // TODO: add some conversion to uchar probably withing the "channel buffer"
       assert(rays.Buffers.at(0).GetNumChannels() == 4); 
-
       partial_image.m_buffer = rays.Buffers.at(0);
-
     }
-    partial_image.print_pixel(313,161);
+    
     timer.Reset();
     m_partial_images.push_back(partial_image);
+
     time = timer.GetElapsedTime(); 
     DataLogger::GetInstance()->AddLogData("domain_push_back", time);
 
     time = domain_timer.GetElapsedTime();
-
     DataLogger::GetInstance()->CloseLogEntry(time);
-
+    ROVER_INFO("Schedule: done tracing domain "<<i);
   }// for each domain
-  
+
+  if(m_background.size() == 0)
+  {
+    const int num_channels = m_partial_images[0].m_buffer.GetNumChannels();
+    this->create_default_background(num_channels);
+  }
+
   timer.Reset();
   if(do_compositing)
   {
@@ -323,6 +344,7 @@ Scheduler<FloatType>::trace_rays()
     if(m_render_settings.m_render_mode == volume)
     {
       Compositor<VolumePartial<FloatType>> compositor;
+      compositor.set_background(m_background);
 #ifdef PARALLEL
       compositor.set_comm_handle(m_comm_handle);
 #endif
@@ -333,6 +355,7 @@ Scheduler<FloatType>::trace_rays()
       if(m_render_settings.m_secondary_field != "")
       {
         Compositor<EmissionPartial<FloatType>> compositor;
+        compositor.set_background(m_background);
 #ifdef PARALLEL
         compositor.set_comm_handle(m_comm_handle);
 #endif
@@ -341,12 +364,14 @@ Scheduler<FloatType>::trace_rays()
       else
       {
         Compositor<AbsorptionPartial<FloatType>> compositor;
+        compositor.set_background(m_background);
 #ifdef PARALLEL
         compositor.set_comm_handle(m_comm_handle);
 #endif
         m_result = compositor.composite(m_partial_images);
       }
     }
+    ROVER_ERROR("Schedule: compositing complete");
   }
   else if(num_domains == 1)
   {
@@ -359,6 +384,9 @@ Scheduler<FloatType>::trace_rays()
     {
       m_partial_images[0].m_buffer.AddBuffer(m_partial_images[0].m_emission_buffer);
     }
+    m_partial_images[0].m_source_sig = m_background;
+    ROVER_INFO("Single domain output "<<m_partial_images[0].m_width
+               <<" x "<<m_partial_images[0].m_height);
     m_result = m_partial_images[0];
   }
   else 
@@ -376,13 +404,14 @@ Scheduler<FloatType>::trace_rays()
 
   double tot_time = tot_timer.GetElapsedTime();
   DataLogger::GetInstance()->CloseLogEntry(tot_time);
+  ROVER_INFO("Schedule: end of trace");
 }
 
 template<typename FloatType>
-vtkmRayTracing::ChannelBuffer<FloatType> 
-Scheduler<FloatType>::get_intensities()
+Image<FloatType> 
+Scheduler<FloatType>::get_result()
 {
-  return m_result.m_buffer;
+  return m_result;
 }
 
 template<typename FloatType>
@@ -399,21 +428,15 @@ void Scheduler<FloatType>::save_result(std::string file_name)
 
   if(m_render_settings.m_render_mode == energy)
   {
-    const int num_channels = m_result.m_buffer.GetNumChannels();
+    const int num_channels = m_result.get_num_channels();
     ROVER_INFO("Saving "<<num_channels<<" channels ");
     for(int i = 0; i < num_channels; ++i)
     {
       std::stringstream sstream;
       sstream<<file_name<<"_"<<i<<".png";
-      vtkmRayTracing::ChannelBuffer<FloatType> channel = m_result.m_buffer.GetChannel( i );
-      const bool invert = false;
-      channel.Normalize(invert);
-      const FloatType default_value = 0.f;
-      vtkmRayTracing::ChannelBuffer<FloatType>  expand 
-        = channel.ExpandBuffer(m_result.m_pixel_ids, buffer_size, default_value);
-
+      m_result.normalize_channel(i);
       FloatType * buffer 
-        = get_vtkm_ptr(expand.Buffer);
+        = get_vtkm_ptr(m_result.get_channel(i));
 
       encoder.EncodeChannel(buffer, width, height);
       encoder.Save(sstream.str());
@@ -421,15 +444,27 @@ void Scheduler<FloatType>::save_result(std::string file_name)
   }
   else
   {
-      
-    vtkmRayTracing::ChannelBuffer<FloatType>  expand 
-      = m_result.m_buffer.ExpandBuffer(m_result.m_pixel_ids, buffer_size);
+     
+    assert(m_result.get_num_channels() == 4);
+    vtkm::cont::ArrayHandle<FloatType> colors;
+    colors = m_result.flatten_channels();
     FloatType * buffer 
-      = get_vtkm_ptr(expand.Buffer);
+      = get_vtkm_ptr(colors);
     
-    assert(m_result.m_buffer.GetNumChannels() == 4);
     encoder.Encode(buffer, width, height);
     encoder.Save(file_name + ".png");
+  }
+
+  if(m_render_settings.m_path_lengths)
+  {
+     std::stringstream sstream;
+     sstream<<file_name<<"_paths"<<".png";
+     m_result.normalize_paths();
+     FloatType * buffer 
+       = get_vtkm_ptr(m_result.get_path_lengths());
+
+     encoder.EncodeChannel(buffer, width, height);
+     encoder.Save(sstream.str());
   }
   
 }
@@ -441,9 +476,25 @@ void Scheduler<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_genera
 }
 
 template<typename FloatType>
+void Scheduler<FloatType>::set_background(const std::vector<FloatType> &background)
+{
+  m_background = background;
+}
+
+template<typename FloatType>
 void Scheduler<FloatType>::clear_data_sets()
 {
   m_domains.clear();
+}
+
+template<typename FloatType>
+void Scheduler<FloatType>::create_default_background(const int num_channels)
+{
+  m_background.resize(num_channels);
+  for(int i = 0; i < num_channels; ++i)
+  {
+    m_background[i] = 1.f;
+  }
 }
 
 #ifdef PARALLEL
@@ -455,5 +506,6 @@ void Scheduler<FloatType>::set_comm_handle(MPI_Comm comm_handle)
 #endif
 //
 // Explicit instantiation
-template class Scheduler<vtkm::Float32>; template class Scheduler<vtkm::Float64>;
+template class Scheduler<vtkm::Float32>; 
+template class Scheduler<vtkm::Float64>;
 }; // namespace rover

@@ -10,6 +10,7 @@ set(targets_export_name "RoverTargets")
 
 set(rover_headers
     domain.hpp
+    image.hpp
     rover_exports.h
     rover_exceptions.hpp
     rover_types.hpp
@@ -37,6 +38,7 @@ set(rover_headers
 
 set(rover_sources
     domain.cpp
+    image.cpp
     rover.cpp
     scheduler.cpp
     # compositing

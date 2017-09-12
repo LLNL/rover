@@ -87,6 +87,7 @@ struct Serialization<rover::AbsorptionPartial<double>>
     diy::save(bb, partial.m_bins); 
     diy::save(bb, partial.m_pixel_id);
     diy::save(bb, partial.m_depth);
+    diy::save(bb, partial.m_path_length);
   }
 
   static void load(BinaryBuffer& bb, rover::AbsorptionPartial<double> &partial)
@@ -94,6 +95,7 @@ struct Serialization<rover::AbsorptionPartial<double>>
     diy::load(bb, partial.m_bins); 
     diy::load(bb, partial.m_pixel_id);
     diy::load(bb, partial.m_depth);
+    diy::load(bb, partial.m_path_length);
   }
 };
 
@@ -106,6 +108,7 @@ struct Serialization<rover::AbsorptionPartial<float>>
     diy::save(bb, partial.m_bins); 
     diy::save(bb, partial.m_pixel_id);
     diy::save(bb, partial.m_depth);
+    diy::save(bb, partial.m_path_length);
   }
 
   static void load(BinaryBuffer& bb, rover::AbsorptionPartial<float> &partial)
@@ -113,6 +116,7 @@ struct Serialization<rover::AbsorptionPartial<float>>
     diy::load(bb, partial.m_bins); 
     diy::load(bb, partial.m_pixel_id);
     diy::load(bb, partial.m_depth);
+    diy::load(bb, partial.m_path_length);
   }
 };
 
@@ -126,6 +130,7 @@ struct Serialization<rover::EmissionPartial<double>>
     diy::save(bb, partial.m_emission_bins); 
     diy::save(bb, partial.m_pixel_id);
     diy::save(bb, partial.m_depth);
+    diy::save(bb, partial.m_path_length);
   }
 
   static void load(BinaryBuffer& bb, rover::EmissionPartial<double> &partial)
@@ -134,6 +139,7 @@ struct Serialization<rover::EmissionPartial<double>>
     diy::load(bb, partial.m_emission_bins); 
     diy::load(bb, partial.m_pixel_id);
     diy::load(bb, partial.m_depth);
+    diy::load(bb, partial.m_path_length);
   }
 };
 
@@ -147,6 +153,7 @@ struct Serialization<rover::EmissionPartial<float>>
     diy::save(bb, partial.m_emission_bins); 
     diy::save(bb, partial.m_pixel_id);
     diy::save(bb, partial.m_depth);
+    diy::save(bb, partial.m_path_length);
   }
 
   static void load(BinaryBuffer& bb, rover::EmissionPartial<float> &partial)
@@ -155,6 +162,7 @@ struct Serialization<rover::EmissionPartial<float>>
     diy::load(bb, partial.m_emission_bins); 
     diy::load(bb, partial.m_pixel_id);
     diy::load(bb, partial.m_depth);
+    diy::load(bb, partial.m_path_length);
   }
 };
 

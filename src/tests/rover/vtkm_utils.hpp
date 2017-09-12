@@ -186,11 +186,10 @@ add_absorption_field(std::vector<vtkm::cont::DataSet> &datasets,
       return;
     }
 
-    
-      datasets[i].AddField( vtkm::cont::Field(  "absorption",
-                            vtkm::cont::Field::ASSOC_CELL_SET,
-                            datasets[i].GetField(mapping_field_name).GetAssocCellSet(),
-                            output_array));
+    datasets[i].AddField( vtkm::cont::Field(  "absorption",
+                          vtkm::cont::Field::ASSOC_CELL_SET,
+                          datasets[i].GetField(mapping_field_name).GetAssocCellSet(),
+                          output_array));
   }
 }
 template<typename FieldType>

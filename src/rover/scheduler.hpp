@@ -2,6 +2,7 @@
 #define rover_scheduler_h
 
 #include <domain.hpp>
+#include <image.hpp>
 #include <engine.hpp>
 #include <rover_types.hpp>
 #include <ray_generators/ray_generator.hpp>
@@ -40,6 +41,7 @@ public:
   virtual void set_render_settings(const RenderSettings render_settings);
   virtual void add_data_set(vtkmDataSet &data_set);
   virtual void set_ray_generator(RayGenerator<FloatType> *ray_generator);
+  virtual void set_background(const std::vector<FloatType> &background);
 #ifdef PARALLEL
   virtual void set_comm_handle(MPI_Comm comm_handle);
 #endif
@@ -50,15 +52,17 @@ public:
   RenderSettings get_render_settings() const;
   vtkmDataSet    get_data_set(const int &domain);
   FloatType *    get_color_buffer();
-  vtkmRayTracing::ChannelBuffer<FloatType> get_intensities();
+  Image<FloatType> get_result();
 protected:
   void set_global_scalar_range();
   void set_global_bounds();
+  void create_default_background(const int num_channels);
   std::vector<Domain>                       m_domains;
-  PartialImage<FloatType>                   m_result;
+  Image<FloatType>                          m_result;
   std::vector<PartialImage<FloatType>>      m_partial_images;
   RenderSettings                            m_render_settings;
   RayGenerator<FloatType>                  *m_ray_generator;
+  std::vector<FloatType>                    m_background;
 #ifdef PARALLEL
   MPI_Comm                                  m_comm_handle;
 #endif

@@ -86,13 +86,14 @@ struct VolumePartial
     output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(m_alpha));
   }
 
-  static void composite_default_background(std::vector<VolumePartial> &partials)
+  static void composite_background(std::vector<VolumePartial> &partials, 
+                                   const std::vector<FloatType> &background)
   {
     VolumePartial bg_color;
-    bg_color.m_pixel[0] = 255;
-    bg_color.m_pixel[1] = 255;
-    bg_color.m_pixel[2] = 255;
-    bg_color.m_alpha = 1.f;
+    bg_color.m_pixel[0] = (unsigned char)(background.at(0)*255.f);
+    bg_color.m_pixel[1] = (unsigned char)(background.at(1)*255.f); 
+    bg_color.m_pixel[2] = (unsigned char)(background.at(2)*255.f); 
+    bg_color.m_alpha    = background.at(3); 
     //
     // Gather the unique pixels into the output
     //

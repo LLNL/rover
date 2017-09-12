@@ -1,5 +1,6 @@
 #include <ray_generators/visit_generator.hpp>
 #include <vtkm/VectorAnalysis.h>
+#include <assert.h>
 #include <limits>
 namespace rover {
 
@@ -15,6 +16,10 @@ VisitGenerator<Precision>::VisitGenerator(const VisitParams &params)
  : RayGenerator<Precision>()
 {
   m_params = params;
+  assert(params.m_image_dims[0] > 0);
+  assert(params.m_image_dims[1] > 0);
+  this->m_width  = m_params.m_image_dims[0];
+  this->m_height = m_params.m_image_dims[1];
 }
 
 template<typename Precision>

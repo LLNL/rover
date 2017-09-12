@@ -35,9 +35,10 @@ TEST(rover_hex, test_call)
   RenderSettings settings;
   settings.m_primary_field = "absorption";
   settings.m_render_mode = rover::energy;
+  settings.m_path_lengths = true;
 
   driver32.set_render_settings(settings);
-  driver32.add_data_set(dataset);
+  driver32.add_data_set(datasets[0]);
   driver32.set_ray_generator(&generator);
   driver32.execute();
   driver32.save_png("hex32");

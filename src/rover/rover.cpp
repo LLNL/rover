@@ -72,6 +72,11 @@ public:
   {
     if(m_scheduler) delete m_scheduler;
   }
+  
+  void set_background(const std::vector<FloatType> &background)
+  {
+    m_scheduler->set_background(background);
+  }
 
   void save_png(const std::string &file_name)
   {
@@ -111,9 +116,9 @@ public:
     }
   }
 #endif
-  vtkmRayTracing::ChannelBuffer<FloatType> get_intensities()
+  Image<FloatType> get_result()
   {
-    return m_scheduler->get_intensities();
+    return m_scheduler->get_result();
   }
 
 }; //Internals Type
@@ -224,6 +229,13 @@ Rover<FloatType>::about()
 }
 
 template<typename FloatType>
+void 
+Rover<FloatType>::set_background(const std::vector<FloatType> &background)
+{
+  m_internals->set_background(background);
+} 
+
+template<typename FloatType>
 void
 Rover<FloatType>::save_png(const std::string &file_name)
 {
@@ -231,10 +243,10 @@ Rover<FloatType>::save_png(const std::string &file_name)
 }
 
 template<typename FloatType>
-vtkmRayTracing::ChannelBuffer<FloatType> 
-Rover<FloatType>::get_intensities()
+Image<FloatType>
+Rover<FloatType>::get_result()
 {
-  return m_internals->get_intensities();
+  return m_internals->get_result();
 }
 // Explicit instantiations
 template class Rover<vtkm::Float32>; 

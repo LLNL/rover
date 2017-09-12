@@ -1,6 +1,7 @@
 #ifndef rover_h
 #define rover_h
 
+#include <image.hpp>
 #include <rover_exports.h>
 #include <rover_types.hpp>
 #include <ray_generators/ray_generator.hpp>
@@ -34,10 +35,11 @@ public:
   void set_render_settings(const RenderSettings render_settings);
   void set_ray_generator(RayGenerator<FloatType> *);
   void clear_data_sets();
+  void set_background(const std::vector<FloatType> &background);
   void execute();
   void about();
   void save_png(const std::string &file_name);
-  vtkmRayTracing::ChannelBuffer<FloatType> get_intensities();
+  Image<FloatType> get_result();
 private:
   class InternalsType;
   std::shared_ptr<InternalsType> m_internals; 

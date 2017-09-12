@@ -41,6 +41,7 @@ TEST(rover_hex, test_call)
   settings.m_primary_field   = "absorption";
   settings.m_secondary_field = "emission";
   settings.m_render_mode = rover::energy;
+  settings.m_path_lengths = true;
    
   driver32.set_render_settings(settings);
 

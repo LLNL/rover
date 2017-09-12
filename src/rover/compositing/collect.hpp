@@ -62,6 +62,7 @@ struct Collect
           block->m_partials.push_back(incoming_partials[j]);
         }
       } // for
+      ROVER_INFO("Collect: done processing incoming");
     } // else
 
   } // operator
@@ -99,7 +100,7 @@ void collect_detail(std::vector<typename AddBlockType::PartialType> &partials,
   
   diy::all_to_all(master, assigner, Collect<Block>(decomposer), magic_k);
 
-  ROVER_INFO("Ending size: "<<partials.size()<<"\n");
+  ROVER_INFO("Collect ending size: "<<partials.size()<<"\n");
    
 }
 

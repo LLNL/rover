@@ -135,7 +135,9 @@ EnergyEngine::trace(Ray64 &rays)
 
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
   m_tracer->SetColorMap(m_color_map);
+  ROVER_INFO("Energy Engine tracing");
   m_tracer->Trace(rays);
+  ROVER_INFO("Energy Engine done tracing");
 }
 
 int 
@@ -159,7 +161,7 @@ EnergyEngine::detect_num_bins()
     throw RoverException("absorption field size invalid (Is not evenly divided by number of cells\n");
   }
   vtkm::Id num_bins = absorption_size / num_cells;
-  ROVER_INFO("Dectected "<<num_bins<<" bins ");
+  ROVER_INFO("Detected "<<num_bins<<" bins ");
   return static_cast<int>(num_bins);
 }
 

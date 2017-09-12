@@ -18,7 +18,8 @@ void BlendPartials(const int &total_segments,
                    std::vector<int> &pixel_work_ids,
                    std::vector<PartialType<FloatType>> &partials,
                    std::vector<PartialType<FloatType>> &output_partials,
-                   const int output_offset)
+                   const int output_offset,
+                   const std::vector<FloatType> &background_values)
 {
   ROVER_INFO("Blending partials volume or absoption");
   //
@@ -48,7 +49,7 @@ void BlendPartials(const int &total_segments,
   }
 
   //placeholder 
-  PartialType<FloatType>::composite_default_background(output_partials);
+  PartialType<FloatType>::composite_background(output_partials, background_values);
 
 }
 template<typename T>
@@ -58,7 +59,8 @@ BlendEmission(const int &total_segments,
               std::vector<int> &pixel_work_ids,
               std::vector<EmissionPartial<T>> &partials,
               std::vector<EmissionPartial<T>> &output_partials,
-              const int output_offset)
+              const int output_offset,
+              const std::vector<T> &background_values)
 {
   std::cout<<"**** EMISSION ****\n";
   ROVER_INFO("Blending partials with emission");
@@ -89,7 +91,7 @@ BlendEmission(const int &total_segments,
   }
 
   //placeholder 
-  //EmissionPartial::composite_default_background(output_partials);
+  //EmissionPartial::composite_background(output_partials);
   // TODO: now blend source signature with output 
   
   //
@@ -139,7 +141,8 @@ void BlendPartials<EmissionPartial, float>(const int &total_segments,
                                            std::vector<int> &pixel_work_ids,
                                            std::vector<EmissionPartial<float>> &partials,
                                            std::vector<EmissionPartial<float>> &output_partials,
-                                           const int output_offset)
+                                           const int output_offset,
+                                           const std::vector<float> &background_values)
 {
 
   BlendEmission(total_segments, 
@@ -147,7 +150,8 @@ void BlendPartials<EmissionPartial, float>(const int &total_segments,
                 pixel_work_ids,
                 partials,
                 output_partials,
-                output_offset);
+                output_offset,
+                background_values);
 }
 
 template<>
@@ -156,7 +160,8 @@ void BlendPartials<EmissionPartial, double>(const int &total_segments,
                                             std::vector<int> &pixel_work_ids,
                                             std::vector<EmissionPartial<double>> &partials,
                                             std::vector<EmissionPartial<double>> &output_partials,
-                                            const int output_offset)
+                                            const int output_offset,
+                                            const std::vector<double> &background_values)
 {
 
   BlendEmission(total_segments, 
@@ -164,7 +169,8 @@ void BlendPartials<EmissionPartial, double>(const int &total_segments,
                 pixel_work_ids,
                 partials,
                 output_partials,
-                output_offset);
+                output_offset,
+                background_values);
 }
 
 template<template <typename> class PartialType, typename FloatType>
@@ -470,7 +476,8 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
                         pixel_work_ids,
                         partials,
                         output_partials,
-                        total_unique_pixels);
+                        total_unique_pixels,
+                        m_background_values);
 
 }
 
@@ -480,9 +487,10 @@ template<typename PartialType>
 PartialImage<typename PartialType::ValueType> 
 Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType::ValueType>> &partial_images)
 {
-  //const int x = 171;
-  //const int y = 337;
- 
+  ROVER_INFO("Compsositor start");
+  // there should always be at least one ray cast, 
+  // so this should be a safe check
+  bool has_path_lengths = partial_images[0].m_path_lengths.GetNumberOfValues() != 0;
   DataLogger::GetInstance()->OpenLogEntry("compositing");
   vtkmTimer tot_timer; 
   vtkmTimer timer; 
@@ -492,6 +500,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   int global_min_pixel;
   int global_max_pixel;
 
+  ROVER_INFO("Extracing");
   extract(partial_images, partials, global_min_pixel, global_max_pixel);
   time = timer.GetElapsedTime(); 
   DataLogger::GetInstance()->AddLogData("extract",time);
@@ -544,11 +553,28 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   PartialImage<typename PartialType::ValueType> output;
   output.m_width = partial_images[0].m_width;
   output.m_height= partial_images[0].m_height;
+#ifdef PARALLEL
+  int rank;
+  MPI_Comm_rank(m_comm_handle, &rank);
+  if(rank != 0)
+  {
+    ROVER_INFO("Bailing out of compositing");
+    return output;
+  }
+#endif
   const int out_size = output_partials.size();
+  ROVER_INFO("Allocating out buffers size "<<out_size);
   output.m_pixel_ids.Allocate(out_size);
   output.m_distances.Allocate(out_size);
   output.m_buffer.SetNumChannels(num_channels);
   output.m_buffer.Resize(out_size);
+
+  if(has_path_lengths)
+  {
+    ROVER_INFO("Allocating path lengths "<<out_size);
+    output.m_path_lengths.Allocate(out_size);
+  }
+
   #pragma omp parallel for
   for(int i = 0; i < out_size; ++i)
   {
@@ -562,8 +588,17 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
 
   time = tot_timer.GetElapsedTime(); 
   DataLogger::GetInstance()->CloseLogEntry(time);
-
+  output.m_source_sig = m_background_values;
+  output.m_width = partial_images[0].m_width;
+  output.m_width = partial_images[1].m_height;
   return output;
+}
+
+template<typename PartialType>
+void 
+Compositor<PartialType>::set_background(std::vector<typename PartialType::ValueType> &background_values)
+{
+  m_background_values = background_values;
 }
 
 #ifdef PARALLEL
