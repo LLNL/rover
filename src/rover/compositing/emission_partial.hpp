@@ -58,7 +58,6 @@ struct EmissionPartial
     const int num_bins = m_bins.size();
     assert(num_bins == other.m_bins.size());
     m_path_length += other.m_path_length;
-    if(m_pixel_id == 109289) std::cout<<" current "<<m_path_length<<" adding "<<other.m_path_length<<"\n";
     for(int i = 0; i < num_bins; ++i)
     {
       m_bins[i] *= other.m_bins[i];

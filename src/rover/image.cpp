@@ -241,6 +241,13 @@ Image<FloatType>::flatten_channels()
 }
 
 template<typename FloatType>
+int
+Image<FloatType>::get_size()
+{
+  return  m_width * m_height;
+}
+
+template<typename FloatType>
 void
 Image<FloatType>::normalize_channel(const int &channel_num)
 {

@@ -202,21 +202,21 @@ Rover<FloatType>::execute()
 }
 
 template<typename T> 
-void 
-print_type(T ) { } 
+bool
+is_float(T ) { } 
 
 template<> 
-void 
-print_type<vtkm::Float32>(vtkm::Float32 )
+bool
+is_float<vtkm::Float32>(vtkm::Float32 )
 {
-  std::cout<<"Single precision\n";
+  return true;
 }
 
 template<> 
-void
-print_type<vtkm::Float64>(vtkm::Float64)
+bool
+is_float<vtkm::Float64>(vtkm::Float64)
 {
-  std::cout<<"Double precision\n";
+  return false;
 }
 
 template<typename FloatType>
@@ -224,7 +224,9 @@ void
 Rover<FloatType>::about()
 {
   std::cout<<"rover version: xx.xx.xx\n";
-  print_type(FloatType());
+  
+  if(is_float(FloatType())) std::cout<<"Single precision\n";
+  else std::cout<<"Double precision\n";
   std::cout<<"Other important information\n";
 }
 
@@ -240,6 +242,13 @@ void
 Rover<FloatType>::save_png(const std::string &file_name)
 {
   m_internals->save_png(file_name);
+}
+
+template<typename FloatType>
+bool
+Rover<FloatType>::is_float32()
+{
+  return is_float(FloatType());
 }
 
 template<typename FloatType>

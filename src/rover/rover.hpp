@@ -40,6 +40,7 @@ public:
   void about();
   void save_png(const std::string &file_name);
   Image<FloatType> get_result();
+  bool is_float32();
 private:
   class InternalsType;
   std::shared_ptr<InternalsType> m_internals; 

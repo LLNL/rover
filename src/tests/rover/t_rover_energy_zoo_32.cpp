@@ -15,7 +15,7 @@
 using namespace rover;
 
 
-TEST(rover_hex, test_call)
+TEST(rover_zoo, test_call)
 {
 
   try {
@@ -37,7 +37,7 @@ TEST(rover_hex, test_call)
   settings.m_primary_field = "absorption";
   
   driver32.set_render_settings(settings);
-  driver32.add_data_set(dataset);
+  driver32.add_data_set(datasets[0]);
   driver32.set_ray_generator(&generator);
   driver32.execute();
   driver32.save_png("energy_zoo_32");

@@ -30,6 +30,7 @@ public:
   void normalize_paths();
   void operator=(PartialImage<FloatType> partial);
   HandleType flatten_channels();
+  int get_size();
 protected:
   int                                      m_height;
   int                                      m_width;
