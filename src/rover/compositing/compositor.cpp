@@ -60,7 +60,6 @@ BlendEmission(const int &total_segments,
               std::vector<EmissionPartial<T>> &output_partials,
               const int output_offset)
 {
-  std::cout<<"**** EMISSION ****\n";
   ROVER_INFO("Blending partials with emission");
   //
   // Perform the compositing and output the result in the output 
@@ -389,7 +388,6 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
   if(total_segments ==  0)
   {
     //nothing to do
-    std::cout<<"*****Nothing to do\n";
   }
  
   //
@@ -442,8 +440,6 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
   // perform compositing if there are more than
   // one segment per ray
   //
-  std::cout<<"****BLENDING****\n";
-  std::cout<<"$$$output offset "<<total_unique_pixels<<"\n";
   detail::BlendPartials(total_segments, 
                         total_partial_comps,
                         pixel_work_ids,
