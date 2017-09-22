@@ -19,24 +19,31 @@ public:
   Image();
   Image(PartialImage<FloatType> &partial);
   
-  FloatType * steal_channel(const int &channel_num);
-  HandleType  get_channel(const int &channel_num);
+  FloatType * steal_intensity(const int &channel_num);
+  HandleType  get_intensity(const int &channel_num);
+  FloatType * steal_optical_depth(const int &channel_num);
+  HandleType  get_optical_depth(const int &channel_num);
   int get_num_channels() const;
   bool has_path_lengths() const;
   HandleType get_path_lengths();
   FloatType* steal_path_lengths();
-  bool has_channel(const int &channel_num) const;
-  void normalize_channel(const int &channel_num);
+  bool has_intensity(const int &channel_num) const;
+  bool has_optical_depth(const int &channel_num) const;
+  void normalize_intensity(const int &channel_num);
+  void normalize_optical_depth(const int &channel_num);
   void normalize_paths();
   void operator=(PartialImage<FloatType> partial);
-  HandleType flatten_channels();
+  HandleType flatten_intensities();
+  HandleType flatten_optical_depths();
   int get_size();
 protected:
   int                                      m_height;
   int                                      m_width;
   bool                                     m_has_path_lengths;
-  std::vector<HandleType>                  m_channels;
-  std::vector<bool>                        m_valid_channels;
+  std::vector<HandleType>                  m_intensities;
+  std::vector<HandleType>                  m_optical_depths;
+  std::vector<bool>                        m_valid_intensities;
+  std::vector<bool>                        m_valid_optical_depths;
   HandleType                               m_path_lengths; 
 
   void init_from_partial(PartialImage<FloatType> &);

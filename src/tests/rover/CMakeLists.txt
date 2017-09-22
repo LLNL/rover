@@ -15,6 +15,7 @@ set(BASIC_TESTS t_rover_smoke
                 t_rover_volume_hex_32
                 t_rover_volume_hex_64
                 t_rover_energy_hex_32
+                t_rover_energy_hardy
                 t_rover_energy_emission_hex_32
                 t_rover_energy_hex_64
                 t_rover_energy_zoo_32

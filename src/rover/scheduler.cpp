@@ -262,6 +262,7 @@ Scheduler<FloatType>::trace_rays()
     timer.Reset();
   
     vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
+    ROVER_INFO("Generated "<<rays.NumRays<<" rays");
     m_domains[i].init_rays(rays);
     //
     // add path lengths if they were requested
@@ -309,8 +310,8 @@ Scheduler<FloatType>::trace_rays()
       assert(partial_image.m_buffer.GetNumChannels() > 0);
       if(m_render_settings.m_secondary_field != "")
       {
-        partial_image.m_emission_buffer = rays.GetBuffer("emission");;
-        assert(partial_image.m_emission_buffer.GetNumChannels() > 0);
+        partial_image.m_intensities = rays.GetBuffer("emission");
+        assert(partial_image.m_intensities.GetNumChannels() > 0);
       }
     }
     else
@@ -379,14 +380,19 @@ Scheduler<FloatType>::trace_rays()
     // if enegry and no compositing we need to add
     // the energy buffer to the absorption buffer
     //
+    m_partial_images[0].m_source_sig = m_background;
     if(m_render_settings.m_render_mode == energy &&
        m_render_settings.m_secondary_field != "")
     {
-      m_partial_images[0].m_buffer.AddBuffer(m_partial_images[0].m_emission_buffer);
+      m_partial_images[0].add_source_sig();
     }
-    m_partial_images[0].m_source_sig = m_background;
     ROVER_INFO("Single domain output "<<m_partial_images[0].m_width
                <<" x "<<m_partial_images[0].m_height);
+    if(m_render_settings.m_secondary_field == "")
+    {
+      // TODO: make a copy
+      m_partial_images[0].m_intensities = m_partial_images[0].m_buffer;
+    }
     m_result = m_partial_images[0];
   }
   else 
@@ -434,9 +440,9 @@ void Scheduler<FloatType>::save_result(std::string file_name)
     {
       std::stringstream sstream;
       sstream<<file_name<<"_"<<i<<".png";
-      m_result.normalize_channel(i);
+      m_result.normalize_intensity(i);
       FloatType * buffer 
-        = get_vtkm_ptr(m_result.get_channel(i));
+        = get_vtkm_ptr(m_result.get_intensity(i));
 
       encoder.EncodeChannel(buffer, width, height);
       encoder.Save(sstream.str());
@@ -447,7 +453,7 @@ void Scheduler<FloatType>::save_result(std::string file_name)
      
     assert(m_result.get_num_channels() == 4);
     vtkm::cont::ArrayHandle<FloatType> colors;
-    colors = m_result.flatten_channels();
+    colors = m_result.flatten_intensities();
     FloatType * buffer 
       = get_vtkm_ptr(colors);
     

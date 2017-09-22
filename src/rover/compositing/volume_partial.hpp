@@ -74,7 +74,9 @@ struct VolumePartial
                                   m_buffer.Buffer.GetPortalConstControl().Get(index*4+3));
   }
   
-  inline void store_into_partial(PartialImage<FloatType> &output, const int &index)
+  inline void store_into_partial(PartialImage<FloatType> &output, 
+                                 const int &index,
+                                 const std::vector<FloatType> &background)
   {
     const FloatType inverse = 1.f / 255.f;
     output.m_pixel_ids.GetPortalControl().Set(index, m_pixel_id ); 
@@ -84,16 +86,28 @@ struct VolumePartial
     output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(m_pixel[1])*inverse);
     output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(m_pixel[2])*inverse);
     output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(m_alpha));
+
+    VolumePartial bg_color;
+    bg_color.m_pixel[0] = (unsigned char)(background[0]*255.f);
+    bg_color.m_pixel[1] = (unsigned char)(background[1]*255.f); 
+    bg_color.m_pixel[2] = (unsigned char)(background[2]*255.f); 
+    bg_color.m_alpha    = background[3]; 
+    this->blend(bg_color);
+
+    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 0, static_cast<FloatType>(m_pixel[0])*inverse);
+    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(m_pixel[1])*inverse);
+    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(m_pixel[2])*inverse);
+    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(m_alpha));
   }
 
   static void composite_background(std::vector<VolumePartial> &partials, 
                                    const std::vector<FloatType> &background)
   {
     VolumePartial bg_color;
-    bg_color.m_pixel[0] = (unsigned char)(background.at(0)*255.f);
-    bg_color.m_pixel[1] = (unsigned char)(background.at(1)*255.f); 
-    bg_color.m_pixel[2] = (unsigned char)(background.at(2)*255.f); 
-    bg_color.m_alpha    = background.at(3); 
+    bg_color.m_pixel[0] = (unsigned char)(background[0]*255.f);
+    bg_color.m_pixel[1] = (unsigned char)(background[1]*255.f); 
+    bg_color.m_pixel[2] = (unsigned char)(background[2]*255.f); 
+    bg_color.m_alpha    = background[3]; 
     //
     // Gather the unique pixels into the output
     //

@@ -98,16 +98,48 @@ struct PartialImage
   int                                      m_height;
   int                                      m_width;
   IdHandle                                 m_pixel_ids;
-  vtkmRayTracing::ChannelBuffer<FloatType> m_buffer;         //holds either color or absorption
-  vtkmRayTracing::ChannelBuffer<FloatType> m_emission_buffer;
+  vtkmRayTracing::ChannelBuffer<FloatType> m_buffer;          //holds either color or absorption
+  vtkmRayTracing::ChannelBuffer<FloatType> m_intensities;     // holds the intensity emerging from each ray
   vtkm::cont::ArrayHandle<FloatType>       m_distances;
   vtkm::cont::ArrayHandle<FloatType>       m_path_lengths;
   std::vector<FloatType>                   m_source_sig;  
+  
+  void add_source_sig()
+  {
+    auto buffer_portal = m_buffer.Buffer.GetPortalControl(); 
+    auto int_portal = m_intensities.Buffer.GetPortalControl(); 
+    const int size = m_pixel_ids.GetPortalControl().GetNumberOfValues();
+    const int num_channels = m_buffer.GetNumChannels();
+
+    bool has_emission = m_intensities.Buffer.GetNumberOfValues() != 0;
+    if(!has_emission)
+    {
+      m_intensities.SetNumChannels(num_channels);
+      m_intensities.Resize(size);
+    }
+
+    #pragma omp parallel for
+    for(int i = 0; i < size; ++i)
+    {
+      for(int b = 0; b < num_channels; ++b)
+      {
+        const int offset = i * num_channels;
+        FloatType emis = 0;
+        if(has_emission) 
+        {
+          emis = int_portal.Get(offset + b);
+        }
+
+        int_portal.Set(offset + b, emis + buffer_portal.Get(offset + b) * m_source_sig[b]);
+      }
+    }
+  }
+    
   void print_pixel(const int x, const int y)
   {
     const int size = m_pixel_ids.GetPortalControl().GetNumberOfValues();
     const int num_channels = m_buffer.GetNumChannels();
-    bool has_emission = m_emission_buffer.Buffer.GetNumberOfValues() != 0;
+    bool has_emission = m_intensities.Buffer.GetNumberOfValues() != 0;
     int debug = m_width * ( m_height - y) + x; 
 
     for(int i = 0; i < size; ++i)
@@ -120,7 +152,7 @@ struct PartialImage
           std::cout<<m_buffer.Buffer.GetPortalControl().Get(offset + j)<<" ";
           if(has_emission)
           {
-            std::cout<<"("<<m_emission_buffer.Buffer.GetPortalControl().Get(offset + j)<<") ";
+            std::cout<<"("<<m_intensities.Buffer.GetPortalControl().Get(offset + j)<<") ";
           }
         }
         std::cout<<"\n";

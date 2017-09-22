@@ -18,8 +18,7 @@ void BlendPartials(const int &total_segments,
                    std::vector<int> &pixel_work_ids,
                    std::vector<PartialType<FloatType>> &partials,
                    std::vector<PartialType<FloatType>> &output_partials,
-                   const int output_offset,
-                   const std::vector<FloatType> &background_values)
+                   const int output_offset)
 {
   ROVER_INFO("Blending partials volume or absoption");
   //
@@ -49,7 +48,7 @@ void BlendPartials(const int &total_segments,
   }
 
   //placeholder 
-  PartialType<FloatType>::composite_background(output_partials, background_values);
+  //PartialType<FloatType>::composite_background(output_partials, background_values);
 
 }
 template<typename T>
@@ -59,8 +58,7 @@ BlendEmission(const int &total_segments,
               std::vector<int> &pixel_work_ids,
               std::vector<EmissionPartial<T>> &partials,
               std::vector<EmissionPartial<T>> &output_partials,
-              const int output_offset,
-              const std::vector<T> &background_values)
+              const int output_offset)
 {
   std::cout<<"**** EMISSION ****\n";
   ROVER_INFO("Blending partials with emission");
@@ -141,8 +139,7 @@ void BlendPartials<EmissionPartial, float>(const int &total_segments,
                                            std::vector<int> &pixel_work_ids,
                                            std::vector<EmissionPartial<float>> &partials,
                                            std::vector<EmissionPartial<float>> &output_partials,
-                                           const int output_offset,
-                                           const std::vector<float> &background_values)
+                                           const int output_offset)
 {
 
   BlendEmission(total_segments, 
@@ -150,8 +147,7 @@ void BlendPartials<EmissionPartial, float>(const int &total_segments,
                 pixel_work_ids,
                 partials,
                 output_partials,
-                output_offset,
-                background_values);
+                output_offset);
 }
 
 template<>
@@ -160,8 +156,7 @@ void BlendPartials<EmissionPartial, double>(const int &total_segments,
                                             std::vector<int> &pixel_work_ids,
                                             std::vector<EmissionPartial<double>> &partials,
                                             std::vector<EmissionPartial<double>> &output_partials,
-                                            const int output_offset,
-                                            const std::vector<double> &background_values)
+                                            const int output_offset)
 {
 
   BlendEmission(total_segments, 
@@ -169,26 +164,7 @@ void BlendPartials<EmissionPartial, double>(const int &total_segments,
                 pixel_work_ids,
                 partials,
                 output_partials,
-                output_offset,
-                background_values);
-}
-
-template<template <typename> class PartialType, typename FloatType>
-void HandleEmission(PartialType<FloatType> &partial)
-{
-  // no-op default template
-}
-
-template<>
-void HandleEmission<EmissionPartial, float>(EmissionPartial<float> &partial)
-{
-  partial.add_emission(); 
-}
-
-template<>
-void HandleEmission<EmissionPartial, double>(EmissionPartial<double> &partial)
-{
-  partial.add_emission(); 
+                output_offset);
 }
 
 } // namespace detail
@@ -459,10 +435,7 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
   for(int i = 0; i < total_unique_pixels; ++i)
   {
     PartialType result = partials[unique_ids[i]];
-#warning "need to add source signature and emission at the same time
-    detail::HandleEmission(result);
     output_partials[i] = result;
-
   }
    
   //
@@ -476,8 +449,7 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
                         pixel_work_ids,
                         partials,
                         output_partials,
-                        total_unique_pixels,
-                        m_background_values);
+                        total_unique_pixels);
 
 }
 
@@ -569,6 +541,9 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   output.m_buffer.SetNumChannels(num_channels);
   output.m_buffer.Resize(out_size);
 
+  output.m_intensities.SetNumChannels(num_channels);
+  output.m_intensities.Resize(out_size);
+
   if(has_path_lengths)
   {
     ROVER_INFO("Allocating path lengths "<<out_size);
@@ -578,7 +553,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   #pragma omp parallel for
   for(int i = 0; i < out_size; ++i)
   {
-    output_partials[i].store_into_partial(output, i);
+    output_partials[i].store_into_partial(output, i, m_background_values);
   }
 
   ROVER_INFO("Compositing results in "<<out_size);

@@ -80,7 +80,7 @@ struct EmissionPartial
     assert(num_bins == other.m_bins.size());
     for(int i = 0; i < num_bins; ++i)
     {
-      m_bins[i] += other.m_emission_bins[i];
+      m_emission_bins[i] += other.m_emission_bins[i];
     }
   }
 
@@ -111,11 +111,13 @@ struct EmissionPartial
     for(int i = 0; i < num_bins; ++i)
     {
       m_bins[i] = partial_image.m_buffer.Buffer.GetPortalConstControl().Get(starting_index + i);
-      m_emission_bins[i] = partial_image.m_emission_buffer.Buffer.GetPortalConstControl().Get(starting_index + i);
+      m_emission_bins[i] = partial_image.m_intensities.Buffer.GetPortalConstControl().Get(starting_index + i);
     }
   }
   
-  inline void store_into_partial(PartialImage<FloatType> &output, const int &index)
+  inline void store_into_partial(PartialImage<FloatType> &output, 
+                                 const int &index,
+                                 const std::vector<FloatType> &background)
   {
     const int num_bins = m_bins.size();
     output.m_pixel_ids.GetPortalControl().Set(index, m_pixel_id ); 
@@ -124,6 +126,8 @@ struct EmissionPartial
     for(int  i = 0; i < num_bins; ++i)
     {
       output.m_buffer.Buffer.GetPortalControl().Set(starting_index + i, m_bins[i]);
+      FloatType out_intensity = m_emission_bins[i] +  m_bins[i] * background[i];
+      output.m_intensities.Buffer.GetPortalControl().Set(starting_index + i, out_intensity);
     } 
 
     if(m_path_length >= 0.f)
@@ -135,7 +139,7 @@ struct EmissionPartial
   static void composite_background(std::vector<EmissionPartial> &partials, 
                                    const std::vector<FloatType> &background)
   {
-
+    //for(
   }
 
 };

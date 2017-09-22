@@ -86,6 +86,19 @@ void set_up_lulesh(rover::vtkmDataSet &dataset, rover::vtkmCamera &camera)
 
 }
 
+void set_up_hardy(rover::vtkmDataSet &dataset)
+{
+  rover::VTKReader reader;
+  std::string data_dir(DATA_DIR);
+  std::string file("hardy.vtk");
+  std::string file_name = data_dir + file;
+  std::cout<<"Reading file "<<file_name<<"\n";
+  reader.read_file(file_name);
+  dataset = reader.get_data_set();
+ 
+  dataset.PrintSummary(std::cout); 
+}
+
 void set_up_lulesh(std::vector<rover::vtkmDataSet> &datasets, rover::vtkmCamera &camera)
 {
   rover::MultiDomainVTKReader reader;

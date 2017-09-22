@@ -1,5 +1,6 @@
 #include <image.hpp>
 #include <rover_exceptions.hpp>
+#include <utils/rover_logging.hpp>
 
 #include <vtkm/cont/Field.h>
 
@@ -18,6 +19,7 @@ Image<FloatType>::normalize_handle(vtkm::cont::ArrayHandle<FloatType> &handle, b
   as_field.GetRange(&range);
   FloatType min_scalar = static_cast<FloatType>(range.Min);
   FloatType max_scalar = static_cast<FloatType>(range.Max);
+  std::cout<<" Range "<<min_scalar<<" "<<max_scalar<<"\n";
   FloatType inv_delta; 
   inv_delta = min_scalar == max_scalar ? 1.f : 1.f / (max_scalar - min_scalar); 
   auto portal = handle.GetPortalControl();
@@ -57,19 +59,36 @@ template<typename FloatType>
 int 
 Image<FloatType>::get_num_channels() const
 {
-  return static_cast<int>(m_channels.size());
+  return static_cast<int>(m_intensities.size());
 }
 
 template<typename FloatType>
 bool
-Image<FloatType>::has_channel(const int &channel_num) const
+Image<FloatType>::has_intensity(const int &channel_num) const
 {
-  if(channel_num < 0 || channel_num >= m_channels.size())
+  if(channel_num < 0 || channel_num >= m_intensities.size())
   {
     return false;
   }
 
-  if(!m_valid_channels.at(channel_num))
+  if(!m_valid_intensities.at(channel_num))
+  {
+    return false;
+  }
+
+  return true;
+}
+
+template<typename FloatType>
+bool
+Image<FloatType>::has_optical_depth(const int &channel_num) const
+{
+  if(channel_num < 0 || channel_num >= m_optical_depths.size())
+  {
+    return false;
+  }
+
+  if(!m_valid_optical_depths.at(channel_num))
   {
     return false;
   }
@@ -126,20 +145,39 @@ Image<FloatType>::has_path_lengths() const
 
 template<typename FloatType>
 FloatType * 
-Image<FloatType>::steal_channel(const int &channel_num)
+Image<FloatType>::steal_intensity(const int &channel_num)
 {
-  if(channel_num < 0 || channel_num >= m_channels.size())
+  if(channel_num < 0 || channel_num >= m_intensities.size())
   {
     throw RoverException("Rover Image: invalid channel number");
   }
 
-  if(!m_valid_channels.at(channel_num))
+  if(!m_valid_intensities.at(channel_num))
   {
-    throw RoverException("Rover Image: cannot steal a channel that has already been stolen");
+    throw RoverException("Rover Image: cannot steal an instensity channel that has already been stolen");
   }
-  m_channels[channel_num].SyncControlArray();
+  m_intensities[channel_num].SyncControlArray();
   FloatType *ptr = reinterpret_cast<FloatType*>(
-      m_channels[channel_num].Internals->ControlArray.StealArray());
+      m_intensities[channel_num].Internals->ControlArray.StealArray());
+  return ptr;
+}
+
+template<typename FloatType>
+FloatType * 
+Image<FloatType>::steal_optical_depth(const int &channel_num)
+{
+  if(channel_num < 0 || channel_num >= m_intensities.size())
+  {
+    throw RoverException("Rover Image: invalid channel number");
+  }
+
+  if(!m_valid_optical_depths.at(channel_num))
+  {
+    throw RoverException("Rover Image: cannot steal an optical depth channel that has already been stolen");
+  }
+  m_optical_depths[channel_num].SyncControlArray();
+  FloatType *ptr = reinterpret_cast<FloatType*>(
+      m_optical_depths[channel_num].Internals->ControlArray.StealArray());
   return ptr;
 }
 
@@ -147,8 +185,10 @@ template<typename FloatType>
 void 
 Image<FloatType>::init_from_partial(PartialImage<FloatType> &partial)
 {
-  m_channels.clear();
-  m_valid_channels.clear();
+  m_intensities.clear();
+  m_optical_depths.clear();
+  m_valid_intensities.clear();
+  m_valid_optical_depths.clear();
 
   m_height = partial.m_height;
   m_width  = partial.m_width;
@@ -170,8 +210,23 @@ Image<FloatType>::init_from_partial(PartialImage<FloatType> &partial)
                                   channel_size, 
                                   default_value);
 
-    m_channels.push_back(expand.Buffer);
-    m_valid_channels.push_back(true);
+    m_optical_depths.push_back(expand.Buffer);
+    m_valid_optical_depths.push_back(true);
+
+  }
+
+  for(int i = 0; i < num_channels; ++i)
+  {
+    vtkmRayTracing::ChannelBuffer<FloatType> channel = partial.m_intensities.GetChannel( i );
+    const FloatType default_value = partial.m_source_sig[i];;
+    const int channel_size = m_height * m_width;
+    vtkmRayTracing::ChannelBuffer<FloatType>  expand;
+    expand = channel.ExpandBuffer(partial.m_pixel_ids, 
+                                  channel_size, 
+                                  default_value);
+
+    m_intensities.push_back(expand.Buffer);
+    m_valid_intensities.push_back(true);
 
   }
 
@@ -199,29 +254,44 @@ Image<FloatType>::init_from_partial(PartialImage<FloatType> &partial)
 
 template<typename FloatType>
 vtkm::cont::ArrayHandle<FloatType>
-Image<FloatType>::get_channel(const int &channel_num)
+Image<FloatType>::get_intensity(const int &channel_num)
 {
-  if(channel_num < 0 || channel_num >= m_channels.size())
+  if(channel_num < 0 || channel_num >= m_intensities.size())
   {
     throw RoverException("Rover Image: invalid channel number");
   }
-  if(!m_valid_channels.at(channel_num))
+  if(!m_valid_intensities.at(channel_num))
   {
-    throw RoverException("Rover Image: cannot get a channel that has already been stolen");
+    throw RoverException("Rover Image: cannot get an intensity that has already been stolen");
   }
-  return m_channels[channel_num];
+  return m_intensities[channel_num];
 }
 
 template<typename FloatType>
 vtkm::cont::ArrayHandle<FloatType>
-Image<FloatType>::flatten_channels()
+Image<FloatType>::get_optical_depth(const int &channel_num)
+{
+  if(channel_num < 0 || channel_num >= m_optical_depths.size())
+  {
+    throw RoverException("Rover Image: invalid channel number");
+  }
+  if(!m_valid_optical_depths.at(channel_num))
+  {
+    throw RoverException("Rover Image: cannot get an optical depth that has already been stolen");
+  }
+  return m_optical_depths[channel_num];
+}
+
+template<typename FloatType>
+vtkm::cont::ArrayHandle<FloatType>
+Image<FloatType>::flatten_intensities()
 {
   const int num_channels = this->get_num_channels();   
   for(int i = 0; i < num_channels; ++i)
   {
-    if(!m_valid_channels.at(i))
+    if(!m_valid_intensities.at(i))
     {
-      throw RoverException("Rover Image: cannot flatten when channel has been stolen");
+      throw RoverException("Rover Image: cannot flatten intensities when channel has been stolen");
     }
   }
   HandleType res;
@@ -230,7 +300,35 @@ Image<FloatType>::flatten_channels()
   auto output = res.GetPortalControl();
   for(int c = 0; c < num_channels; ++c)
   {
-    auto channel = m_channels[c].GetPortalControl();
+    auto channel = m_intensities[c].GetPortalControl();
+    #pragma omp parallel for
+    for(int i = 0; i < size; ++i)
+    {
+      output.Set( i * num_channels + c, channel.Get(i));
+    }
+  }
+  return res;
+}
+
+template<typename FloatType>
+vtkm::cont::ArrayHandle<FloatType>
+Image<FloatType>::flatten_optical_depths()
+{
+  const int num_channels = this->get_num_channels();   
+  for(int i = 0; i < num_channels; ++i)
+  {
+    if(!m_valid_optical_depths.at(i))
+    {
+      throw RoverException("Rover Image: cannot flatten optical depths when channel has been stolen");
+    }
+  }
+  HandleType res;
+  const int size = m_width * m_height;
+  res.Allocate(num_channels * size);
+  auto output = res.GetPortalControl();
+  for(int c = 0; c < num_channels; ++c)
+  {
+    auto channel = m_optical_depths[c].GetPortalControl();
     #pragma omp parallel for
     for(int i = 0; i < size; ++i)
     {
@@ -249,18 +347,34 @@ Image<FloatType>::get_size()
 
 template<typename FloatType>
 void
-Image<FloatType>::normalize_channel(const int &channel_num)
+Image<FloatType>::normalize_intensity(const int &channel_num)
 {
-  if(channel_num < 0 || channel_num >= m_channels.size())
+  if(channel_num < 0 || channel_num >= m_intensities.size())
   {
     throw RoverException("Rover Image: invalid channel number");
   }
-  if(!m_valid_channels.at(channel_num))
+  if(!m_valid_intensities.at(channel_num))
   {
-    throw RoverException("Rover Image: cannot normalize a channel that has already been stolen");
+    throw RoverException("Rover Image: cannot normalize an intensity channel that has already been stolen");
   }
   bool invert = false;
-  normalize_handle(m_channels[channel_num], invert);
+  normalize_handle(m_intensities[channel_num], invert);
+}
+
+template<typename FloatType>
+void
+Image<FloatType>::normalize_optical_depth(const int &channel_num)
+{
+  if(channel_num < 0 || channel_num >= m_optical_depths.size())
+  {
+    throw RoverException("Rover Image: invalid channel number");
+  }
+  if(!m_valid_optical_depths.at(channel_num))
+  {
+    throw RoverException("Rover Image: cannot normalize an optical depth channel that has already been stolen");
+  }
+  bool invert = false;
+  normalize_handle(m_optical_depths[channel_num], invert);
 }
 //
 // Explicit instantiation

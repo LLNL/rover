@@ -39,6 +39,23 @@ public:
         m_perspective(true)
     { }
 
+    void print() const
+    {
+      std::cout<<"******** VisIt Parmas *********\n";
+      std::cout<<"normal        : "<<m_normal<<"\n";
+      std::cout<<"focus         : "<<m_focus<<"\n";
+      std::cout<<"up            : "<<m_view_up<<"\n";
+      std::cout<<"pan           : "<<m_image_pan<<"\n";
+      std::cout<<"dims          : "<<m_image_dims<<"\n";
+      std::cout<<"view angle    : "<<m_image_dims<<"\n";
+      std::cout<<"parallel scale: "<<m_parallel_scale<<"\n";
+      std::cout<<"near_plane    : "<<m_near_plane<<"\n";
+      std::cout<<"far_plane     : "<<m_far_plane<<"\n";
+      std::cout<<"zoom          : "<<m_image_zoom<<"\n";
+      std::cout<<"perspective   : "<<m_perspective<<"\n";
+    }
+
+
   };
 
   VisitGenerator(const VisitParams &params);
@@ -46,6 +63,7 @@ public:
   virtual vtkmRayTracing::Ray<Precision> get_rays(); 
   
   void set_params(const VisitParams &params);
+  void print_params() const;
 protected:
   VisitGenerator(); 
   VisitParams m_params;

@@ -33,5 +33,5 @@ set(VTKM_FOUND TRUE)
 set(ROVER_LIBRARIES rover)
 
 if(MPI_FOUND)
-  list(APPEND ROVER_LIBRARIES rover_par)
+  set(ROVER_PAR_LIBRARIES rover_par)
 endif()

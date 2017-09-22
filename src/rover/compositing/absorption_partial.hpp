@@ -66,7 +66,9 @@ struct AbsorptionPartial
     }
   }
   
-  inline void store_into_partial(PartialImage<FloatType> &output, const int &index)
+  inline void store_into_partial(PartialImage<FloatType> &output, 
+                                 const int &index,
+                                 const std::vector<FloatType> &background)
   {
     const int num_bins = m_bins.size();
     output.m_pixel_ids.GetPortalControl().Set(index, m_pixel_id ); 
@@ -75,6 +77,7 @@ struct AbsorptionPartial
     for(int  i = 0; i < num_bins; ++i)
     {
       output.m_buffer.Buffer.GetPortalControl().Set(starting_index + i, m_bins[i]);
+      output.m_intensities.Buffer.GetPortalControl().Set(starting_index + i, m_bins[i] * background[i]);
     } 
 
     if(m_path_length >= 0.f)

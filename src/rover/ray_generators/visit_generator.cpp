@@ -158,6 +158,13 @@ VisitGenerator<Precision>::set_params(const VisitParams &params)
   m_params = params;
 }
 
+template<typename Precision>
+void
+VisitGenerator<Precision>::print_params() const 
+{
+  m_params.print();
+}
+
 template class VisitGenerator<vtkm::Float32>;
 template class VisitGenerator<vtkm::Float64>;
 
