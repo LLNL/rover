@@ -302,7 +302,11 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
                                             std::vector<PartialType> &output_partials)
 {
   const int total_partial_comps = partials.size();
-
+  if(total_partial_comps == 0)
+  {
+    output_partials = partials;
+    return;
+  }
   //
   // Sort the composites
   //
@@ -496,7 +500,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   //
   // TODO: check to see if we have less than one
   //
-  assert(total_partial_comps > 1);
+  //assert(total_partial_comps > 1);
   
   std::vector<PartialType> output_partials;
   composite_partials(partials, output_partials);

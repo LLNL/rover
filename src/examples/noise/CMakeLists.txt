@@ -29,7 +29,7 @@ add_target_compile_flags(TARGET noise_ser
 
 if(MPI_FOUND)
     add_executable(noise_par ${noise_sources})
-
+    target_include_directories(noise_par PRIVATE ${MPI_INCLUDE_PATH})
     add_target_compile_flags(TARGET noise_par 
                              FLAGS "${MPI_CXX_COMPILE_FLAGS} -DPARALLEL  ${noise_openmp_flags}")
 

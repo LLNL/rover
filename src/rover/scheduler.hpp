@@ -56,6 +56,7 @@ public:
 protected:
   void set_global_scalar_range();
   void set_global_bounds();
+  int  get_global_channels();
   void create_default_background(const int num_channels);
   std::vector<Domain>                       m_domains;
   Image<FloatType>                          m_result;

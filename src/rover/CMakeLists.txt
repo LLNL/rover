@@ -151,6 +151,7 @@ if(MPI_FOUND)
   add_target_compile_flags(TARGET rover_par
                            FLAGS "${MPI_CXX_COMPILE_FLAGS} -D PARALLEL")
   target_include_directories(rover_par PRIVATE ${DIY_DIR})
+  target_include_directories(rover_par PRIVATE ${MPI_INCLUDE_PATH})
   target_include_directories(rover_par PUBLIC ${VTKm_INCLUDE_DIRS})
   target_link_libraries(rover_par PUBLIC ${VTKm_LIBRARIES} ${MPI_CXX_LIBRARIES})
 

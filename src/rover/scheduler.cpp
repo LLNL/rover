@@ -35,6 +35,26 @@ Scheduler<FloatType>::set_render_settings(const RenderSettings render_settings)
 }
 
 template<typename FloatType>
+int
+Scheduler<FloatType>::get_global_channels()
+{
+  int num_channels = 0;
+  if(m_partial_images.size() > 0)
+  {
+    num_channels = m_partial_images[0].m_buffer.GetNumChannels();
+  }
+#ifdef PARALLEL
+  int mpi_num_channels;
+  MPI_Allreduce(&num_channels, &mpi_num_channels, 1, MPI_INT, MPI_MAX, m_comm_handle);
+  num_channels = mpi_num_channels;
+#endif
+
+  ROVER_INFO("Global number of channels"<<num_channels);
+  assert(num_channels > 0);
+  return num_channels;
+}
+
+template<typename FloatType>
 void
 Scheduler<FloatType>::set_global_scalar_range()
 {
@@ -331,10 +351,28 @@ Scheduler<FloatType>::trace_rays()
     DataLogger::GetInstance()->CloseLogEntry(time);
     ROVER_INFO("Schedule: done tracing domain "<<i);
   }// for each domain
+  
+  //
+  // Add dummy partial image if we had no domains
+  //
+  int num_channels = this->get_global_channels(); 
+  if(num_domains == 0)
+  {
+    PartialImage<FloatType> partial_image;
+    partial_image.m_width = width;
+    partial_image.m_height = height;
+    partial_image.m_buffer = 
+      vtkm::rendering::raytracing::ChannelBuffer<FloatType>(num_channels, 0);
+    if(m_render_settings.m_secondary_field != "")
+    {
+      partial_image.m_intensities = 
+        vtkm::rendering::raytracing::ChannelBuffer<FloatType>(num_channels, 0);
+    }
+    m_partial_images.push_back(partial_image);
+  }
 
   if(m_background.size() == 0)
   {
-    const int num_channels = m_partial_images[0].m_buffer.GetNumChannels();
     this->create_default_background(num_channels);
   }
 

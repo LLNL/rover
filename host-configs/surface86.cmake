@@ -23,12 +23,9 @@ set(ENABLE_OPENMP ON CACHE PATH "")
 # MPI Support
 set(ENABLE_MPI  ON CACHE PATH "")
 
-set(MPI_C_COMPILER  "/usr/apps/gnu/4.9.2/bin/mpigcc" CACHE PATH "")
+set(MPI_C_COMPILER  "/usr/local/tools/mvapich2-gnu/bin/mpicc" CACHE PATH "")
 
-set(MPI_CXX_COMPILER "/usr/apps/gnu/4.9.2/bin/mpig++" CACHE PATH "")
-
-set(MPI_Fortran_COMPILER "/usr/apps/gnu/4.9.2/bin/mpigfortran" CACHE PATH "")
-
+set(MPI_CXX_COMPILER "/usr/local/tools/mvapich2-gnu/bin/mpi++" CACHE PATH "")
 
 
 # CUDA support
@@ -40,5 +37,5 @@ set(ENABLE_CUDA OFF CACHE PATH "")
 set(TBB_DIR "/usr/gapps/visit/strawman/uberenv_libs/spack/opt/spack/chaos_5_x86_64_ib/intel-14.0.3/tbb-4.4.3-al6fuqhyuhr6ju4daik3mfwk5j7gcyvw" CACHE PATH "")
 
 # vtkm from uberenv
-set(VTKM_DIR "/usr/workspace/wsb/larsen30/vtk-m/install" CACHE PATH "")
+set(VTKM_DIR "/usr/workspace/wsb/larsen30/rover_dev/vtk-m/install" CACHE PATH "")
 

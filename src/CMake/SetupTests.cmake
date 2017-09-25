@@ -88,6 +88,7 @@ function(add_cpp_mpi_test)
 
     # make sure the test can see the mpi headers
     include_directories(${MPI_CXX_INCLUDE_PATH})
+    include_directories(${MPI_INCLUDE_PATH})
     # guard against empty mpi params
     if(NOT "${MPI_CXX_COMPILE_FLAGS}" STREQUAL "")
         set_source_files_properties(${arg_TEST}.cpp PROPERTIES COMPILE_FLAGS  ${MPI_CXX_COMPILE_FLAGS} )
