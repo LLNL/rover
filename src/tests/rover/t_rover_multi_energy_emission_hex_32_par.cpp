@@ -27,6 +27,9 @@ TEST(rover_hex, test_call)
   vtkmCamera camera;
   std::vector<vtkmDataSet> datasets;
   set_up_lulesh(datasets, camera);
+  camera.SetWidth(1024);
+  camera.SetHeight(1024);
+
   const int num_bins = 10;
 
 

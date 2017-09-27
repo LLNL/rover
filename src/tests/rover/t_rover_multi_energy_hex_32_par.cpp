@@ -38,6 +38,7 @@ TEST(rover_hex, test_call)
 
   RenderSettings settings;
   settings.m_primary_field = "absorption";
+  settings.m_secondary_field = "absorption";
   settings.m_render_mode = rover::energy;
   settings.m_path_lengths = true;
 

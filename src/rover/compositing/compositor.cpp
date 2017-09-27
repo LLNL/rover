@@ -223,6 +223,7 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
     //  Extract the partial composites into a contiguous array
     //
 
+    vtkmTimer timer1;  
     const int image_size = partial_images[i].m_buffer.GetSize();
     #pragma omp parallel for
     for(int j = 0; j < image_size; ++j)
@@ -230,26 +231,31 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
       int index = offsets[i] + j;
       partials[index].load_from_partial(partial_images[i], j);
     }
-
+    DataLogger::GetInstance()->AddLogData("load from partials",timer1.GetElapsedTime()); 
+    timer1.Reset();
     //
     // Calculate the range of pixel ids each domain has
     //
+    auto id_portal = partial_images[i].m_pixel_ids.GetPortalConstControl();
     int max_pixel = std::numeric_limits<int>::min();
     #pragma omp parallel for reduction(max:max_pixel)
     for(int j = 0; j < image_size; ++j)
     {
-      int val = static_cast<int>(partial_images[i].m_pixel_ids.GetPortalConstControl().Get(j));
+      int val = static_cast<int>(id_portal.Get(j));
       if(val > max_pixel)
       {
         max_pixel = val;
       }
     }
+    DataLogger::GetInstance()->AddLogData("max pixel",timer1.GetElapsedTime()); 
+    timer1.Reset();
+
     int min_pixel = std::numeric_limits<int>::max();
-    #pragma omp parallel for reduction(max:min_pixel)
+    #pragma omp parallel for reduction(min:min_pixel)
     for(int j = 0; j < image_size; ++j)
     {
       
-      int val = static_cast<int>(partial_images[i].m_pixel_ids.GetPortalConstControl().Get(j));
+      int val = static_cast<int>(id_portal.Get(j));
       if(val < min_pixel)
       {
         min_pixel = val;
@@ -260,6 +266,8 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
       pixel_maxs[i] = max_pixel;
     }
 
+    DataLogger::GetInstance()->AddLogData("min pixel",timer1.GetElapsedTime()); 
+    timer1.Reset();
   }// for each partial image
   time = timer.GetElapsedTime();
   DataLogger::GetInstance()->AddLogData("merge_partials",time); 
@@ -275,6 +283,9 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
     global_max_pixel = std::max(global_max_pixel, pixel_maxs[i]);   
   }
 
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("local_pixels",time); 
+  timer.Reset();
 #ifdef PARALLEL
   int rank_min = global_min_pixel;
   int rank_max = global_max_pixel;
@@ -285,6 +296,10 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
   global_min_pixel = mpi_min;
   global_max_pixel = mpi_max;
 #endif
+
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("global pixels",time); 
+  timer.Reset();
 
   delete[] offsets;
   delete[] pixel_mins;
@@ -373,14 +388,14 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
   }
   // count the number of of unique pixels
   int total_segments = 0;
-  #pragma omp parallel for shared(total_segments, work_flags) reduction(+:total_segments)
+  #pragma omp parallel for shared(work_flags) reduction(+:total_segments)
   for(int i = 0; i < total_partial_comps; ++i)
   {
     total_segments += work_flags[i];
   }
 
   int total_unique_pixels = 0;
-   #pragma omp parallel for shared(total_unique_pixels, unique_flags) reduction(+:total_unique_pixels)
+   #pragma omp parallel for shared(unique_flags) reduction(+:total_unique_pixels)
   for(int i = 0; i < total_partial_comps; ++i)
   {
     total_unique_pixels += unique_flags[i];
@@ -565,7 +580,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   DataLogger::GetInstance()->CloseLogEntry(time);
   output.m_source_sig = m_background_values;
   output.m_width = partial_images[0].m_width;
-  output.m_width = partial_images[1].m_height;
+  output.m_height = partial_images[0].m_height;
   return output;
 }
 

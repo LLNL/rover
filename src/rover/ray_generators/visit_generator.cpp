@@ -1,4 +1,5 @@
 #include <ray_generators/visit_generator.hpp>
+#include <utils/rover_logging.hpp>
 #include <vtkm/VectorAnalysis.h>
 #include <assert.h>
 #include <limits>
@@ -32,6 +33,10 @@ template<typename Precision>
 vtkmRayTracing::Ray<Precision> 
 VisitGenerator<Precision>::get_rays() 
 {
+  vtkmTimer timer;
+  double time = 0;
+  DataLogger::GetInstance()->OpenLogEntry("visit_ray_gen");
+
   const int size = m_params.m_image_dims[0] * m_params.m_image_dims[1];
   vtkmRayTracing::Ray<Precision> rays(size, vtkm::cont::DeviceAdapterTagSerial());
   
@@ -137,17 +142,26 @@ VisitGenerator<Precision>::get_rays()
       
     }
   }
+ auto hit_portal = rays.HitIdx.GetPortalControl();
+ auto min_portal = rays.MinDistance.GetPortalControl();
+ auto max_portal = rays.MaxDistance.GetPortalControl();
+  
   // set a couple other ray variables
+  ROVER_INFO("Ray size "<<size);
   #pragma omp parallel for
   for(int i = 0; i < size; ++i)
   {
-    rays.HitIdx.GetPortalControl().Set(i, -2);
-    rays.MinDistance.GetPortalControl().Set(i, 0.f);
-    rays.MaxDistance.GetPortalControl().Set(i, std::numeric_limits<Precision>::max());
+    hit_portal.Set(i, -2);
+    min_portal.Set(i, 0.f);
+    max_portal.Set(i, std::numeric_limits<Precision>::max());
   }
   
   this->m_width  = m_params.m_image_dims[0];
   this->m_height = m_params.m_image_dims[1];
+
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->CloseLogEntry(time);
+
   return rays;
 }
 

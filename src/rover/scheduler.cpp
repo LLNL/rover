@@ -38,15 +38,20 @@ template<typename FloatType>
 int
 Scheduler<FloatType>::get_global_channels()
 {
+
   int num_channels = 0;
   if(m_partial_images.size() > 0)
   {
     num_channels = m_partial_images[0].m_buffer.GetNumChannels();
   }
 #ifdef PARALLEL
+  vtkmTimer timer;
+  double time = 0;
   int mpi_num_channels;
   MPI_Allreduce(&num_channels, &mpi_num_channels, 1, MPI_INT, MPI_MAX, m_comm_handle);
   num_channels = mpi_num_channels;
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("get_global_channels_all_reduce", time);
 #endif
 
   ROVER_INFO("Global number of channels"<<num_channels);
@@ -58,6 +63,9 @@ template<typename FloatType>
 void
 Scheduler<FloatType>::set_global_scalar_range()
 {
+
+  vtkmTimer timer;
+  double time = 0;
 
   const int num_domains = static_cast<int>(m_domains.size());
 
@@ -85,12 +93,17 @@ Scheduler<FloatType>::set_global_scalar_range()
   {
     m_domains[i].set_primary_range(global_range);
   }
+
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("set_global_scalar_range", time);
 }
 
 template<typename FloatType>
 void
 Scheduler<FloatType>::set_global_bounds()
 {
+  vtkmTimer timer;
+  double time = 0;
 
   const int num_domains = static_cast<int>(m_domains.size());
 
@@ -173,6 +186,8 @@ Scheduler<FloatType>::set_global_bounds()
   {
     m_domains[i].set_global_bounds(global_bounds);
   }
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("set_global_bounds", time);
 }
 
 template<typename FloatType>
@@ -250,6 +265,9 @@ Scheduler<FloatType>::trace_rays()
   {
     m_domains[i].set_render_settings(m_render_settings);
   }
+  
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("beginning", time);
 
   this->set_global_scalar_range();
   this->set_global_bounds();
@@ -351,11 +369,14 @@ Scheduler<FloatType>::trace_rays()
     DataLogger::GetInstance()->CloseLogEntry(time);
     ROVER_INFO("Schedule: done tracing domain "<<i);
   }// for each domain
-  
+  timer.Reset();
   //
   // Add dummy partial image if we had no domains
   //
-  int num_channels = this->get_global_channels(); 
+  //int num_channels = this->get_global_channels(); 
+  int num_channels = m_partial_images[0].m_buffer.GetNumChannels();
+    
+  vtkmTimer t1;
   if(num_domains == 0)
   {
     PartialImage<FloatType> partial_image;
@@ -370,11 +391,20 @@ Scheduler<FloatType>::trace_rays()
     }
     m_partial_images.push_back(partial_image);
   }
+  DataLogger::GetInstance()->AddLogData("blank_image", t1.GetElapsedTime());
+  t1.Reset();
 
   if(m_background.size() == 0)
   {
     this->create_default_background(num_channels);
   }
+
+  DataLogger::GetInstance()->AddLogData("default_bg", t1.GetElapsedTime());
+  t1.Reset();
+
+  time = timer.GetElapsedTime();
+  DataLogger::GetInstance()->AddLogData("mid", time);
+  timer.Reset();
 
   timer.Reset();
   if(do_compositing)
