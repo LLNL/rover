@@ -29,7 +29,7 @@ TEST(rover_hex, test_call)
   set_up_lulesh(datasets, camera);
   camera.SetWidth(1024);
   camera.SetHeight(1024);
-
+  std::cout<<"Num Data sets "<<datasets.size()<<"\n";
   const int num_bins = 10;
 
 

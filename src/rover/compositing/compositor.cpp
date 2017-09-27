@@ -348,13 +348,13 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
     work_flags[0] = 0;
     unique_flags[0] = 1;
   }
-  if(partials[total_partial_comps].m_pixel_id != partials[total_partial_comps -1].m_pixel_id)
+  if(partials[total_partial_comps-1].m_pixel_id != partials[total_partial_comps-2].m_pixel_id)
   {
-    unique_flags[total_partial_comps] = 1;
+    unique_flags[total_partial_comps-1] = 1;
   }
   else
   {
-    unique_flags[total_partial_comps] = 0;
+    unique_flags[total_partial_comps-1] = 0;
   }
   const int n_minus_one =  total_partial_comps - 1;
 

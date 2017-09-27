@@ -214,7 +214,7 @@ void MaterialDatabase::read_db()
     if(contains(line, "Element ")) parse_element(line, currentElement, db_reader);
     Elements[currentElement.symbol] = currentElement;
   }
-  std::cout<<"Read "<<Elements.size()<<" elements\n";
+  //std::cout<<"Read "<<Elements.size()<<" elements\n";
 }
 
 double 
@@ -291,7 +291,7 @@ MaterialDatabase::get_elements(const std::vector<std::string> &symbols,
     element_count++; 
     Element elem = it->second;
     
-    std::cout<<"\nElem : "<<i<<"\n";
+    //std::cout<<"\nElem : "<<i<<"\n";
     for(int j = 0; j < num_bins; ++j)
     {
       double position = minMeV + (double)j * seg;
@@ -301,7 +301,7 @@ MaterialDatabase::get_elements(const std::vector<std::string> &symbols,
       // and will be multiplied by distance (cm)
       // to obtain the actual extinction coeff
       value = value / elem.density;
-      std::cout<<" "<<value;
+      //std::cout<<" "<<value;
       absorption.GetPortalControl().Set( i * num_bins + j,value);
     }
 

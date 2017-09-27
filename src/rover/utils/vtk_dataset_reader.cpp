@@ -68,7 +68,7 @@ MultiDomainVTKReader::read_file(const std::string &directory, const std::string 
   if(header_file.is_open())
   {
      getline(header_file, line);
-     std::cout<<"Line: "<<line<<"\n";
+     //std::cout<<"Line: "<<line<<"\n";
      std::vector<std::string> tokens = split(line,' ');
      if(tokens.size() != 2) 
      {
@@ -82,7 +82,7 @@ MultiDomainVTKReader::read_file(const std::string &directory, const std::string 
         getline(header_file, line);
         full_name = directory + line;
         file_names.push_back(full_name);
-        std::cout<<"Reading "<<full_name<<"\n";
+        //std::cout<<"Reading "<<full_name<<"\n";
      }
      
      int begining_domain = 0;
@@ -122,7 +122,7 @@ MultiDomainVTKReader::read_file(const std::string &directory, const std::string 
 #endif
      for(int i = begining_domain; i <= end_domain; ++i)
      {
-        std::cout<<"Reading "<<number_of_domains<<" files\n";
+        //std::cout<<"Reading "<<number_of_domains<<" files\n";
         vtkm::io::reader::VTKDataSetReader reader(file_names[i].c_str());
         m_datasets.push_back(reader.ReadDataSet());
         //m_datasets[i].PrintSummary(std::cout);
