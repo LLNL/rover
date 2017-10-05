@@ -29,6 +29,7 @@ struct Collect
     // first round we have no incoming. Take the partials we have
     // and sent them to to the right rank
     //
+    ROVER_INFO("Collect: in link "<<proxy.in_link().size()<<" gid "<<proxy.gid());
     const int collection_rank = 0; 
     if(proxy.in_link().size() == 0 && proxy.gid() != collection_rank)
     {
@@ -39,6 +40,7 @@ struct Collect
 
       block->m_partials.clear();
 
+      ROVER_INFO("Collect enqueud partials vector "<<block->m_partials.size());
     } // if
     else if(proxy.gid() == collection_rank)
     {

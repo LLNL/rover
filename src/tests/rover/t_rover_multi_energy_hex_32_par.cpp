@@ -30,7 +30,7 @@ TEST(rover_hex, test_call)
   const int num_bins = 10;
 
 
- add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
+  add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
 
   CameraGenerator32 generator(camera);
   Rover32 driver32;
@@ -38,7 +38,6 @@ TEST(rover_hex, test_call)
 
   RenderSettings settings;
   settings.m_primary_field = "absorption";
-  settings.m_secondary_field = "absorption";
   settings.m_render_mode = rover::energy;
   settings.m_path_lengths = true;
 

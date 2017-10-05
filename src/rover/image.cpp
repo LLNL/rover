@@ -19,7 +19,8 @@ Image<FloatType>::normalize_handle(vtkm::cont::ArrayHandle<FloatType> &handle, b
   as_field.GetRange(&range);
   FloatType min_scalar = static_cast<FloatType>(range.Min);
   FloatType max_scalar = static_cast<FloatType>(range.Max);
-  std::cout<<" Range "<<min_scalar<<" "<<max_scalar<<"\n";
+  printf("min %3.15f\n", min_scalar);
+  printf("max %3.15f\n", max_scalar);
   FloatType inv_delta; 
   inv_delta = min_scalar == max_scalar ? 1.f : 1.f / (max_scalar - min_scalar); 
   auto portal = handle.GetPortalControl();

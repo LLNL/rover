@@ -77,7 +77,7 @@ BlendEmission(const int &total_segments,
     while(result.m_pixel_id == next.m_pixel_id)
     {
       result.blend(next);
-      if(current_index + 1 >= total_partial_comps) 
+      if(current_index == total_partial_comps - 1) 
       {
         break;
       }
@@ -107,10 +107,13 @@ BlendEmission(const int &total_segments,
     //
     //  move forward to the end of the segment
     //
-    while(current_index != (total_partial_comps - 1) && 
-          partials[current_index].m_pixel_id == partials[current_index + 1].m_pixel_id)
+    while(partials[current_index].m_pixel_id == partials[current_index + 1].m_pixel_id)
     {
       ++current_index;
+      if(current_index == total_partial_comps - 1)
+      {
+        break;
+      }
     }
     //
     // now move backwards accumulating absorption for each segment
@@ -208,7 +211,7 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
     //assert(partial_images[i].m_buffer.GetNumChannels() == 4);
     offsets[i] = total_partial_comps;
     total_partial_comps += partial_images[i].m_buffer.GetSize();
-    ROVER_INFO("Domain : "<<i<<" with "<<partial_images[i].m_buffer.GetSize());
+    ROVER_INFO("Domain : image  "<<i<<" with "<<partial_images[i].m_buffer.GetSize());
   }
 
   ROVER_INFO("Total number of partial composites "<<total_partial_comps);
@@ -310,7 +313,6 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
 }
 
 //--------------------------------------------------------------------------------------------
-
 template<typename PartialType>
 void 
 Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials, 
@@ -395,7 +397,7 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
   }
 
   int total_unique_pixels = 0;
-   #pragma omp parallel for shared(unique_flags) reduction(+:total_unique_pixels)
+  #pragma omp parallel for shared(unique_flags) reduction(+:total_unique_pixels)
   for(int i = 0; i < total_partial_comps; ++i)
   {
     total_unique_pixels += unique_flags[i];
@@ -454,7 +456,7 @@ Compositor<PartialType>::composite_partials(std::vector<PartialType> &partials,
     PartialType result = partials[unique_ids[i]];
     output_partials[i] = result;
   }
-   
+  
   //
   // perform compositing if there are more than
   // one segment per ray
@@ -550,6 +552,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   }
 #endif
   const int out_size = output_partials.size();
+  //TODO make parital image init/allocate method
   ROVER_INFO("Allocating out buffers size "<<out_size);
   output.m_pixel_ids.Allocate(out_size);
   output.m_distances.Allocate(out_size);

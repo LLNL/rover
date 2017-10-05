@@ -345,10 +345,16 @@ Scheduler<FloatType>::trace_rays()
     if(m_render_settings.m_render_mode == energy)
     {
       partial_image.m_buffer = rays.Buffers.at(0);
+      ROVER_INFO("  buffer size "     <<partial_image.m_buffer.GetSize());
+      ROVER_INFO("  buffer channels " <<partial_image.m_buffer.GetNumChannels());
+      ROVER_INFO("  buffer length    "<<partial_image.m_buffer.GetBufferLength());
       assert(partial_image.m_buffer.GetNumChannels() > 0);
       if(m_render_settings.m_secondary_field != "")
       {
         partial_image.m_intensities = rays.GetBuffer("emission");
+        ROVER_INFO(" i buffer size "     <<partial_image.m_intensities.GetSize());
+        ROVER_INFO(" i buffer channels " <<partial_image.m_intensities.GetNumChannels());
+        ROVER_INFO(" i  buffer length   "<<partial_image.m_intensities.GetBufferLength());
         assert(partial_image.m_intensities.GetNumChannels() > 0);
       }
     }

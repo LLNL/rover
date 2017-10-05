@@ -1090,7 +1090,7 @@ flush()
     out_queues_limit = to_send.size();
   else
     out_queues_limit = std::max((size_t) 1, to_send.size()/size()*limit_);      // average number of queues per block * in-memory block limit
-
+  std::cout<<"Rank "<<comm_.rank()<<" round "<<exchange_round_<<" expecting "<<expected_<<"\n";
   do
   {
     comm_exchange(to_send, out_queues_limit);

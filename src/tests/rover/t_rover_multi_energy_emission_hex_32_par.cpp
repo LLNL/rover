@@ -44,12 +44,15 @@ TEST(rover_hex, test_call)
   settings.m_primary_field   = "absorption";
   settings.m_secondary_field = "emission";
   settings.m_render_mode = rover::energy;
-  settings.m_path_lengths = true;
+  //settings.m_path_lengths = true;
    
   driver32.set_render_settings(settings);
 
   for(int i = 0; i < datasets.size(); ++i)
   {
+    std::cout<<"Adding data set "<<i<<"\n";
+    datasets[i].PrintSummary(std::cout);
+    std::cout<<"Done printing "<<i<<"\n";
     driver32.add_data_set(datasets[i]);
   }
 
@@ -57,7 +60,7 @@ TEST(rover_hex, test_call)
   driver32.execute();
   driver32.save_png("multi_energy_hex32_emission_par");
 
-  driver32.finalize();
+  //driver32.finalize();
   MPI_Finalize();
 
   }

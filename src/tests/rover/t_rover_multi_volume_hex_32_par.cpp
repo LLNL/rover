@@ -25,6 +25,8 @@ TEST(rover_hex, test_call)
   MPI_Init(NULL, NULL);
 
   vtkmCamera camera;
+  camera.SetWidth(1024);
+  camera.SetHeight(1024);
   std::vector<vtkmDataSet> datasets;
   set_up_lulesh(datasets, camera);
 
