@@ -279,6 +279,7 @@ Scheduler<FloatType>::trace_rays()
   do_compositing = true;
 #endif
 
+  vtkmTimer trace_timer;
   for(int i = 0; i < num_domains; ++i)
   {
     vtkmTimer domain_timer;
@@ -376,6 +377,8 @@ Scheduler<FloatType>::trace_rays()
     ROVER_INFO("Schedule: done tracing domain "<<i);
   }// for each domain
   timer.Reset();
+  time = trace_timer.GetElapsedTime(); 
+  DataLogger::GetInstance()->AddLogData("total_trace", time);
   //
   // Add dummy partial image if we had no domains
   //

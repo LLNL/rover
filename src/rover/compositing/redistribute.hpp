@@ -109,7 +109,7 @@ struct Redistribute
 #endif
 
     } // else
-
+    MPI_Barrier(MPI_COMM_WORLD); //HACK
   } // operator
 };
 

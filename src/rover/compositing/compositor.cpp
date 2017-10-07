@@ -477,6 +477,9 @@ PartialImage<typename PartialType::ValueType>
 Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType::ValueType>> &partial_images)
 {
   ROVER_INFO("Compsositor start");
+#ifdef PARALLEL
+  MPI_Barrier(m_comm_handle);
+#endif
   // there should always be at least one ray cast, 
   // so this should be a safe check
   bool has_path_lengths = partial_images[0].m_path_lengths.GetNumberOfValues() != 0;
@@ -504,6 +507,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
                global_min_pixel,
                global_max_pixel);
   ROVER_INFO("Redistributed");
+  MPI_Barrier(m_comm_handle);
 #endif
 
   time = timer.GetElapsedTime(); 
@@ -530,6 +534,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   // Collect all of the distibuted pixels
   //
   collect(output_partials, m_comm_handle);
+  MPI_Barrier(m_comm_handle);
 #endif
   
   time = timer.GetElapsedTime(); 
