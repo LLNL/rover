@@ -76,7 +76,7 @@ BlendEmission(const int &total_segments,
     // TODO: we could just count the amount of work and make this a for loop(vectorize??)
     while(result.m_pixel_id == next.m_pixel_id)
     {
-      result.blend(next);
+      result.blend_absorption(next);
       if(current_index == total_partial_comps - 1) 
       {
         break;
@@ -116,18 +116,24 @@ BlendEmission(const int &total_segments,
       }
     }
     //
-    // now move backwards accumulating absorption for each segment
+    // set the intensity emerging out of the last segment
     //
-    // add the emission of the last segment
-    output_partials[output_offset + i].add_emission(partials[current_index]);
+    output_partials[output_offset + i].m_emission_bins 
+      = partials[current_index].m_emission_bins;
    
-    while(current_index - 1 != segment_start - 1)
+    //
+    // now move backwards accumulating absorption for each segment
+    // and then blending the intensity emerging from the previous 
+    // segment.
+    //
+    current_index--;
+    while(current_index != segment_start - 1)
     {
-      partials[current_index - 1].blend(partials[current_index]);  
+      partials[current_index].blend_absorption(partials[current_index + 1]);  
       // mult this segments emission by the absorption in front
-      partials[current_index - 1].blend_emission(partials[current_index]);  
+      partials[current_index].blend_emission(partials[current_index + 1]);  
       // add remaining emissed engery to the output 
-      output_partials[output_offset + i].add_emission(partials[current_index - 1]);
+      output_partials[output_offset + i].add_emission(partials[current_index]);
 
       --current_index;
     }

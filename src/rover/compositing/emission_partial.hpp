@@ -50,10 +50,17 @@ struct EmissionPartial
   
   bool operator < (const EmissionPartial<FloatType> &other) const
   {
-    return m_pixel_id < other.m_pixel_id;
+    if(m_pixel_id != other.m_pixel_id) 
+    {
+      return m_pixel_id < other.m_pixel_id;
+    }
+    else
+    {
+      return m_depth < other.m_depth;
+    }
   }
-
-  inline void blend(const EmissionPartial<FloatType> &other)
+  
+  inline void blend_absorption(const EmissionPartial<FloatType> &other)
   {
     const int num_bins = m_bins.size();
     assert(num_bins == other.m_bins.size());
@@ -81,15 +88,6 @@ struct EmissionPartial
     for(int i = 0; i < num_bins; ++i)
     {
       m_emission_bins[i] += other.m_emission_bins[i];
-    }
-  }
-
-  inline void add_emission()
-  {
-    const int num_bins = m_bins.size();
-    for(int i = 0; i < num_bins; ++i)
-    {
-      m_bins[i] += m_emission_bins[i];
     }
   }
 

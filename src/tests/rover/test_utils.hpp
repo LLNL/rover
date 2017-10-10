@@ -125,5 +125,15 @@ void set_up_lulesh(std::vector<rover::vtkmDataSet> &datasets, rover::vtkmCamera 
 
 }
 
+void set_up_nyx(std::vector<rover::vtkmDataSet> &datasets)
+{
+  rover::MultiDomainVTKReader reader;
+  std::string data_dir(DATA_DIR);
+  data_dir += "multi_domain/";
+  std::string file("nyx_small.visit");
+  reader.read_file(data_dir, file);
+  datasets = reader.get_data_sets();
+}
+
 #endif
 

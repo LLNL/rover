@@ -150,7 +150,14 @@ EnergyEngine::detect_num_bins()
 
   assert(num_cells > 0);
   assert(absorption_size > 0);
-
+  if(num_cells == 0)
+  {
+    ROVER_ERROR("detect bins failed. num cells is 0"
+                <<"\n        num cells "<<num_cells 
+                <<"\n        field size "<<absorption_size);
+    m_data_set.PrintSummary(std::cerr);
+    throw RoverException("Failed to detect bins. Num cells cannot be 0\n");
+  }
   vtkm::Id modulo = absorption_size % num_cells;
   if(modulo != 0)
   {

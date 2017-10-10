@@ -24,6 +24,7 @@ set(BASIC_TESTS t_rover_smoke
 set(MPI_TESTS t_rover_multi_volume_hex_32_par
               t_rover_multi_energy_hex_32_par
               t_rover_multi_energy_empty_domain_par
+              t_rover_multi_nyx_par
               t_rover_multi_energy_emission_hex_32_par)
 
 message(STATUS "Adding rover unit tests")
