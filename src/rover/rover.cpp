@@ -157,8 +157,8 @@ void
 Rover<FloatType>::finalize()
 {
   // finaliz
-  std::string log = DataLogger::GetInstance()->GetStream().str();
-  std::cout<<log;
+  //std::string log = DataLogger::GetInstance()->GetStream().str();
+  //std::cout<<log;
   DataLogger::GetInstance()->WriteLog();
 }
 

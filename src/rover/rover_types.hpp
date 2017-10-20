@@ -71,20 +71,20 @@ struct RenderSettings
   
   void print()
   {
-    std::cout<<"******* Settings *********\n";
-    if(m_render_mode == energy)
-    {
-      std::cout<<"Render Mode: ENERGY\n";
-    }
-    else
-    {
-      std::cout<<"Render Mode: VOLUME\n";
-    }
+    //std::cout<<"******* Settings *********\n";
+    //if(m_render_mode == energy)
+    //{
+    //  std::cout<<"Render Mode: ENERGY\n";
+    //}
+    //else
+    //{
+    //  std::cout<<"Render Mode: VOLUME\n";
+    //}
 
-    std::cout<<"Primary field: "<<m_primary_field<<"\n";
-    std::cout<<"Secondary field: "<<m_secondary_field<<"\n";
-     
-    std::cout<<"*************************\n";
+    //std::cout<<"Primary field: "<<m_primary_field<<"\n";
+    //std::cout<<"Secondary field: "<<m_secondary_field<<"\n";
+    // 
+    //std::cout<<"*************************\n";
 
 
   }
