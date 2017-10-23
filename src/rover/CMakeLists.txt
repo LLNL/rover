@@ -16,6 +16,7 @@ set(rover_headers
     rover_types.hpp
     rover.hpp
     scheduler.hpp
+    scheduler_base.hpp
     static_scheduler.hpp
     # compositing
     compositing/compositor.hpp
@@ -41,6 +42,7 @@ set(rover_sources
     image.cpp
     rover.cpp
     scheduler.cpp
+    scheduler_base.cpp
     # compositing
     compositing/compositor.cpp
     # engines

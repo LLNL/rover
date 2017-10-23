@@ -21,7 +21,7 @@ TEST(rover_hex, test_call)
   try {
   vtkmDataSet dataset;
   set_up_hardy(dataset);
-  VisitGenerator32::VisitParams params;
+  VisitGenerator::VisitParams params;
 
   params.m_focus[0] = 0;
   params.m_focus[1] = 0;
@@ -45,8 +45,8 @@ TEST(rover_hex, test_call)
   params.m_far_plane = 20;
   params.m_perspective = false; 
 
-  VisitGenerator32 generator(params);
-  Rover32 driver32;
+  VisitGenerator generator(params);
+  Rover driver;
   //
   // Create some basic setting and color table
   //
@@ -57,13 +57,13 @@ TEST(rover_hex, test_call)
   //settings.m_render_mode = rover::volume;
   //settings.m_path_lengths = true;
 
-  driver32.set_render_settings(settings);
-  driver32.add_data_set(dataset);
-  driver32.set_ray_generator(&generator);
-  driver32.execute();
-  driver32.save_png("hardy");
+  driver.set_render_settings(settings);
+  driver.add_data_set(dataset);
+  driver.set_ray_generator(&generator);
+  driver.execute();
+  driver.save_png("hardy");
 
-  driver32.finalize();  
+  driver.finalize();  
   }
   catch ( const RoverException &e )
   {

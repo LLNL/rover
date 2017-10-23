@@ -32,8 +32,8 @@ TEST(rover_hex, test_call)
 
   add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
 
-  CameraGenerator32 generator(camera);
-  Rover32 driver32;
+  CameraGenerator generator(camera);
+  Rover driver32;
   driver32.init(MPI_COMM_WORLD);
 
   RenderSettings settings;

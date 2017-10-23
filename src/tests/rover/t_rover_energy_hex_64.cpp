@@ -27,8 +27,9 @@ TEST(rover_hex, test_call)
   const int num_bins = 10; 
   add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
 
-  CameraGenerator64 generator(camera);
-  Rover64 driver64;
+  CameraGenerator generator(camera);
+  Rover driver64;
+  driver64.set_tracer_precision64();
   //
   // Create some basic setting and color table
   //

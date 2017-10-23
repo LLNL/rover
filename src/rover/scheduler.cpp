@@ -24,17 +24,6 @@ Scheduler<FloatType>::~Scheduler()
 }
 
 template<typename FloatType>
-void
-Scheduler<FloatType>::set_render_settings(const RenderSettings render_settings)
-{
-  //
-  //  In the serial schedular, the only setting that matter are 
-  //  m_render_mode and m_scattering_mode
-  //
-  m_render_settings = render_settings;
-}
-
-template<typename FloatType>
 int
 Scheduler<FloatType>::get_global_channels()
 {
@@ -190,44 +179,8 @@ Scheduler<FloatType>::set_global_bounds()
   DataLogger::GetInstance()->AddLogData("set_global_bounds", time);
 }
 
-template<typename FloatType>
-void 
-Scheduler<FloatType>::add_data_set(vtkmDataSet &dataset)
-{
-  ROVER_INFO("Adding domain "<<m_domains.size());
-  Domain domain;
-  domain.set_data_set(dataset);
-  m_domains.push_back(domain);
-}
-
-template<typename FloatType>
-vtkmDataSet
-Scheduler<FloatType>::get_data_set(const int &domain)
-{
-  return m_domains.at(domain).get_data_set();
-}
-
-template<typename FloatType>
-RenderSettings
-Scheduler<FloatType>::get_render_settings() const
-{
-  return m_render_settings;
-}
-
-template<typename FloatType>
-FloatType *
-Scheduler<FloatType>::get_color_buffer()
-{
-  if(m_render_settings.m_render_mode == energy)
-  {
-    throw RoverException("cannot call get_color_buffer while using energy mode");
-  }
-  ROVER_ERROR("This should not be called"); 
-  return get_vtkm_ptr(m_partial_images.at(-1).m_buffer.Buffer);
-}
-
 //
-// in the other schedulars this method will be far from trivial
+// in the other schedulers this method will be far from trivial
 //
 template<typename FloatType>
 void 
@@ -286,19 +239,21 @@ Scheduler<FloatType>::trace_rays()
     domain_s<<"trace_domain_"<<i;
     DataLogger::GetInstance()->OpenLogEntry(domain_s.str());
     vtkmLogger::GetInstance()->Clear();
-    if(dynamic_cast<CameraGenerator<FloatType>*>(m_ray_generator) != NULL)
+    if(dynamic_cast<CameraGenerator*>(m_ray_generator) != NULL)
     {
       //
       // Setting the coordinate system miminizes the number of rays generated
       //
-      CameraGenerator<FloatType> *generator = dynamic_cast<CameraGenerator<FloatType>*>(m_ray_generator);
+      CameraGenerator *generator = dynamic_cast<CameraGenerator*>(m_ray_generator);
       generator->set_coordinates(m_domains[i].get_data_set().GetCoordinateSystem());
     }
     ROVER_INFO("Generating rays for domian "<<i);
 
     timer.Reset();
   
-    vtkmRayTracing::Ray<FloatType> rays = m_ray_generator->get_rays();
+    vtkmRayTracing::Ray<FloatType> rays;
+    m_ray_generator->get_rays(rays);
+
     ROVER_INFO("Generated "<<rays.NumRays<<" rays");
     m_domains[i].init_rays(rays);
     //
@@ -360,7 +315,7 @@ Scheduler<FloatType>::trace_rays()
     else
     {
       // TODO: add some conversion to uchar probably withing the "channel buffer"
-      assert(rays.Buffers.at(0).GetNumChannels() == 4); 
+      if(rays.NumRays !=0 ) assert(rays.Buffers.at(0).GetNumChannels() == 4); 
       partial_image.m_buffer = rays.Buffers.at(0);
     }
     
@@ -455,7 +410,13 @@ Scheduler<FloatType>::trace_rays()
     // if enegry and no compositing we need to add
     // the energy buffer to the absorption buffer
     //
-    m_partial_images[0].m_source_sig = m_background;
+    const size_t bg_size = m_background.size();   
+    m_partial_images[0].m_source_sig.resize(bg_size);
+    for(size_t i = 0; i < bg_size; ++i)
+    {
+      m_partial_images[0].m_source_sig[i] = m_background[i];
+    }
+      
     if(m_render_settings.m_render_mode == energy &&
        m_render_settings.m_secondary_field != "")
     {
@@ -489,10 +450,17 @@ Scheduler<FloatType>::trace_rays()
 }
 
 template<typename FloatType>
-Image<FloatType> 
-Scheduler<FloatType>::get_result()
+void
+Scheduler<FloatType>::get_result(Image<vtkm::Float32> &image)
 {
-  return m_result;
+  image = m_result;
+}
+
+template<typename FloatType>
+void
+Scheduler<FloatType>::get_result(Image<vtkm::Float64> &image)
+{
+  image = m_result;
 }
 
 template<typename FloatType>
@@ -550,41 +518,7 @@ void Scheduler<FloatType>::save_result(std::string file_name)
   
 }
 
-template<typename FloatType>
-void Scheduler<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_generator)
-{
-  m_ray_generator = ray_generator;
-}
 
-template<typename FloatType>
-void Scheduler<FloatType>::set_background(const std::vector<FloatType> &background)
-{
-  m_background = background;
-}
-
-template<typename FloatType>
-void Scheduler<FloatType>::clear_data_sets()
-{
-  m_domains.clear();
-}
-
-template<typename FloatType>
-void Scheduler<FloatType>::create_default_background(const int num_channels)
-{
-  m_background.resize(num_channels);
-  for(int i = 0; i < num_channels; ++i)
-  {
-    m_background[i] = 1.f;
-  }
-}
-
-#ifdef PARALLEL
-template<typename FloatType>
-void Scheduler<FloatType>::set_comm_handle(MPI_Comm comm_handle)
-{
-  m_comm_handle = comm_handle;
-}
-#endif
 //
 // Explicit instantiation
 template class Scheduler<vtkm::Float32>; 

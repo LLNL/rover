@@ -17,13 +17,11 @@
 
 namespace rover {
 
-template<typename FloatType>
 class Rover 
 {
 public:
   Rover();
   ~Rover();
-  typedef FloatType Precision;
 #ifdef PARALLEL
   void init(MPI_Comm comm_handle);
 #else
@@ -33,21 +31,22 @@ public:
 
   void add_data_set(vtkmDataSet &);
   void set_render_settings(const RenderSettings render_settings);
-  void set_ray_generator(RayGenerator<FloatType> *);
+  void set_ray_generator(RayGenerator *);
   void clear_data_sets();
-  void set_background(const std::vector<FloatType> &background);
+  void set_background(const std::vector<vtkm::Float32> &background);
+  void set_background(const std::vector<vtkm::Float64> &background);
   void execute();
   void about();
   void save_png(const std::string &file_name);
-  Image<FloatType> get_result();
-  bool is_float32();
+  void set_tracer_precision32();
+  void set_tracer_precision64();
+  void get_result(Image<vtkm::Float32> &image);
+  void get_result(Image<vtkm::Float64> &image);
 private:
   class InternalsType;
   std::shared_ptr<InternalsType> m_internals; 
 }; // class strawman 
 
-typedef Rover<float>  Rover32;
-typedef Rover<double> Rover64; 
 }; // namespace rover
 
 #endif

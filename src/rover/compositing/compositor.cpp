@@ -600,9 +600,26 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
 
 template<typename PartialType>
 void 
-Compositor<PartialType>::set_background(std::vector<typename PartialType::ValueType> &background_values)
+Compositor<PartialType>::set_background(std::vector<vtkm::Float32> &background_values)
 {
-  m_background_values = background_values;
+  const size_t size = background_values.size();
+  m_background_values.resize(size);
+  for(size_t i = 0; i < size; ++i)
+  {
+    m_background_values[i] = background_values[i];
+  }
+}
+
+template<typename PartialType>
+void 
+Compositor<PartialType>::set_background(std::vector<vtkm::Float64> &background_values)
+{
+  const size_t size = background_values.size();
+  m_background_values.resize(size);
+  for(size_t i = 0; i < size; ++i)
+  {
+    m_background_values[i] = background_values[i];
+  }
 }
 
 #ifdef PARALLEL

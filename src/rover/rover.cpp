@@ -5,11 +5,14 @@
 #include <iostream>
 #include <utils/rover_logging.hpp>
 namespace rover {
-template<typename FloatType>
-class Rover<FloatType>::InternalsType 
+
+class Rover::InternalsType 
 {
+public: 
+  enum TracePrecision {ROVER_FLOAT, ROVER_DOUBLE};
 protected:
-  Scheduler<FloatType>      *m_scheduler;
+  SchedulerBase            *m_scheduler;
+  TracePrecision            m_precision;
 #ifdef PARALLEL
   MPI_Comm                  m_comm_handle;
   int                       m_rank;
@@ -23,7 +26,9 @@ protected:
 public: 
   InternalsType()
   {
-    m_scheduler = new Scheduler<FloatType>();
+    m_precision = ROVER_FLOAT;
+    m_scheduler = new Scheduler<vtkm::Float32>();
+
 #ifdef PARALLEL
     m_rank = 1;
     m_num_ranks = -1;
@@ -58,7 +63,7 @@ public:
 //#endif
    }
 
-  void set_ray_generator(RayGenerator<FloatType> *ray_generator)
+  void set_ray_generator(RayGenerator *ray_generator)
   {
     m_scheduler->set_ray_generator(ray_generator); 
   }
@@ -73,7 +78,12 @@ public:
     if(m_scheduler) delete m_scheduler;
   }
   
-  void set_background(const std::vector<FloatType> &background)
+  void set_background(const std::vector<vtkm::Float32> &background)
+  {
+    m_scheduler->set_background(background);
+  }
+
+  void set_background(const std::vector<vtkm::Float64> &background)
   {
     m_scheduler->set_background(background);
   }
@@ -116,76 +126,89 @@ public:
     }
   }
 #endif
-  Image<FloatType> get_result()
+  void get_result(Image<vtkm::Float32> &image)
   {
-    return m_scheduler->get_result();
+    m_scheduler->get_result(image);
+  }
+
+  void get_result(Image<vtkm::Float64> &image)
+  {
+    m_scheduler->get_result(image);
+  }
+
+  void set_tracer_precision32()
+  {
+    if(m_precision == ROVER_DOUBLE)
+    {
+      std::vector<Domain> domains = m_scheduler->get_domains(); 
+      delete m_scheduler;
+      m_scheduler = new Scheduler<vtkm::Float32>();
+    } 
+  }
+
+  void set_tracer_precision64()
+  {
+    if(m_precision == ROVER_FLOAT)
+    {
+      std::vector<Domain> domains = m_scheduler->get_domains(); 
+      delete m_scheduler;
+      m_scheduler = new Scheduler<vtkm::Float64>();
+    } 
   }
 
 }; //Internals Type
 
-template<typename FloatType>
-Rover<FloatType>::Rover()
+Rover::Rover()
   : m_internals( new InternalsType )
 {
 
 }
 
-template<typename FloatType>
-Rover<FloatType>::~Rover()
+Rover::~Rover()
 {
   
 }
 
 #ifdef PARALLEL
-template<typename FloatType>
 void
-Rover<FloatType>::init(MPI_Comm comm_handle)
+Rover::init(MPI_Comm comm_handle)
 {
   this->m_internals->set_comm_handle(comm_handle);
 }
 #else
-template<typename FloatType>
 void
-Rover<FloatType>::init()
+Rover::init()
 {
   // initialize
 }
 #endif
 
-template<typename FloatType>
 void
-Rover<FloatType>::finalize()
+Rover::finalize()
 {
-  // finaliz
-  //std::string log = DataLogger::GetInstance()->GetStream().str();
-  //std::cout<<log;
   DataLogger::GetInstance()->WriteLog();
 }
 
-template<typename FloatType>
 void
-Rover<FloatType>::add_data_set(vtkmDataSet &dataset)
+Rover::add_data_set(vtkmDataSet &dataset)
 {
   m_internals->add_data_set(dataset); 
 }
 
-template<typename FloatType>
 void
-Rover<FloatType>::set_render_settings(RenderSettings render_settings)
+Rover::set_render_settings(RenderSettings render_settings)
 {
   m_internals->set_render_settings(render_settings);
 }
 
-template<typename FloatType>
 void
-Rover<FloatType>::clear_data_sets()
+Rover::clear_data_sets()
 {
   m_internals->clear_data_sets();
 }
 
-template<typename FloatType>
 void
-Rover<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_generator)
+Rover::set_ray_generator(RayGenerator *ray_generator)
 {
   if(ray_generator == nullptr)
   {
@@ -194,9 +217,8 @@ Rover<FloatType>::set_ray_generator(RayGenerator<FloatType> *ray_generator)
   m_internals->set_ray_generator(ray_generator);
 }
 
-template<typename FloatType>
 void
-Rover<FloatType>::execute()
+Rover::execute()
 {
   m_internals->execute(); 
 }
@@ -219,47 +241,93 @@ is_float<vtkm::Float64>(vtkm::Float64)
   return false;
 }
 
-template<typename FloatType>
 void
-Rover<FloatType>::about()
+Rover::about()
 {
   std::cout<<"rover version: xx.xx.xx\n";
   
-  if(is_float(FloatType())) std::cout<<"Single precision\n";
-  else std::cout<<"Double precision\n";
-  std::cout<<"Other important information\n";
+  //if(is_float(FloatType())) std::cout<<"Single precision\n";
+  //else std::cout<<"Double precision\n";
+  std::cout<<"Other important information\n"; 
+  std::cout<<"                                 *@@                                    \n";    
+  std::cout<<"       @@@@@@@@@@@@@@,          @@&@@              %@@@                 \n";    
+  std::cout<<"       @@@@@%  #@@@@@,         &@* @@,              @@@#                \n";    
+  std::cout<<"       @@@@ @    @@@@,         @@   @@             @@ .@@               \n";    
+  std::cout<<"       @@@@@    #@@@@,        .@&    @@           @@(   @@@             \n";    
+  std::cout<<"       @@@@@@@@@@@@@@,         @@    %@&         .@@      @@            \n";    
+  std::cout<<"       &&&&@@&&@@&&&&.     @@@@@@%    @@         @@        @@@          \n";    
+  std::cout<<"           %@, @@          @@   &@@    @@       @@           @@.        \n";    
+  std::cout<<"           %@, @@          @@     @@@  ,@@     *@&            (@@       \n";    
+  std::cout<<"           %@, @@          @@       ,@@@@@     @@               @@(     \n";    
+  std::cout<<"          *&@(*@@*         @@                 @@                 (@@@#  \n";    
+  std::cout<<"          @@@@@@@@         @@                @@%                  @@.@@ \n";    
+  std::cout<<"          @@    @@         @@                @@                   @@  @@\n";    
+  std::cout<<"          @@    @@        @@@@              @@                    @@ @@.\n";    
+  std::cout<<"          @@    @@        @@@@             @@                     @@@%  \n";    
+  std::cout<<"          @@    @@        @@@@         /@@@@@@@@@@@&                    \n";    
+  std::cout<<"   ,,,,,,,@@,,,,@@,,,,,,,,@@@@,,,,,,,,,(@#,,,,,,,,@@@,,,,,,,,,,,,,,.    \n";    
+  std::cout<<"  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    \n";    
+  std::cout<<"  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    \n";    
+  std::cout<<"     /@@*                                                     @@%       \n";    
+  std::cout<<"       .@@*                                                .@@%         \n";    
+  std::cout<<"         *@@.                                             @@#           \n";    
+  std::cout<<"           ,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(             \n";    
+  std::cout<<"           #@(                                 @@                       \n";    
+  std::cout<<"           @@                     /@@@@@@@@@@@@@@@@@@@@@@@@@@@          \n";    
+  std::cout<<"          @@                      /@/                       @@          \n";    
+  std::cout<<"      @@@@@@@@(                &@@@@@@@&                #@@@@@@@@       \n";    
+  std::cout<<"   &@@@@@@@@@@@@@           /@@@@@@@@@@@@@            @@@@@@@@@@@@@%    \n";    
+  std::cout<<"  @@@@@   @  #@@@@#        @@@@@   @  ,@@@@@        %@@@@(  @   @@@@@   \n";    
+  std::cout<<" @@@@,@/,@@@ @%@@@@,      %@@@%@( @@@ %@@@@@%      ,@@@@%@ @@@,/@#@@@@  \n";    
+  std::cout<<" @@@@  .@& @@  *@@@@      @@@@  .@@ @@   @@@@      @@@@   @@ &@.  @@@@  \n";    
+  std::cout<<" @@@@ #@@@@@@@.@@@@(      @@@@.*@@@@@@@*(@@@@      (@@@# @@@@@@@#.@@@@  \n";    
+  std::cout<<"  @@@@*   @   @@@@@        @@@@&   @   &@@@@        @@@@@   @   /@@@@   \n";    
+  std::cout<<"   @@@@@@@@@@@@@@#          @@@@@@@@@@@@@@@          @@@@@@@@@@@@@@@    \n";    
+  std::cout<<"     @@@@@@@@@@*              &@@@@@@@@@#              #@@@@@@@@@@      \n";    
+                                                                             
 }
 
-template<typename FloatType>
 void 
-Rover<FloatType>::set_background(const std::vector<FloatType> &background)
+Rover::set_background(const std::vector<vtkm::Float64> &background)
 {
   m_internals->set_background(background);
 } 
 
-template<typename FloatType>
+void 
+Rover::set_background(const std::vector<vtkm::Float32> &background)
+{
+  m_internals->set_background(background);
+} 
+
 void
-Rover<FloatType>::save_png(const std::string &file_name)
+Rover::save_png(const std::string &file_name)
 {
   m_internals->save_png(file_name);
 }
 
-template<typename FloatType>
-bool
-Rover<FloatType>::is_float32()
+void
+Rover::get_result(Image<vtkm::Float32> &image)
 {
-  return is_float(FloatType());
+  m_internals->get_result(image);
 }
 
-template<typename FloatType>
-Image<FloatType>
-Rover<FloatType>::get_result()
+void
+Rover::get_result(Image<vtkm::Float64> &image)
 {
-  return m_internals->get_result();
+  m_internals->get_result(image);
 }
-// Explicit instantiations
-template class Rover<vtkm::Float32>; 
-template class Rover<vtkm::Float64>; 
+
+void 
+Rover::set_tracer_precision32()
+{
+  m_internals->set_tracer_precision32();
+}
+
+void 
+Rover::set_tracer_precision64()
+{
+  m_internals->set_tracer_precision64();
+}
 
 }; //namespace rover
 

@@ -19,8 +19,6 @@ Image<FloatType>::normalize_handle(vtkm::cont::ArrayHandle<FloatType> &handle, b
   as_field.GetRange(&range);
   FloatType min_scalar = static_cast<FloatType>(range.Min);
   FloatType max_scalar = static_cast<FloatType>(range.Max);
-  printf("min %3.15f\n", min_scalar);
-  printf("max %3.15f\n", max_scalar);
   FloatType inv_delta; 
   inv_delta = min_scalar == max_scalar ? 1.f : 1.f / (max_scalar - min_scalar); 
   auto portal = handle.GetPortalControl();
@@ -52,8 +50,76 @@ Image<FloatType>::Image(PartialImage<FloatType> &partial)
 template<typename FloatType>
 void 
 Image<FloatType>::operator=(PartialImage<FloatType> partial)
+{
+  this->init_from_partial(partial);
+}
+//
+// template specialization to handle the magic
+
+template <typename T, typename O>
+void cast_array_handle(vtkm::cont::ArrayHandle<T> &cast_to, 
+                        vtkm::cont::ArrayHandle<O> &cast_from)
+{
+  const vtkm::Id size = cast_from.GetNumberOfValues();
+  cast_to.Allocate(size);
+  auto portal_to = cast_to.GetPortalControl();
+  auto portal_from = cast_to.GetPortalConstControl();
+  #pragma omp parallel for
+  for(vtkm::Id i = 0; i < size; ++i)
+  {
+    portal_to.Set(i, static_cast<T>(portal_from.Get(i)));
+  }
+}
+//
+template<typename T, typename O> void init_from_image(Image<T> &left, Image<O> &right)
+{
+  left.m_height = right.m_height;
+  left.m_width = right.m_width;
+  left.m_has_path_lengths = right.m_has_path_lengths;
+  left.m_valid_intensities = right.m_valid_intensities;
+  left.m_valid_optical_depths = right.m_valid_optical_depths;
+  
+  const size_t channels = right.m_intensities.size();
+  for(size_t i = 0; i < channels; ++i)
+  {
+    cast_array_handle(left.m_intensities[i], right.m_intensities[i]);
+    cast_array_handle(left.m_optical_depths[i], right.m_optical_depths[i]);
+  }
+
+  cast_array_handle(left.m_path_lengths,right.m_path_lengths); 
+}
+template<> void init_from_image<vtkm::Float32, vtkm::Float32>(Image<vtkm::Float32> &left, 
+                                                              Image<vtkm::Float32> &right)
+{
+  left.m_height = right.m_height;;
+  left.m_width = right.m_width;
+  left.m_has_path_lengths = right.m_has_path_lengths;
+  left.m_intensities = right.m_intensities;
+  left.m_optical_depths = right.m_optical_depths;
+  left.m_valid_intensities = right.m_valid_intensities;
+  left.m_valid_optical_depths = right.m_valid_optical_depths;
+  left.m_path_lengths = right.m_path_lengths; 
+}
+
+template<> void init_from_image<vtkm::Float64, vtkm::Float64>(Image<vtkm::Float64> &left, 
+                                                              Image<vtkm::Float64> &right)
+{
+  left.m_height = right.m_height;;
+  left.m_width = right.m_width;
+  left.m_has_path_lengths = right.m_has_path_lengths;
+  left.m_intensities = right.m_intensities;
+  left.m_optical_depths = right.m_optical_depths;
+  left.m_valid_intensities = right.m_valid_intensities;
+  left.m_valid_optical_depths = right.m_valid_optical_depths;
+  left.m_path_lengths = right.m_path_lengths; 
+}
+
+template<typename FloatType>
+template<typename O>
+void 
+Image<FloatType>::operator=(Image<O> &other)
 { 
-  init_from_partial(partial);
+  init_from_image(*this,other);
 }
 
 template<typename FloatType>
@@ -196,15 +262,12 @@ Image<FloatType>::init_from_partial(PartialImage<FloatType> &partial)
   assert(m_width > 0);
   assert(m_height > 0);
   m_has_path_lengths = partial.m_path_lengths.GetNumberOfValues() != 0;
-  if(partial.m_buffer.GetSize() == 0)
-  {
-    return;
-  }
+
   const int num_channels = partial.m_buffer.GetNumChannels();
   for(int i = 0; i < num_channels; ++i)
   {
     vtkmRayTracing::ChannelBuffer<FloatType> channel = partial.m_buffer.GetChannel( i );
-    const FloatType default_value = partial.m_source_sig[i];;
+    const FloatType default_value = partial.m_source_sig[i];
     const int channel_size = m_height * m_width;
     vtkmRayTracing::ChannelBuffer<FloatType>  expand;
     expand = channel.ExpandBuffer(partial.m_pixel_ids, 
@@ -378,8 +441,13 @@ Image<FloatType>::normalize_optical_depth(const int &channel_num)
   normalize_handle(m_optical_depths[channel_num], invert);
 }
 //
-// Explicit instantiation
+// Explicit instantiations
 template class Image<vtkm::Float32>; 
 template class Image<vtkm::Float64>;
+
+template void Image<vtkm::Float32>::operator=<vtkm::Float32>(Image<vtkm::Float32> &other);
+template void Image<vtkm::Float32>::operator=<vtkm::Float64>(Image<vtkm::Float64> &other);
+template void Image<vtkm::Float64>::operator=<vtkm::Float32>(Image<vtkm::Float32> &other);
+template void Image<vtkm::Float64>::operator=<vtkm::Float64>(Image<vtkm::Float64> &other);
 
 } // namespace rover

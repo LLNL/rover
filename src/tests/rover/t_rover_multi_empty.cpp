@@ -15,34 +15,41 @@
 using namespace rover;
 
 
-TEST(rover_zoo, test_call)
+TEST(rover_hex, test_call)
 {
 
   try {
   vtkmCamera camera;
-  vtkmDataSet dataset;
-  set_up_zoo(dataset, camera);
-  std::vector<vtkm::cont::DataSet> datasets;
-  datasets.push_back(dataset);
-  const int num_bins = 10;
-  add_absorption_field(datasets, "var_point", num_bins, vtkm::Float32());
-
+  std::vector<vtkmDataSet> datasets;
+  set_up_lulesh(datasets, camera);
+  
+  camera.SetWidth(512);
+  camera.SetHeight(512);
+  vtkm::Vec<vtkm::Float32,3> look(-10., -10., -10);
+  camera.SetLookAt(look);
   CameraGenerator generator(camera);
   Rover driver32;
   //
   // Create some basic setting and color table
   //
   RenderSettings settings;
-  settings.m_render_mode = rover::energy;
-  settings.m_primary_field = "absorption";
-  
+  settings.m_primary_field = "speed";
+  vtkmColorTable color_table("cool2warm");
+  color_table.AddAlphaControlPoint(0.0, .01);
+  color_table.AddAlphaControlPoint(0.5, .02);
+  color_table.AddAlphaControlPoint(1.0, .01);
+  settings.m_color_table = color_table;
+   
   driver32.set_render_settings(settings);
-  driver32.add_data_set(datasets[0]);
+  for(int i = 0; i < datasets.size(); ++i)
+  {
+    driver32.add_data_set(datasets[i]);
+  }
   driver32.set_ray_generator(&generator);
   driver32.execute();
-  driver32.save_png("energy_zoo_32");
-  driver32.finalize();
+  driver32.save_png("multi_empty");
 
+  driver32.finalize();
   }
   catch ( const RoverException &e )
   {

@@ -12,10 +12,7 @@ using namespace rover;
 
 TEST(rover_smoke, test_call)
 {
-  Rover32 driver32;
+  Rover driver32;
   driver32.about();  
-
-  Rover64 driver64;
-  driver64.about();
 }
 

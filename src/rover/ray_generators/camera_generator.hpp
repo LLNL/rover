@@ -5,13 +5,13 @@
 
 namespace rover {
 
-template<typename Precision>
-class CameraGenerator : public RayGenerator<Precision>
+class CameraGenerator : public RayGenerator
 {
 public:
   CameraGenerator(const vtkmCamera &camera);
   virtual ~CameraGenerator();
-  virtual vtkmRayTracing::Ray<Precision> get_rays(); 
+  virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float32> &rays);
+  virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float64> &rays);
   vtkmCamera get_camera();
   vtkmCoordinates get_coordinates();
   void set_coordinates(vtkmCoordinates coordinates);
@@ -21,7 +21,5 @@ protected:
   vtkmCamera m_camera;
 };
 
-typedef CameraGenerator<vtkm::Float32> CameraGenerator32;
-typedef CameraGenerator<vtkm::Float64> CameraGenerator64;
 } // namespace rover
 #endif

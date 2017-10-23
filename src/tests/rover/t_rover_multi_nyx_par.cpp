@@ -24,7 +24,7 @@ TEST(rover_hex, test_call)
 
   try {
 
-  VisitGenerator32::VisitParams params;
+  VisitGenerator::VisitParams params;
 
   params.m_focus[0] = 1;
   params.m_focus[1] = 1;
@@ -47,7 +47,7 @@ TEST(rover_hex, test_call)
   params.m_near_plane = 4;
   params.m_far_plane = -4;
   params.m_perspective = true; 
-  VisitGenerator32 generator(params);
+  VisitGenerator generator(params);
 
   std::vector<vtkmDataSet> datasets;
   set_up_nyx(datasets);
@@ -55,7 +55,7 @@ TEST(rover_hex, test_call)
   std::cout<<"Num Data sets "<<datasets.size()<<"\n";
 
 
-  Rover32 driver;
+  Rover driver;
   driver.init(MPI_COMM_WORLD);
 
   RenderSettings settings;

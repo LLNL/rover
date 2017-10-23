@@ -28,8 +28,8 @@ TEST(rover_hex, rover_emission_hex)
   add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
   add_emission_field(datasets, "speed", num_bins, vtkm::Float32());
   
-  CameraGenerator32 generator(camera);
-  Rover32 driver32;
+  CameraGenerator generator(camera);
+  Rover driver;
   //
   // Create some basic setting and color table
   //
@@ -38,13 +38,13 @@ TEST(rover_hex, rover_emission_hex)
   settings.m_secondary_field = "emission";
   settings.m_render_mode = rover::energy;
 
-  driver32.add_data_set(datasets[0]);
-  driver32.set_render_settings(settings);
-  driver32.set_ray_generator(&generator);
-  driver32.execute();
-  driver32.save_png("hex32_emission");
+  driver.add_data_set(datasets[0]);
+  driver.set_render_settings(settings);
+  driver.set_ray_generator(&generator);
+  driver.execute();
+  driver.save_png("hex32_emission");
 
-  driver32.finalize();  
+  driver.finalize();  
   }
   catch ( const RoverException &e )
   {

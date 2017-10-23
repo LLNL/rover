@@ -15,7 +15,7 @@ class Image
 {
 public:
   typedef vtkm::cont::ArrayHandle<FloatType> HandleType;
-  
+   
   Image();
   Image(PartialImage<FloatType> &partial);
   
@@ -33,9 +33,14 @@ public:
   void normalize_optical_depth(const int &channel_num);
   void normalize_paths();
   void operator=(PartialImage<FloatType> partial);
+  template<typename O> void operator=(Image<O> &other);
   HandleType flatten_intensities();
   HandleType flatten_optical_depths();
   int get_size();
+  template<typename T, 
+           typename O> friend void init_from_image(Image<T> &left, 
+                                                   Image<O> &right);
+  
 protected:
   int                                      m_height;
   int                                      m_width;

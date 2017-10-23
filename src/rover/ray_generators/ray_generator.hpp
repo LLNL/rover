@@ -3,22 +3,20 @@
 #include <vtkm_typedefs.hpp>
 namespace rover {
 
-template<typename FloatType>
 class RayGenerator 
 {
 public:
-  typedef FloatType Precision;
   RayGenerator();
-  RayGenerator(vtkmRayTracing::Ray<Precision> rays, int height = -1, int width = -1); 
+  RayGenerator(int height, int width); 
   virtual ~RayGenerator(); 
-  virtual vtkmRayTracing::Ray<Precision> get_rays();
-  virtual void set_rays(vtkmRayTracing::Ray<Precision> rays, int height = -1, int width = -1);
+  virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float32> &rays) = 0;
+  virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float64> &rays) = 0;
+  //virtual void set_rays(vtkmRayTracing::Ray<Precision> rays, int height = -1, int width = -1);
   void get_dims(int &height, int &width) const;
   int  get_size() const;
   bool get_has_rays() const;
   void reset();
 protected:
-  vtkmRayTracing::Ray<Precision> m_rays; 
   int  m_height;
   int  m_width;
   bool m_has_rays;

@@ -27,8 +27,8 @@ TEST(rover_hex, test_call)
   const int num_bins = 10;
   add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
 
-  CameraGenerator32 generator(camera);
-  Rover32 driver32;
+  CameraGenerator generator(camera);
+  Rover driver;
   //
   // Create some basic setting and color table
   //
@@ -37,13 +37,13 @@ TEST(rover_hex, test_call)
   settings.m_render_mode = rover::energy;
   settings.m_path_lengths = true;
 
-  driver32.set_render_settings(settings);
-  driver32.add_data_set(datasets[0]);
-  driver32.set_ray_generator(&generator);
-  driver32.execute();
-  driver32.save_png("hex32");
+  driver.set_render_settings(settings);
+  driver.add_data_set(datasets[0]);
+  driver.set_ray_generator(&generator);
+  driver.execute();
+  driver.save_png("hex32");
 
-  driver32.finalize();  
+  driver.finalize();  
   }
   catch ( const RoverException &e )
   {

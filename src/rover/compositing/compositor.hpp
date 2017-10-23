@@ -21,7 +21,8 @@ public:
   ~Compositor();
   PartialImage<typename PartialType::ValueType> 
   composite(std::vector<PartialImage<typename PartialType::ValueType>> &partial_images);
-  void set_background(std::vector<typename PartialType::ValueType> &background_values);
+  void set_background(std::vector<vtkm::Float32> &background_values);
+  void set_background(std::vector<vtkm::Float64> &background_values);
 #ifdef PARALLEL
   void set_comm_handle(MPI_Comm comm_hanlde);
 #endif

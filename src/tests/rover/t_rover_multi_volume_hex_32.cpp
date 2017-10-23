@@ -26,8 +26,8 @@ TEST(rover_hex, test_call)
   camera.SetWidth(1024);
   camera.SetHeight(1024);
 
-  CameraGenerator32 generator(camera);
-  Rover32 driver32;
+  CameraGenerator generator(camera);
+  Rover driver32;
   //
   // Create some basic setting and color table
   //

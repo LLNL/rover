@@ -41,8 +41,8 @@ TEST(rover_hex_empty, test_call_empty)
     datasets.clear();
   }
 
-  CameraGenerator32 generator(camera);
-  Rover32 driver32;
+  CameraGenerator generator(camera);
+  Rover driver32;
   driver32.init(MPI_COMM_WORLD);
 
   RenderSettings settings;

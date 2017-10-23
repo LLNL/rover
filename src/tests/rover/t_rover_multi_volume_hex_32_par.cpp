@@ -30,8 +30,8 @@ TEST(rover_hex, test_call)
   std::vector<vtkmDataSet> datasets;
   set_up_lulesh(datasets, camera);
 
-  CameraGenerator32 generator(camera);
-  Rover32 driver32;
+  CameraGenerator generator(camera);
+  Rover driver32;
   driver32.init(MPI_COMM_WORLD);
   //
   // Create some basic setting and color table

@@ -5,24 +5,23 @@
 
 namespace rover {
 
-template<typename Precision>
-class VisitGenerator : public RayGenerator<Precision>
+class VisitGenerator : public RayGenerator
 {
 public:
   struct VisitParams
   {
-    vtkm::Vec<Precision,3> m_normal;
-    vtkm::Vec<Precision,3> m_focus;
-    vtkm::Vec<Precision,3> m_view_up;
+    vtkm::Vec<double,3> m_normal;
+    vtkm::Vec<double,3> m_focus;
+    vtkm::Vec<double,3> m_view_up;
 
-    vtkm::Vec<Precision,2> m_image_pan;
+    vtkm::Vec<double,2> m_image_pan;
     vtkm::Vec<int,2>       m_image_dims;
 
-    Precision              m_view_angle;
-    Precision              m_parallel_scale;
-    Precision              m_near_plane;
-    Precision              m_far_plane;
-    Precision              m_image_zoom;
+    double                 m_view_angle;
+    double                 m_parallel_scale;
+    double                 m_near_plane;
+    double                 m_far_plane;
+    double                 m_image_zoom;
     bool                   m_perspective;
 
     VisitParams()
@@ -60,16 +59,17 @@ public:
 
   VisitGenerator(const VisitParams &params);
   virtual ~VisitGenerator();
-  virtual vtkmRayTracing::Ray<Precision> get_rays(); 
+
+  virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float32> &rays);
+  virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float64> &rays);
   
   void set_params(const VisitParams &params);
   void print_params() const;
 protected:
   VisitGenerator(); 
   VisitParams m_params;
+  template<typename T> void gen_rays(vtkmRayTracing::Ray<T> &rays);
 };
 
-typedef VisitGenerator<vtkm::Float32> VisitGenerator32;
-typedef VisitGenerator<vtkm::Float64> VisitGenerator64;
 } // namespace rover
 #endif
