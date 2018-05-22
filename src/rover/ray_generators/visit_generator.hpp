@@ -56,7 +56,6 @@ public:
     vtkm::Vec<double,3> m_view_up;
 
     vtkm::Vec<double,2> m_image_pan;
-    vtkm::Vec<int,2>       m_image_dims;
 
     double                 m_view_angle;
     double                 m_parallel_scale;
@@ -70,7 +69,6 @@ public:
         m_focus(0.f, 0.f, 0.f),
         m_view_up(0.f, 1.f, 0.f),
         m_image_pan(0.f, 0.f),
-        m_image_dims(500, 500),
         m_view_angle(30.f),
         m_parallel_scale(.5f),
         m_near_plane(-0.5f),
@@ -86,8 +84,7 @@ public:
       std::cout<<"focus         : "<<m_focus<<"\n";
       std::cout<<"up            : "<<m_view_up<<"\n";
       std::cout<<"pan           : "<<m_image_pan<<"\n";
-      std::cout<<"dims          : "<<m_image_dims<<"\n";
-      std::cout<<"view angle    : "<<m_image_dims<<"\n";
+      std::cout<<"view angle    : "<<m_view_angle<<"\n";
       std::cout<<"parallel scale: "<<m_parallel_scale<<"\n";
       std::cout<<"near_plane    : "<<m_near_plane<<"\n";
       std::cout<<"far_plane     : "<<m_far_plane<<"\n";

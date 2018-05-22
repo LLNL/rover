@@ -63,8 +63,6 @@ TEST(rover_hex, test_call)
   vtkmCamera camera;
   std::vector<vtkmDataSet> datasets;
   set_up_lulesh(datasets, camera);
-  camera.SetWidth(1024);
-  camera.SetHeight(1024);
   std::cout<<"Num Data sets "<<datasets.size()<<"\n";
   const int num_bins = 10;
 
@@ -73,6 +71,8 @@ TEST(rover_hex, test_call)
   add_emission_field(datasets, "speed", num_bins, vtkm::Float32());
 
   CameraGenerator generator(camera);
+  generator.set_width(1024);
+  generator.set_height(1024);
   Rover driver32;
   driver32.init(MPI_COMM_WORLD);
 

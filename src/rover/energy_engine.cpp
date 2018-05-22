@@ -127,8 +127,6 @@ EnergyEngine::trace(Ray32 &rays)
   }
 
   ROVER_INFO("Energy Engine trace32");
-#warning "Make method in channel buffer to set number of channels on device"
-#warning "Who sets init of rays when rays are passed in from bounce"
 
   init_rays(rays);
   

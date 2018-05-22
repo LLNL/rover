@@ -52,11 +52,13 @@ public:
   virtual ~RayGenerator(); 
   virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float32> &rays) = 0;
   virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float64> &rays) = 0;
-  //virtual void set_rays(vtkmRayTracing::Ray<Precision> rays, int height = -1, int width = -1);
+
   void get_dims(int &height, int &width) const;
   int  get_size() const;
   bool get_has_rays() const;
   void reset();
+  void set_width(int width);
+  void set_height(int height);
 protected:
   int  m_height;
   int  m_width;

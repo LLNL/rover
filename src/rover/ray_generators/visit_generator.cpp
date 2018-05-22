@@ -39,47 +39,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
-// 
-// Produced at the Lawrence Livermore National Laboratory
-// 
-// LLNL-CODE-749865
-// 
-// All rights reserved.
-// 
-// This file is part of Rover. 
-// 
-// Please also read rover/LICENSE
-// 
-// Redistribution and use in source and binary forms, with or without 
-// modification, are permitted provided that the following conditions are met:
-// 
-// * Redistributions of source code must retain the above copyright notice, 
-//   this list of conditions and the disclaimer below.
-// 
-// * Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// 
-// * Neither the name of the LLNS/LLNL nor the names of its contributors may
-//   be used to endorse or promote products derived from this software without
-//   specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-// POSSIBILITY OF SUCH DAMAGE.
-// 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 #include <ray_generators/visit_generator.hpp>
 #include <utils/rover_logging.hpp>
 #include <vtkm/VectorAnalysis.h>
@@ -97,10 +56,8 @@ VisitGenerator::VisitGenerator(const VisitParams &params)
  : RayGenerator()
 {
   m_params = params;
-  assert(params.m_image_dims[0] > 0);
-  assert(params.m_image_dims[1] > 0);
-  this->m_width  = m_params.m_image_dims[0];
-  this->m_height = m_params.m_image_dims[1];
+  assert(m_width > 0);
+  assert(m_height > 0);
 }
 
 VisitGenerator::~VisitGenerator()
@@ -116,9 +73,9 @@ VisitGenerator::gen_rays(vtkmRayTracing::Ray<T> &rays)
   double time = 0;
   DataLogger::GetInstance()->OpenLogEntry("visit_ray_gen");
 
-  const int size = m_params.m_image_dims[0] * m_params.m_image_dims[1];
+  const int size = m_width * m_height;
 
-  rays.Resize(size);;
+  rays.Resize(size);
   
   vtkm::Vec<T,3> view_side;
 
@@ -136,7 +93,7 @@ VisitGenerator::gen_rays(vtkmRayTracing::Ray<T> &rays)
 
   view_height = m_params.m_parallel_scale;
   // I think this is flipped
-  view_width = view_height * (m_params.m_image_dims[1] / m_params.m_image_dims[0]);
+  view_width = view_height * (m_height / m_width);
   if(m_params.m_perspective)
   {
     T view_dist = m_params.m_parallel_scale / tan((m_params.m_view_angle * 3.1415926535) / 360.);
@@ -166,10 +123,10 @@ VisitGenerator::gen_rays(vtkmRayTracing::Ray<T> &rays)
   far_origin = m_params.m_focus + m_params.m_far_plane * m_params.m_normal;
 
   T near_dx, near_dy, far_dx, far_dy;
-  near_dx = (2. * near_width)  / m_params.m_image_dims[0];
-  near_dy = (2. * near_height) / m_params.m_image_dims[1];
-  far_dx  = (2. * far_width)   / m_params.m_image_dims[0];
-  far_dy  = (2. * far_height)  / m_params.m_image_dims[1];
+  near_dx = (2. * near_width)  / m_width;
+  near_dy = (2. * near_height) / m_height;
+  far_dx  = (2. * far_width)   / m_width;
+  far_dy  = (2. * far_height)  / m_height;
 
   auto origin_x = rays.OriginX.GetPortalControl(); 
   auto origin_y = rays.OriginY.GetPortalControl(); 
@@ -180,8 +137,8 @@ VisitGenerator::gen_rays(vtkmRayTracing::Ray<T> &rays)
   auto dir_z = rays.DirZ.GetPortalControl(); 
 
   auto pixel_id = rays.PixelIdx.GetPortalControl(); 
-  const int x_size = m_params.m_image_dims[0]; 
-  const int y_size = m_params.m_image_dims[1]; 
+  const int x_size = m_width; 
+  const int y_size = m_height; 
 
   const T x_factor = - (2. * m_params.m_image_pan[0] * m_params.m_image_zoom + 1.);
   const T x_start  = x_factor * near_width + near_dx / 2.;
@@ -236,9 +193,6 @@ VisitGenerator::gen_rays(vtkmRayTracing::Ray<T> &rays)
     max_portal.Set(i, std::numeric_limits<T>::max());
   }
   
-  this->m_width  = m_params.m_image_dims[0];
-  this->m_height = m_params.m_image_dims[1];
-
   time = timer.GetElapsedTime();
   DataLogger::GetInstance()->CloseLogEntry(time);
 

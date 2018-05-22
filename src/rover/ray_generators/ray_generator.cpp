@@ -51,8 +51,8 @@ RayGenerator::RayGenerator(int height,
 }
 
 RayGenerator::RayGenerator()
-  : m_height(-1), 
-    m_width(-1)
+  : m_height(512), 
+    m_width(512)
 {
 }
 
@@ -78,6 +78,18 @@ void
 RayGenerator::reset() 
 {
   m_has_rays = true;
+}
+
+void 
+RayGenerator::set_width(int width) 
+{
+  m_width = width;
+}
+
+void 
+RayGenerator::set_height(int height) 
+{
+  m_height = height;
 }
 
 int 

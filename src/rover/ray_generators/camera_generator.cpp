@@ -52,8 +52,6 @@ CameraGenerator::CameraGenerator(const vtkmCamera &camera)
  : RayGenerator()
 {
   m_camera = camera;
-  this->m_height = m_camera.GetHeight();
-  this->m_width  = m_camera.GetWidth();
 }
 
 CameraGenerator::~CameraGenerator()
@@ -64,7 +62,11 @@ CameraGenerator::~CameraGenerator()
 void 
 CameraGenerator::get_rays(vtkmRayTracing::Ray<vtkm::Float32> &rays) 
 {
-  m_camera.CreateRays(rays, this->m_coordinates); 
+  vtkm::rendering::CanvasRayTracer canvas(m_width, m_height);
+  vtkm::rendering::raytracing::Camera ray_gen;
+  ray_gen.SetParameters(m_camera, canvas);
+
+  ray_gen.CreateRays(rays, this->m_coordinates); 
   this->m_has_rays = false;
   if(rays.NumRays == 0) std::cout<<"CameraGenerator Warning no rays were generated\n";
 }
@@ -72,7 +74,11 @@ CameraGenerator::get_rays(vtkmRayTracing::Ray<vtkm::Float32> &rays)
 void
 CameraGenerator::get_rays(vtkmRayTracing::Ray<vtkm::Float64> &rays) 
 {
-  m_camera.CreateRays(rays, this->m_coordinates); 
+  vtkm::rendering::CanvasRayTracer canvas(m_width, m_height);
+  vtkm::rendering::raytracing::Camera ray_gen;
+  ray_gen.SetParameters(m_camera, canvas);
+
+  ray_gen.CreateRays(rays, this->m_coordinates); 
   this->m_has_rays = false;
   if(rays.NumRays == 0) std::cout<<"CameraGenerator Warning no rays were generated\n";
 }

@@ -259,6 +259,7 @@ Scheduler<FloatType>::trace_rays()
     m_domains[i].set_render_settings(m_render_settings);
   }
   
+  ROVER_INFO("donr scheduer set render settings for "<<num_domains<<" domains ");
   time = timer.GetElapsedTime();
   DataLogger::GetInstance()->AddLogData("beginning", time);
 

@@ -71,7 +71,7 @@ if(NOT VTKM_DIR)
   MESSAGE(FATAL_ERROR "Rover needs explicit VTKM_DIR")
 endif()
 
-set(VTKm_DIR ${VTKM_DIR}/lib/cmake/vtkm-1.1)
+set(VTKm_DIR ${VTKM_DIR}/lib/cmake/vtkm-1.2)
 
 if(TBB_DIR)
   set(ENV{TBB_ROOT} ${TBB_DIR})

@@ -74,7 +74,24 @@ public:
 
   void set_color_table(const vtkmColorTable &color_map, int samples = 1024)
   {
-    color_map.Sample(samples, m_color_map);
+    constexpr vtkm::Float32 conversionToFloatSpace = (1.0f / 255.0f);
+    vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::UInt8, 4>> temp;
+    
+    color_map.Sample(samples, temp);
+    m_color_map.Allocate(samples);  
+    auto portal = m_color_map.GetPortalControl();
+    auto colorPortal = temp.GetPortalConstControl();
+
+    for (vtkm::Id i = 0; i < samples; ++i)
+    {
+      auto color = colorPortal.Get(i);
+      vtkm::Vec<vtkm::Float32, 4> t(color[0] * conversionToFloatSpace,
+                                    color[1] * conversionToFloatSpace,
+                                    color[2] * conversionToFloatSpace,
+                                    color[3] * conversionToFloatSpace);
+      portal.Set(i, t);
+    }
+
   }
 
   void set_color_map(const vtkmColorMap &color_map)

@@ -66,18 +66,19 @@ void get_cell_assoc_field(vtkm::cont::DataSet &dataset,
   else
   {
     ROVER_INFO("Re-centering point associated field "<<field_name);
-    vtkm::filter::Result result; 
+    vtkm::cont::DataSet result; 
     vtkm::filter::CellAverage cell_average;
-    cell_average.SetOutputFieldName("test_ave");
-    result = cell_average.Execute( dataset, dataset.GetField(field_name));
+    output_name = field_name + "_cell"; 
+    cell_average.SetOutputFieldName(output_name);
+    cell_average.SetActiveField(field_name);
+    result = cell_average.Execute( dataset );
     vtkm::cont::ArrayHandle<OutType> out_array;
     out_array.Allocate(dataset.GetCellSet().GetNumberOfCells());
-    bool valid = result.FieldAs(out_array);
-    output_name = field_name + "_cell"; 
-    output_field = vtkm::cont::Field(  output_name,
-                                       vtkm::cont::Field::ASSOC_CELL_SET,
-                                       dataset.GetField(field_name).GetAssocCellSet(),
-                                       out_array);
+    output_field = result.GetField(output_name);
+    //output_field = vtkm::cont::Field(  output_name,
+    //                                   vtkm::cont::Field::ASSOC_CELL_SET,
+    //                                   dataset.GetField(field_name).GetAssocCellSet(),
+    //                                   out_array);
   }
   std::cout<<"Result field name : "<<output_name<<"\n";
 }

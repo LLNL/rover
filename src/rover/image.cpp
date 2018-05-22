@@ -238,8 +238,9 @@ Image<FloatType>::steal_path_lengths()
   }
 
   m_path_lengths.SyncControlArray();
-  FloatType *ptr = reinterpret_cast<FloatType*>(
-      m_path_lengths.Internals->ControlArray.StealArray());
+  using StoreType = vtkm::cont::internal::Storage<FloatType, vtkm::cont::StorageTagBasic>; 
+  StoreType *storage = reinterpret_cast<StoreType*>(m_path_lengths.Internals->ControlArray); 
+  FloatType *ptr = reinterpret_cast<FloatType*>(storage->StealArray());
   m_has_path_lengths = false;
   return ptr;
 }
@@ -265,8 +266,9 @@ Image<FloatType>::steal_intensity(const int &channel_num)
     throw RoverException("Rover Image: cannot steal an instensity channel that has already been stolen");
   }
   m_intensities[channel_num].SyncControlArray();
-  FloatType *ptr = reinterpret_cast<FloatType*>(
-      m_intensities[channel_num].Internals->ControlArray.StealArray());
+  using StoreType = vtkm::cont::internal::Storage<FloatType, vtkm::cont::StorageTagBasic>; 
+  StoreType *storage = reinterpret_cast<StoreType*>(m_intensities[channel_num].Internals->ControlArray); 
+  FloatType *ptr = reinterpret_cast<FloatType*>(storage->StealArray());
   return ptr;
 }
 
@@ -284,8 +286,9 @@ Image<FloatType>::steal_optical_depth(const int &channel_num)
     throw RoverException("Rover Image: cannot steal an optical depth channel that has already been stolen");
   }
   m_optical_depths[channel_num].SyncControlArray();
-  FloatType *ptr = reinterpret_cast<FloatType*>(
-      m_optical_depths[channel_num].Internals->ControlArray.StealArray());
+  using StoreType = vtkm::cont::internal::Storage<FloatType, vtkm::cont::StorageTagBasic>; 
+  StoreType *storage = reinterpret_cast<StoreType*>(m_optical_depths[channel_num].Internals->ControlArray); 
+  FloatType *ptr = reinterpret_cast<FloatType*>(storage->StealArray());
   return ptr;
 }
 

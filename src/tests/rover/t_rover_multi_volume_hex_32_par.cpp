@@ -61,12 +61,12 @@ TEST(rover_hex, test_call)
   MPI_Init(NULL, NULL);
 
   vtkmCamera camera;
-  camera.SetWidth(1024);
-  camera.SetHeight(1024);
   std::vector<vtkmDataSet> datasets;
   set_up_lulesh(datasets, camera);
 
   CameraGenerator generator(camera);
+  generator.set_width(1024);
+  generator.set_height(1024);
   Rover driver32;
   driver32.init(MPI_COMM_WORLD);
   //
@@ -74,10 +74,10 @@ TEST(rover_hex, test_call)
   //
   RenderSettings settings;
   settings.m_primary_field = "speed";
-  vtkmColorTable color_table("cool2warm");
-  color_table.AddAlphaControlPoint(0.0, .01);
-  color_table.AddAlphaControlPoint(0.5, .02);
-  color_table.AddAlphaControlPoint(1.0, .01);
+  vtkmColorTable color_table("cool to warm");
+  color_table.AddPointAlpha(0.0, .01);
+  color_table.AddPointAlpha(0.5, .02);
+  color_table.AddPointAlpha(1.0, .01);
   settings.m_color_table = color_table;
    
   driver32.set_render_settings(settings);

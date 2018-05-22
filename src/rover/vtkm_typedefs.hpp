@@ -45,7 +45,7 @@
 #include <vtkm/cont/DataSet.h>
 #include <vtkm/cont/DeviceAdapterListTag.h>
 #include <vtkm/cont/Timer.h>
-#include <vtkm/rendering/ColorTable.h>
+#include <vtkm/cont/ColorTable.h>
 #include <vtkm/rendering/raytracing/Camera.h>
 #include <vtkm/rendering/raytracing/Ray.h>
 #include <vtkm/rendering/raytracing/Logger.h>
@@ -57,10 +57,11 @@ typedef vtkm::cont::DataSet                                   vtkmDataSet;
 typedef vtkm::cont::CoordinateSystem                          vtkmCoordinates;
 typedef vtkm::rendering::raytracing::Ray<vtkm::Float32>       Ray32;
 typedef vtkm::rendering::raytracing::Ray<vtkm::Float64>       Ray64;
-typedef vtkm::rendering::ColorTable                           vtkmColorTable;
+typedef vtkm::cont::ColorTable                                vtkmColorTable;
 typedef vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::Float32, 4> > vtkmColorMap;
 typedef vtkm::cont::ArrayHandle<vtkm::Vec<vtkm::Float32, 4> > vtkmColorBuffer;
-typedef vtkm::rendering::raytracing::Camera                   vtkmCamera;
+//typedef vtkm::rendering::raytracing::Camera                   vtkmCamera;
+typedef vtkm::rendering::Camera                               vtkmCamera;
 typedef vtkm::cont::ArrayHandle<vtkm::Id>                     IdHandle;
 typedef vtkm::Vec<vtkm::Float32,3>                            vtkmVec3f;
 typedef vtkm::cont::Timer<>                                   vtkmTimer;

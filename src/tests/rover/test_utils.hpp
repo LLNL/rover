@@ -68,7 +68,6 @@ void set_up_clock(rover::vtkmDataSet &dataset, rover::vtkmCamera &camera)
   cam.ResetToBounds(dataset.GetCoordinateSystem().GetBounds());
   cam.Azimuth(10.f);
   cam.Elevation(10.f);
-  camera.SetParameters(cam, canvas);
   
 }
 
@@ -88,14 +87,9 @@ void set_up_zoo(rover::vtkmDataSet &dataset, rover::vtkmCamera &camera)
   Vec3f position(1.5f, 3.5, -5.5f); 
   Vec3f up(.0f, 1.f, 0.f); 
   Vec3f look_at(1.5f, 1.5f, .5f);
-  const int image_width = 500;
-  const int image_height = 500;
-    
-  camera.SetHeight(image_height);
-  camera.SetWidth(image_width);
   camera.SetLookAt(look_at);
   camera.SetPosition(position);
-  camera.SetUp(up);
+  camera.SetViewUp(up);
 
 }
 void set_up_astro(rover::vtkmDataSet &dataset, rover::vtkmCamera &camera)
@@ -114,14 +108,10 @@ void set_up_astro(rover::vtkmDataSet &dataset, rover::vtkmCamera &camera)
   Vec3f position(-10.f, -10.f, -10.f); 
   Vec3f up(.0f, 1.f, 0.f); 
   Vec3f look_at(5.f, 5.f, 5.f);
-  const int image_width = 500;
-  const int image_height = 500;
     
-  camera.SetHeight(image_height);
-  camera.SetWidth(image_width);
   camera.SetLookAt(look_at);
   camera.SetPosition(position);
-  camera.SetUp(up);
+  camera.SetViewUp(up);
 
 }
 
@@ -143,12 +133,13 @@ void set_up_lulesh(rover::vtkmDataSet &dataset, rover::vtkmCamera &camera)
   Vec3f look_at(.5f, .5f, .5f);
   const int image_width = 500;
   const int image_height = 500;
-    
-  camera.SetHeight(image_height);
-  camera.SetWidth(image_width);
+
+  vtkm::rendering::Camera c;
+  c.ResetToBounds(dataset.GetCoordinateSystem().GetBounds());
+
   camera.SetLookAt(look_at);
   camera.SetPosition(position);
-  camera.SetUp(up);
+  camera.SetViewUp(up);
 
 }
 
@@ -180,14 +171,10 @@ void set_up_lulesh(std::vector<rover::vtkmDataSet> &datasets, rover::vtkmCamera 
   Vec3f position(-2.5f, -2.5f, -2.5f); 
   Vec3f up(1.f, 0.f, 0.f); 
   Vec3f look_at(.5f, .5f, .5f);
-  const int image_width = 500;
-  const int image_height = 500;
     
-  camera.SetHeight(image_height);
-  camera.SetWidth(image_width);
   camera.SetLookAt(look_at);
   camera.SetPosition(position);
-  camera.SetUp(up);
+  camera.SetViewUp(up);
 
 }
 

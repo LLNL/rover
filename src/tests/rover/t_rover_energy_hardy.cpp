@@ -71,9 +71,6 @@ TEST(rover_hex, test_call)
   params.m_normal[1] = 0;
   params.m_normal[2] = 1;
 
-  params.m_image_dims[0] = 500;
-  params.m_image_dims[1] = 500;
-
   params.m_image_zoom = 1;
   params.m_parallel_scale = 10;
   params.m_view_angle = 30;

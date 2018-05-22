@@ -66,10 +66,10 @@ TEST(rover_hex, test_call)
   //
   RenderSettings settings;
   settings.m_primary_field = "speed";
-  vtkmColorTable color_table("cool2warm");
-  color_table.AddAlphaControlPoint(0.0, .01);
-  color_table.AddAlphaControlPoint(0.5, .02);
-  color_table.AddAlphaControlPoint(1.0, .01);
+  vtkmColorTable color_table("cool to warm");
+  color_table.AddPointAlpha(0.0, .01);
+  color_table.AddPointAlpha(0.5, .02);
+  color_table.AddPointAlpha(1.0, .01);
   settings.m_color_table = color_table;
   
   driver64.set_render_settings(settings);
