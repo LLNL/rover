@@ -48,8 +48,8 @@ CameraGenerator::CameraGenerator()
 
 }
 
-CameraGenerator::CameraGenerator(const vtkmCamera &camera)
- : RayGenerator()
+CameraGenerator::CameraGenerator(const vtkmCamera &camera, const int height, const int width)
+ : RayGenerator(height, width)
 {
   m_camera = camera;
 }

@@ -56,7 +56,7 @@ void get_cell_assoc_field(vtkm::cont::DataSet &dataset,
                           OutType t)
 {
 
-  bool is_assoc_points = dataset.GetField(field_name).GetAssociation() == vtkm::cont::Field::ASSOC_POINTS;
+  bool is_assoc_points = dataset.GetField(field_name).GetAssociation() == vtkm::cont::Field::Association::POINTS;
   std::string output_name;
   if(!is_assoc_points)
   {
@@ -289,7 +289,7 @@ add_absorption_clock(std::vector<vtkm::cont::DataSet> &datasets,
     }
 
     datasets[i].AddField( vtkm::cont::Field(  "absorption",
-                          vtkm::cont::Field::ASSOC_CELL_SET,
+                          vtkm::cont::Field::Association::CELL_SET,
                           datasets[i].GetField(mapping_field_name).GetAssocCellSet(),
                           output_array));
   }
@@ -349,7 +349,7 @@ add_absorption_field(std::vector<vtkm::cont::DataSet> &datasets,
     }
 
     datasets[i].AddField( vtkm::cont::Field(  "absorption",
-                          vtkm::cont::Field::ASSOC_CELL_SET,
+                          vtkm::cont::Field::Association::CELL_SET,
                           datasets[i].GetField(mapping_field_name).GetAssocCellSet(),
                           output_array));
   }
@@ -412,7 +412,7 @@ add_emission_field(std::vector<vtkm::cont::DataSet> &datasets,
 
     
       datasets[i].AddField( vtkm::cont::Field(  "emission",
-                            vtkm::cont::Field::ASSOC_CELL_SET,
+                            vtkm::cont::Field::Association::CELL_SET,
                             datasets[i].GetField(mapping_field_name).GetAssocCellSet(),
                             output_array));
   }

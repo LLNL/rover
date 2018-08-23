@@ -68,10 +68,18 @@ option(ENABLE_TBB        "Build TBB support"         OFF)
 # Find VTK-m 
 ####################################
 if(NOT VTKM_DIR)
-  MESSAGE(FATAL_ERROR "Rover needs explicit VTKM_DIR")
+    MESSAGE(FATAL_ERROR "VTKm support needs explicit VTKM_DIR")
 endif()
 
+MESSAGE(STATUS "Looking for VTKm using VTKM_DIR = ${VTKM_DIR}")
+
+# use VTKM_DIR to setup the options that cmake's find VTKm needs
 set(VTKm_DIR ${VTKM_DIR}/lib/cmake/vtkm-1.2)
+
+set(VTKM_FOUND TRUE)
+message(STATUS "Found VTKm Include Dirs: ${VTKm_INCLUDE_DIRS}")
+
+set(VTKm_LIBRARIES vtkm_cont vtkm_rendering)
 
 if(TBB_DIR)
   set(ENV{TBB_ROOT} ${TBB_DIR})

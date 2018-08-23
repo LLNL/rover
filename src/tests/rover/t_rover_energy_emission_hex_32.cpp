@@ -64,7 +64,7 @@ TEST(rover_hex, rover_emission_hex)
   add_absorption_field(datasets, "speed", num_bins, vtkm::Float32());
   add_emission_field(datasets, "speed", num_bins, vtkm::Float32());
   
-  CameraGenerator generator(camera);
+  CameraGenerator generator(camera, 512, 512);
   Rover driver;
   //
   // Create some basic setting and color table

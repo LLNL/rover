@@ -367,15 +367,15 @@ struct DataSet
        = vtkm::cont::make_ArrayHandle(m_zonal_scalars, m_cell_size);
 
      data_set.AddField( vtkm::cont::Field("nodal_noise",
-                                          vtkm::cont::Field::ASSOC_POINTS,
+                                          vtkm::cont::Field::Association::POINTS,
                                           vtkm_nodal) );
 
      data_set.AddField( vtkm::cont::Field("nodal_noise2",
-                                          vtkm::cont::Field::ASSOC_POINTS,
+                                          vtkm::cont::Field::Association::POINTS,
                                           vtkm_nodal2) );
 
      data_set.AddField( vtkm::cont::Field("zonal_noise",
-                                          vtkm::cont::Field::ASSOC_CELL_SET,
+                                          vtkm::cont::Field::Association::CELL_SET,
                                           "cell_set",
                                           vtkm_zonal) );
   }
@@ -520,13 +520,11 @@ void TemplateDriver(Options &options, Precision)
   const int image_width = 500;
   const int image_height = 500;
     
-  camera.SetHeight(image_height);
-  camera.SetWidth(image_width);
   camera.SetLookAt(look_at);
   camera.SetPosition(position);
-  camera.SetUp(up);
+  camera.SetViewUp(up);
 
-  CameraGenerator generator(camera);
+  CameraGenerator generator(camera, image_height, image_width);
   Rover driver;
   
   RenderSettings settings;

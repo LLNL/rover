@@ -54,7 +54,7 @@ Image<FloatType>::normalize_handle(vtkm::cont::ArrayHandle<FloatType> &handle, b
 {
 
   vtkm::cont::Field as_field("name meaningless", 
-                             vtkm::cont::Field::ASSOC_POINTS,
+                             vtkm::cont::Field::Association::POINTS,
                              handle);
   vtkm::Range range;
   as_field.GetRange(&range);

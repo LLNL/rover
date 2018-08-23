@@ -49,7 +49,7 @@ namespace rover {
 class CameraGenerator : public RayGenerator
 {
 public:
-  CameraGenerator(const vtkmCamera &camera);
+  CameraGenerator(const vtkmCamera &camera, const int height = 512, const int width = 512);
   virtual ~CameraGenerator();
   virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float32> &rays);
   virtual void get_rays(vtkmRayTracing::Ray<vtkm::Float64> &rays);
