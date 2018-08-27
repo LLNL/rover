@@ -42,6 +42,8 @@
 #ifndef rover_compositing_redistribute_h
 #define rover_compositing_redistribute_h
 
+#define DIY_PROFILE
+
 #include <compositing/volume_partial.hpp>
 #include <compositing/blocks.hpp>
 #include <diy/assigner.hpp>
@@ -169,7 +171,7 @@ void redistribute_detail(std::vector<typename AddBlockType::PartialType> &partia
   global_bounds.max[0] = domain_max_pixel;
   
   // tells diy to use all availible threads
-  const int num_threads = -1; 
+  const int num_threads = 1; 
   const int num_blocks = world.size(); 
   const int magic_k = 2;
 
@@ -182,7 +184,6 @@ void redistribute_detail(std::vector<typename AddBlockType::PartialType> &partia
   const int dims = 1;
   diy::RegularDecomposer<diy::DiscreteBounds> decomposer(dims, global_bounds, num_blocks);
   decomposer.decompose(world.rank(), assigner, create);
-  
   diy::all_to_all(master, assigner, Redistribute<Block>(decomposer), magic_k);
 }
 

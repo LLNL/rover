@@ -245,7 +245,7 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
   vtkmTimer tot_timer;  
   vtkmTimer timer;  
   double time = 0;
-  DataLogger::GetInstance()->OpenLogEntry("compositing_extract");
+  ROVER_DATA_OPEN("compositing_extract");
 
   int total_partial_comps = 0;
   const int num_partial_images = static_cast<int>(partial_images.size());
@@ -281,7 +281,7 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
       int index = offsets[i] + j;
       partials[index].load_from_partial(partial_images[i], j);
     }
-    DataLogger::GetInstance()->AddLogData("load from partials",timer1.GetElapsedTime()); 
+    ROVER_DATA_ADD("load from partials",timer1.GetElapsedTime()); 
     timer1.Reset();
     //
     // Calculate the range of pixel ids each domain has
@@ -297,7 +297,7 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
         max_pixel = val;
       }
     }
-    DataLogger::GetInstance()->AddLogData("max pixel",timer1.GetElapsedTime()); 
+    ROVER_DATA_ADD("max_pixel",timer1.GetElapsedTime()); 
     timer1.Reset();
 
     int min_pixel = std::numeric_limits<int>::max();
@@ -316,11 +316,11 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
       pixel_maxs[i] = max_pixel;
     }
 
-    DataLogger::GetInstance()->AddLogData("min pixel",timer1.GetElapsedTime()); 
+    ROVER_DATA_ADD("min_pixel",timer1.GetElapsedTime()); 
     timer1.Reset();
   }// for each partial image
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("merge_partials",time); 
+  ROVER_DATA_ADD("merge_partials",time); 
   timer.Reset();
   // 
   // determine the global pixel mins and maxs
@@ -334,7 +334,7 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
   }
 
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("local_pixels",time); 
+  ROVER_DATA_ADD("local_pixels",time); 
   timer.Reset();
 #ifdef PARALLEL
   int rank_min = global_min_pixel;
@@ -348,7 +348,8 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
 #endif
 
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("global pixels",time); 
+  ROVER_DATA_ADD("global_pixels",time); 
+
   timer.Reset();
 
   delete[] offsets;
@@ -356,7 +357,7 @@ Compositor<PartialType>::extract(std::vector<PartialImage<typename PartialType::
   delete[] pixel_maxs;
 
   time = tot_timer.GetElapsedTime();
-  DataLogger::GetInstance()->CloseLogEntry(time); 
+  ROVER_DATA_CLOSE(time);
 }
 
 //--------------------------------------------------------------------------------------------
@@ -530,7 +531,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   // there should always be at least one ray cast, 
   // so this should be a safe check
   bool has_path_lengths = partial_images[0].m_path_lengths.GetNumberOfValues() != 0;
-  DataLogger::GetInstance()->OpenLogEntry("compositing");
+  ROVER_DATA_OPEN("compositing");
   vtkmTimer tot_timer; 
   vtkmTimer timer; 
   double time = 0;
@@ -542,7 +543,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   ROVER_INFO("Extracing");
   extract(partial_images, partials, global_min_pixel, global_max_pixel);
   time = timer.GetElapsedTime(); 
-  DataLogger::GetInstance()->AddLogData("extract",time);
+  ROVER_DATA_ADD("extract", time);
   timer.Reset();
 
 #ifdef PARALLEL
@@ -558,7 +559,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
 #endif
 
   time = timer.GetElapsedTime(); 
-  DataLogger::GetInstance()->AddLogData("redistribute",time);
+  ROVER_DATA_ADD("redistribute", time);
   timer.Reset();
 
   const int  total_partial_comps = partials.size();
@@ -574,7 +575,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   composite_partials(partials, output_partials);
    
   time = timer.GetElapsedTime(); 
-  DataLogger::GetInstance()->AddLogData("do_composite",time);
+  ROVER_DATA_ADD("do_composite", time);
   timer.Reset();
 #ifdef PARALLEL
   //
@@ -585,7 +586,7 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
 #endif
   
   time = timer.GetElapsedTime(); 
-  DataLogger::GetInstance()->AddLogData("collect",time);
+  ROVER_DATA_ADD("collect", time);
   timer.Reset();
   //
   // pack the output back into a channel buffer
@@ -629,10 +630,10 @@ Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType
   ROVER_INFO("Compositing results in "<<out_size);
 
   time = timer.GetElapsedTime(); 
-  DataLogger::GetInstance()->AddLogData("pack_partial",time);
+  ROVER_DATA_ADD("pack_partial", time);
 
   time = tot_timer.GetElapsedTime(); 
-  DataLogger::GetInstance()->CloseLogEntry(time);
+  ROVER_DATA_CLOSE(time);
   output.m_source_sig = m_background_values;
   output.m_width = partial_images[0].m_width;
   output.m_height = partial_images[0].m_height;

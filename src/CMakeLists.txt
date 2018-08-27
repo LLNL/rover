@@ -61,8 +61,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries"    ON)
 option(ENABLE_TESTS      "Build tests"               ON)
 option(ENABLE_CUDA       "Build CUDA support"        OFF)
 option(ENABLE_MPI        "Build MPI Support"         OFF)
-option(ENABLE_TBB        "Build TBB support"         OFF)
-
+option(ENABLE_LOGGING    "Rover logging"             OFF)
 
 ####################################
 # Find VTK-m 
@@ -80,10 +79,6 @@ set(VTKM_FOUND TRUE)
 message(STATUS "Found VTKm Include Dirs: ${VTKm_INCLUDE_DIRS}")
 
 set(VTKm_LIBRARIES vtkm_cont vtkm_rendering)
-
-if(TBB_DIR)
-  set(ENV{TBB_ROOT} ${TBB_DIR})
-endif()
 
 find_package(VTKm CONFIG REQUIRED OPTIONAL_COMPONENTS Rendering)
 message(STATUS "Found VTKm Include Dirs: ${VTKm_INCLUDE_DIRS}")

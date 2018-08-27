@@ -81,7 +81,7 @@ Scheduler<FloatType>::get_global_channels()
   MPI_Allreduce(&num_channels, &mpi_num_channels, 1, MPI_INT, MPI_MAX, m_comm_handle);
   num_channels = mpi_num_channels;
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("get_global_channels_all_reduce", time);
+  ROVER_DATA_ADD("get_global_channels_all_reduce", time);
 #endif
 
   ROVER_INFO("Global number of channels"<<num_channels);
@@ -125,7 +125,7 @@ Scheduler<FloatType>::set_global_scalar_range()
   }
 
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("set_global_scalar_range", time);
+  ROVER_DATA_ADD("set_global_scalar_range", time);
 }
 
 template<typename FloatType>
@@ -217,7 +217,7 @@ Scheduler<FloatType>::set_global_bounds()
     m_domains[i].set_global_bounds(global_bounds);
   }
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("set_global_bounds", time);
+  ROVER_DATA_ADD("set_global_bounds", time);
 }
 
 //
@@ -231,7 +231,7 @@ Scheduler<FloatType>::trace_rays()
   vtkmTimer tot_timer;
   vtkmTimer timer;
   double time = 0;
-  DataLogger::GetInstance()->OpenLogEntry("schedule_trace");
+  ROVER_DATA_OPEN("schedule_trace");
 
   if(m_ray_generator == NULL)
   {
@@ -259,9 +259,9 @@ Scheduler<FloatType>::trace_rays()
     m_domains[i].set_render_settings(m_render_settings);
   }
   
-  ROVER_INFO("donr scheduer set render settings for "<<num_domains<<" domains ");
+  ROVER_INFO("done scheduer set render settings for "<<num_domains<<" domains ");
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("beginning", time);
+  ROVER_DATA_ADD("setup", time);
 
   this->set_global_scalar_range();
   this->set_global_bounds();
@@ -279,7 +279,8 @@ Scheduler<FloatType>::trace_rays()
     vtkmTimer domain_timer;
     std::stringstream domain_s;
     domain_s<<"trace_domain_"<<i;
-    DataLogger::GetInstance()->OpenLogEntry(domain_s.str());
+    ROVER_DATA_OPEN(domain_s.str());
+
     vtkmLogger::GetInstance()->Clear();
     if(dynamic_cast<CameraGenerator*>(m_ray_generator) != NULL)
     {
@@ -307,7 +308,7 @@ Scheduler<FloatType>::trace_rays()
       rays.GetBuffer("path_lengths").InitConst(0);
     }
     time = timer.GetElapsedTime();
-    DataLogger::GetInstance()->AddLogData("domain_init_rays", time);
+    ROVER_DATA_ADD("domain_init_rays", time);
 
     if(do_compositing)
     {
@@ -319,8 +320,10 @@ Scheduler<FloatType>::trace_rays()
     timer.Reset();
     m_domains[i].trace(rays);
     time = timer.GetElapsedTime();
-    DataLogger::GetInstance()->AddLogData("domain_trace", time);
+    ROVER_DATA_ADD("domain_trace", time);
+#ifdef ROVER_ENABLE_LOGGING
     DataLogger::GetInstance()->GetStream()<<vtkmLogger::GetInstance()->GetStream().str();
+#endif
 
     //
     // Create a partial image result from the completed rays
@@ -365,15 +368,15 @@ Scheduler<FloatType>::trace_rays()
     m_partial_images.push_back(partial_image);
 
     time = timer.GetElapsedTime(); 
-    DataLogger::GetInstance()->AddLogData("domain_push_back", time);
+    ROVER_DATA_ADD("domain_push_back", time);
 
     time = domain_timer.GetElapsedTime();
-    DataLogger::GetInstance()->CloseLogEntry(time);
+    ROVER_DATA_CLOSE(time);
     ROVER_INFO("Schedule: done tracing domain "<<i);
   }// for each domain
   timer.Reset();
   time = trace_timer.GetElapsedTime(); 
-  DataLogger::GetInstance()->AddLogData("total_trace", time);
+  ROVER_DATA_ADD("total_trace", time);
   //
   // Add dummy partial image if we had no domains
   //
@@ -396,18 +399,30 @@ Scheduler<FloatType>::trace_rays()
     m_partial_images.push_back(partial_image);
   }
   DataLogger::GetInstance()->AddLogData("blank_image", t1.GetElapsedTime());
+  ROVER_DATA_ADD("blank_image", t1.GetElapsedTime());
   t1.Reset();
 
   if(m_background.size() == 0)
   {
     this->create_default_background(num_channels);
+
+    //const size_t partials_size = m_partial_images.size();;   
+    //for(size_t i = 0; i < partials_size; ++i)
+    //{
+    //  const size_t bg_size= m_background.size();   
+    //  for(size_t k = 0; k < bg_size; ++k)
+    //  {
+    //    m_partial_images[i].m_source_sig.resize(bg_size);
+    //    m_partial_images[i].m_source_sig[k] = m_background[k];
+    //  }
+    //}
   }
 
-  DataLogger::GetInstance()->AddLogData("default_bg", t1.GetElapsedTime());
+  ROVER_DATA_ADD("default_bg", t1.GetElapsedTime());
   t1.Reset();
 
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("mid", time);
+  ROVER_DATA_ADD("mid", t1.GetElapsedTime());
   timer.Reset();
 
   timer.Reset();
@@ -479,15 +494,15 @@ Scheduler<FloatType>::trace_rays()
   }
 
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("compositing", time);
+  ROVER_DATA_ADD("compositing", time);
   timer.Reset();
 
   m_partial_images.clear();
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->AddLogData("clear", time);
+  ROVER_DATA_ADD("clear", time);
 
   double tot_time = tot_timer.GetElapsedTime();
-  DataLogger::GetInstance()->CloseLogEntry(tot_time);
+  ROVER_DATA_CLOSE(tot_time);
   ROVER_INFO("Schedule: end of trace");
 }
 

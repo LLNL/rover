@@ -72,7 +72,8 @@ struct AbsorptionBlock
 
   AbsorptionBlock(std::vector<AbsorptionPartial<FloatType>> &partials)
     : m_partials(partials)
-  {}
+  {
+  }
 };
 
 //--------------------------------------Emission Block Structure------------------------------
@@ -99,7 +100,8 @@ struct AddBlock
 
   AddBlock(diy::Master &master,std::vector<PartialType> &partials)
     : m_master(master), m_partials(partials)
-  {}
+  {
+  }
   template<typename BoundsType, typename LinkType>                 
   void operator()(int gid,
                   const BoundsType &local_bounds,

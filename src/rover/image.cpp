@@ -311,7 +311,7 @@ Image<FloatType>::init_from_partial(PartialImage<FloatType> &partial)
   for(int i = 0; i < num_channels; ++i)
   {
     vtkmRayTracing::ChannelBuffer<FloatType> channel = partial.m_buffer.GetChannel( i );
-    const FloatType default_value = partial.m_source_sig[i];
+    const FloatType default_value = partial.m_source_sig.size() != 0 ? partial.m_source_sig[i] : 0.0f;
     const int channel_size = m_height * m_width;
     vtkmRayTracing::ChannelBuffer<FloatType>  expand;
     expand = channel.ExpandBuffer(partial.m_pixel_ids, 
@@ -326,7 +326,7 @@ Image<FloatType>::init_from_partial(PartialImage<FloatType> &partial)
   for(int i = 0; i < num_channels; ++i)
   {
     vtkmRayTracing::ChannelBuffer<FloatType> channel = partial.m_intensities.GetChannel( i );
-    const FloatType default_value = partial.m_source_sig[i];;
+    const FloatType default_value = partial.m_source_sig.size() != 0 ? partial.m_source_sig[i] : 0.0f;
     const int channel_size = m_height * m_width;
     vtkmRayTracing::ChannelBuffer<FloatType>  expand;
     expand = channel.ExpandBuffer(partial.m_pixel_ids, 

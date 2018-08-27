@@ -68,14 +68,17 @@ Domain::set_render_settings(const RenderSettings &settings)
   //
 
   ROVER_INFO("Setting render settings");
+
   if(m_render_settings.m_render_mode != volume && 
      settings.m_render_mode == volume)
   {
+    ROVER_INFO("Render mode = volume");
     m_engine = std::make_shared<VolumeEngine>(); 
   }
   else if(m_render_settings.m_render_mode != energy && 
           settings.m_render_mode == energy)
   {
+    ROVER_INFO("Render mode = energy");
     m_engine = std::make_shared<EnergyEngine>();
   }
   else if(m_render_settings.m_render_mode != surface && 
@@ -94,6 +97,16 @@ Domain::set_render_settings(const RenderSettings &settings)
 
   m_engine->set_data_set(m_data_set);
   set_engine_fields();
+
+  if(m_render_settings.m_render_mode == volume)
+  {
+    ROVER_INFO("outgoing render mode = volume");
+  }
+
+  if(m_render_settings.m_render_mode == energy)
+  {
+    ROVER_INFO("outgoing render mode = energy");
+  }
 }
 
 void 

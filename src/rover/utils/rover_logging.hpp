@@ -45,6 +45,7 @@ protected:
   std::stack<std::string> Entries;
 };
 
+#ifdef ROVER_ENABLE_LOGGING
 #define ROVER_INFO(msg) rover::Logger::get_instance()->get_stream() <<"<Info>\n" \
   <<"  message: "<< msg <<"\n  file: " <<__FILE__<<"\n  line:  "<<__LINE__<<std::endl;
 #define ROVER_WARN(msg) rover::Logger::get_instance()->get_stream() <<"<Warn>\n" \
@@ -52,6 +53,19 @@ protected:
 #define ROVER_ERROR(msg) rover::Logger::get_instance()->get_stream() <<"<Error>\n" \
   <<"  message: "<< msg <<"\n  file: " <<__FILE__<<"\n  line:  "<<__LINE__<<std::endl;
 
+#define ROVER_DATA_OPEN(name) rover::DataLogger::GetInstance()->OpenLogEntry(name);
+#define ROVER_DATA_CLOSE(time) rover::DataLogger::GetInstance()->CloseLogEntry(time);
+#define ROVER_DATA_ADD(key,value) rover::DataLogger::GetInstance()->AddLogData(key, value);
+
+#else
+#define ROVER_INFO(msg)  
+#define ROVER_WARN(msg) 
+#define ROVER_ERROR(msg)
+
+#define ROVER_DATA_OPEN(name) 
+#define ROVER_DATA_CLOSE(name) 
+#define ROVER_DATA_ADD(key,value) 
+#endif
 } // namespace rover
 
 #endif

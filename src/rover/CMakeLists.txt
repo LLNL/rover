@@ -130,9 +130,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(rover PUBLIC ${VTKm_LIBRARIES})
 target_include_directories(rover PUBLIC ${VTKm_INCLUDE_DIRS})
 
-if(TBB_FOUND)
-  target_link_libraries(rover PUBLIC ${TBB_LIBRARIES})
-  target_include_directories(rover PUBLIC ${TBB_INCLUDE_DIRS})
+if(ENABLE_LOGGING)
+  target_compile_definitions(rover PRIVATE ROVER_ENABLE_LOGGING=1) 
 endif()
 
 # install target for mpi ver
@@ -193,11 +192,11 @@ if(MPI_FOUND)
   target_include_directories(rover_par PUBLIC ${VTKm_INCLUDE_DIRS})
   target_link_libraries(rover_par PUBLIC ${VTKm_LIBRARIES} ${MPI_CXX_LIBRARIES})
 
-  if(TBB_FOUND)
-    target_link_libraries(rover_par PUBLIC ${TBB_LIBRARIES})
-    target_include_directories(rover_par PUBLIC ${TBB_INCLUDE_DIRS})
-  endif()
 endif()
+
+  if(ENABLE_LOGGING)
+    target_compile_definitions(rover_par PRIVATE ROVER_ENABLE_LOGGING=1) 
+  endif()
 
   # install target for mpi ver
   install(TARGETS rover_par

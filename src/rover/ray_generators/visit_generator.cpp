@@ -71,7 +71,7 @@ VisitGenerator::gen_rays(vtkmRayTracing::Ray<T> &rays)
 {
   vtkmTimer timer;
   double time = 0;
-  DataLogger::GetInstance()->OpenLogEntry("visit_ray_gen");
+  ROVER_DATA_OPEN("visit_ray_gen");
 
   const int size = m_width * m_height;
 
@@ -194,7 +194,7 @@ VisitGenerator::gen_rays(vtkmRayTracing::Ray<T> &rays)
   }
   
   time = timer.GetElapsedTime();
-  DataLogger::GetInstance()->CloseLogEntry(time);
+  ROVER_DATA_CLOSE(time);
 
 }
 

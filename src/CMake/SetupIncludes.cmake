@@ -55,13 +55,6 @@ include_directories(${PROJECT_SOURCE_DIR}/rover/)
 
 #include_directories(${VTKm_INCLUDE_DIRS})
 
-if(TBB_DIR)
-  include(CMake/SetupTBB.cmake)
-  if(TBB_FOUND)
-    include_directories(${TBB_INCLUDE_DIRS})
-  endif()
-endif()
-
 if(MPI_FOUND)
     include_directories(${MPI_CXX_INCLUDE_PATH})
 endif()

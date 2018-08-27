@@ -166,6 +166,11 @@ public:
       ROVER_INFO("MPI Comm size : "<<m_num_ranks);
     }
   }
+
+  MPI_Comm get_comm_handle()
+  {
+    return m_comm_handle;
+  }
 #endif
   void get_result(Image<vtkm::Float32> &image)
   {
@@ -210,24 +215,33 @@ Rover::~Rover()
   
 }
 
+void
+Rover::set_mpi_comm_handle(int mpi_comm_id)
+{
 #ifdef PARALLEL
-void
-Rover::init(MPI_Comm comm_handle)
-{
-  this->m_internals->set_comm_handle(comm_handle);
-}
+  this->m_internals->set_comm_handle(MPI_Comm_f2c(mpi_comm_id));
 #else
-void
-Rover::init()
-{
-  // initialize
-}
+  (void)mpi_comm_id;
 #endif
+  
+}
+
+int
+Rover::get_mpi_comm_handle()
+{
+#ifdef PARALLEL
+  return MPI_Comm_c2f(this->m_internals->get_comm_handle());
+#else
+  return -1;
+#endif
+}
 
 void
 Rover::finalize()
 {
+#ifdef ROVER_ENABLE_LOGGING
   DataLogger::GetInstance()->WriteLog();
+#endif
 }
 
 void

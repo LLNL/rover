@@ -63,11 +63,10 @@ class Rover
 public:
   Rover();
   ~Rover();
-#ifdef PARALLEL
-  void init(MPI_Comm comm_handle);
-#else
-  void init();
-#endif
+
+  void set_mpi_comm_handle(int mpi_comm_id);
+  int  get_mpi_comm_handle();
+
   void finalize();
 
   void add_data_set(vtkmDataSet &);

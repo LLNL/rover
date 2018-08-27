@@ -68,7 +68,7 @@ TEST(rover_hex, test_call)
   generator.set_width(1024);
   generator.set_height(1024);
   Rover driver32;
-  driver32.init(MPI_COMM_WORLD);
+  driver32.set_mpi_comm_handle(MPI_Comm_f2c(MPI_COMM_WORLD));
   //
   // Create some basic setting and color table
   //
