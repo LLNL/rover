@@ -55,15 +55,15 @@ include("@CMAKE_INSTALL_PREFIX@/lib/@targets_export_name@.cmake")
 #############################
 
 # allow override to VTKm dir
-if(NOT VTKM_DIR)
-  set(VTKM_DIR "@VTKM_DIR@")
-  message(STATUS "Rover automatically found VTKM_DIR: ${VTKM_DIR}")
-else()
-  message(STATUS "Rover using provided path  VTKM_DIR: ${VTKM_DIR}")
-endif()
-
-set(VTKm_DIR ${VTKM_DIR}/lib)
-find_package(VTKm CONFIG REQUIRED OPTIONAL_COMPONENTS Rendering) 
+#if(NOT VTKM_DIR)
+#  set(VTKM_DIR "@VTKM_DIR@")
+#  message(STATUS "Rover automatically found VTKM_DIR: ${VTKM_DIR}")
+#else()
+#  message(STATUS "Rover using provided path  VTKM_DIR: ${VTKM_DIR}")
+#endif()
+#
+#set(VTKm_DIR ${VTKM_DIR}/lib)
+#find_package(VTKm CONFIG REQUIRED OPTIONAL_COMPONENTS Rendering) 
 #message(STATUS "Found VTKm Include Dirs: ${VTKm_INCLUDE_DIRS}")
 set(VTKM_FOUND TRUE)
 
