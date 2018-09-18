@@ -89,7 +89,7 @@ TEST(rover_hex, test_call)
 
 
   Rover driver;
-  driver.set_mpi_comm_handle(MPI_Comm_f2c(MPI_COMM_WORLD));
+  driver.set_mpi_comm_handle(MPI_Comm_c2f(MPI_COMM_WORLD));
 
   RenderSettings settings;
   settings.m_primary_field   = "simdata";

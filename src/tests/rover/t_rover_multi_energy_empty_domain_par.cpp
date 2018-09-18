@@ -79,7 +79,7 @@ TEST(rover_hex_empty, test_call_empty)
 
   CameraGenerator generator(camera);
   Rover driver32;
-  driver32.set_mpi_comm_handle(MPI_Comm_f2c(MPI_COMM_WORLD));
+  driver32.set_mpi_comm_handle(MPI_Comm_c2f(MPI_COMM_WORLD));
 
   RenderSettings settings;
   settings.m_primary_field   = "absorption";
