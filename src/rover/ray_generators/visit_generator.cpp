@@ -75,7 +75,7 @@ VisitGenerator::gen_rays(vtkmRayTracing::Ray<T> &rays)
 
   const int size = m_width * m_height;
 
-  rays.Resize(size);
+  rays.Resize(size, vtkm::cont::DeviceAdapterTagSerial());
   
   vtkm::Vec<T,3> view_side;
 
