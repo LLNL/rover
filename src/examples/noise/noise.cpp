@@ -550,7 +550,7 @@ void TemplateDriver(Options &options, Precision)
   driver.set_ray_generator(&generator);
   driver.set_render_settings(settings);
 #ifdef PARALLEL
-  driver.set_mpi_comm_handle(MPI_Comm_f2c(MPI_COMM_WORLD));
+  driver.set_mpi_comm_handle(MPI_Comm_c2f(MPI_COMM_WORLD));
 #endif
 
   driver.add_data_set(vtkm_data_set);
