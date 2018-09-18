@@ -192,13 +192,6 @@ if(MPI_FOUND)
   target_include_directories(rover_par PUBLIC ${VTKm_INCLUDE_DIRS})
   target_link_libraries(rover_par PUBLIC ${VTKm_LIBRARIES} ${MPI_CXX_LIBRARIES})
 
-endif()
-
-  if(ENABLE_LOGGING)
-    target_compile_definitions(rover_par PRIVATE ROVER_ENABLE_LOGGING=1) 
-  endif()
-
-  # install target for mpi ver
   install(TARGETS rover_par
           #EXPORT rover 
           EXPORT ${targets_export_name}  
@@ -208,6 +201,13 @@ endif()
           INCLUDES DESTINATION include/rover  # this exports the includes into 
                                               # the RoverTargets.cmake
   )
+endif()
+
+if(ENABLE_LOGGING)
+  target_compile_definitions(rover_par PRIVATE ROVER_ENABLE_LOGGING=1) 
+endif()
+
+  # install target for mpi ver
 
 ########################################
 # Extra Install Targets for rover 
