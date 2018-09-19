@@ -139,7 +139,7 @@ struct PartialImage
   int                                      m_height;
   int                                      m_width;
   IdHandle                                 m_pixel_ids;
-  vtkmRayTracing::ChannelBuffer<FloatType> m_buffer;          //holds either color or absorption
+  vtkmRayTracing::ChannelBuffer<FloatType> m_buffer;          // holds either color or absorption
   vtkmRayTracing::ChannelBuffer<FloatType> m_intensities;     // holds the intensity emerging from each ray
   vtkm::cont::ArrayHandle<FloatType>       m_distances;
   vtkm::cont::ArrayHandle<FloatType>       m_path_lengths;

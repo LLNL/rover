@@ -266,13 +266,6 @@ Scheduler<FloatType>::trace_rays()
   this->set_global_scalar_range();
   this->set_global_bounds();
 
-  //
-  // check to see if we have to composite
-  bool do_compositing = num_domains > 1;
-#ifdef PARALLEL
-  do_compositing = true;
-#endif
-
   vtkmTimer trace_timer;
   for(int i = 0; i < num_domains; ++i)
   {
@@ -309,11 +302,6 @@ Scheduler<FloatType>::trace_rays()
     }
     time = timer.GetElapsedTime();
     ROVER_DATA_ADD("domain_init_rays", time);
-
-    if(do_compositing)
-    {
-      m_domains[i].set_composite_background(false);
-    }
 
     ROVER_INFO("Tracing domain "<<i);
 
@@ -426,12 +414,21 @@ Scheduler<FloatType>::trace_rays()
   timer.Reset();
 
   timer.Reset();
-  if(do_compositing)
+  //TODO: composite
+  if(m_render_settings.m_render_mode == volume)
   {
-    //TODO: composite
-    if(m_render_settings.m_render_mode == volume)
+    Compositor<VolumePartial<FloatType>> compositor;
+    compositor.set_background(m_background);
+#ifdef PARALLEL
+    compositor.set_comm_handle(m_comm_handle);
+#endif
+    m_result = compositor.composite(m_partial_images);
+  }
+  else
+  {
+    if(m_render_settings.m_secondary_field != "")
     {
-      Compositor<VolumePartial<FloatType>> compositor;
+      Compositor<EmissionPartial<FloatType>> compositor;
       compositor.set_background(m_background);
 #ifdef PARALLEL
       compositor.set_comm_handle(m_comm_handle);
@@ -440,59 +437,16 @@ Scheduler<FloatType>::trace_rays()
     }
     else
     {
-      if(m_render_settings.m_secondary_field != "")
-      {
-        Compositor<EmissionPartial<FloatType>> compositor;
-        compositor.set_background(m_background);
+      Compositor<AbsorptionPartial<FloatType>> compositor;
+      compositor.set_background(m_background);
 #ifdef PARALLEL
         compositor.set_comm_handle(m_comm_handle);
 #endif
-        m_result = compositor.composite(m_partial_images);
-      }
-      else
-      {
-        Compositor<AbsorptionPartial<FloatType>> compositor;
-        compositor.set_background(m_background);
-#ifdef PARALLEL
-        compositor.set_comm_handle(m_comm_handle);
-#endif
-        m_result = compositor.composite(m_partial_images);
-      }
+      m_result = compositor.composite(m_partial_images);
     }
-    ROVER_ERROR("Schedule: compositing complete");
   }
-  else if(num_domains == 1)
-  {
-    //
-    // if enegry and no compositing we need to add
-    // the energy buffer to the absorption buffer
-    //
-    const size_t bg_size = m_background.size();   
-    m_partial_images[0].m_source_sig.resize(bg_size);
-    for(size_t i = 0; i < bg_size; ++i)
-    {
-      m_partial_images[0].m_source_sig[i] = m_background[i];
-    }
-      
-    if(m_render_settings.m_render_mode == energy &&
-       m_render_settings.m_secondary_field != "")
-    {
-      m_partial_images[0].add_source_sig();
-    }
-    ROVER_INFO("Single domain output "<<m_partial_images[0].m_width
-               <<" x "<<m_partial_images[0].m_height);
-    if(m_render_settings.m_secondary_field == "")
-    {
-      // TODO: make a copy
-      m_partial_images[0].m_intensities = m_partial_images[0].m_buffer;
-    }
-    m_result = m_partial_images[0];
-  }
-  else 
-  {
-    ROVER_ERROR("Invalid number of domains: "<<num_domains);
-  }
-
+  ROVER_ERROR("Schedule: compositing complete");
+  
   time = timer.GetElapsedTime();
   ROVER_DATA_ADD("compositing", time);
   timer.Reset();
