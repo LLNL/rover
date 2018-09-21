@@ -51,6 +51,7 @@
 
 namespace rover {
 
+static
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems)
 {   
     std::stringstream ss(s);
@@ -61,14 +62,14 @@ std::vector<std::string> &split(const std::string &s, char delim, std::vector<st
                      }
           return elems;
            }
- 
+ static
 std::vector<std::string> split(const std::string &s, char delim)
 {   
     std::vector<std::string> elems;
       split(s, delim, elems);
         return elems;
 }
-
+static
 bool contains(const std::string haystack, std::string needle)
 {
     std::size_t found = haystack.find(needle);
