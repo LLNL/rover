@@ -321,8 +321,6 @@ Scheduler<FloatType>::trace_rays()
     ROVER_INFO("Schedule: creating partial image in domain "<<i);
     const int nparts = rays.m_partials.size();
     for(int x = 0; x < nparts; ++x)
-    //for(int x = 0; x < 1; ++x)
-    //for(int x = 1; x < 2; ++x)
     {
       PartialImage<FloatType> partial_image;
       partial_image.m_pixel_ids = rays.m_partials[x].m_pixel_ids;

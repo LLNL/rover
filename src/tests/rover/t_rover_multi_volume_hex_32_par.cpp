@@ -73,16 +73,17 @@ TEST(rover_hex, test_call)
   // Create some basic setting and color table
   //
   RenderSettings settings;
-  //settings.m_primary_field = "blast_mesh/absorption_opacity";
   //settings.m_primary_field = "absorption_opacity";
-  //settings.m_path_lengths = true;
   settings.m_primary_field = "total_opacity";
-  settings.m_render_mode = rover::energy;
-  settings.m_energy_settings.m_unit_scalar = 0.00001;
+
+  //settings.m_render_mode = rover::energy;
+  //settings.m_path_lengths = true;
+  //settings.m_energy_settings.m_unit_scalar = 0.00001;
+  settings.m_volume_settings.m_num_samples = 1000;
   vtkmColorTable color_table("cool to warm");
-  color_table.AddPointAlpha(0.0, .015);
-  color_table.AddPointAlpha(0.5, .025);
-  color_table.AddPointAlpha(1.0, .015);
+  color_table.AddPointAlpha(0.0, .0015);
+  color_table.AddPointAlpha(0.5, .0025);
+  color_table.AddPointAlpha(1.0, .0015);
   settings.m_color_table = color_table;
    
   driver32.set_render_settings(settings);

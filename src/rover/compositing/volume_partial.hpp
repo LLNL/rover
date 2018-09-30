@@ -86,29 +86,29 @@ struct VolumePartial
 
   inline void blend(const VolumePartial &other)
   {
-    const int dp = 678340;
+    //const int dp = 678653;
     if(m_alpha >= 1.f || other.m_alpha == 0.f) return;
-    if(m_pixel_id == dp)
-    {
-      std::cout<<"**************\n";
-      other.print();
-      print();
-    }
+    //if(m_pixel_id == dp)
+    //{
+    //  std::cout<<"**************\n";
+    //  other.print();
+    //  print();
+    //}
     const float opacity = (1.f - m_alpha);
     m_pixel[0] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[0])); 
     m_pixel[1] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[1])); 
     m_pixel[2] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[2])); 
     m_alpha += opacity * other.m_alpha;
     m_alpha = m_alpha > 1.f ? 1.f : m_alpha;
-    if(m_pixel_id == dp)
-    {
-      print();
-      std::cout<<"**************\n";
-      //m_pixel[0] = 0; 
-      //m_pixel[1] = 255; 
-      //m_pixel[2] = 0; 
-      //m_alpha  = 1;
-    }
+    //if(m_pixel_id == dp)
+    //{
+    //  print();
+    //  std::cout<<"**************\n";
+    //  m_pixel[0] = 0; 
+    //  m_pixel[1] = 255; 
+    //  m_pixel[2] = 0; 
+    //  m_alpha  = 1;
+    //}
   }
 
   inline void load_from_partial(const PartialImage<ValueType> &partial_image, const int &index)
