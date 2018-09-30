@@ -59,6 +59,7 @@ struct ArraySizeFunctor
 };
 
 EnergyEngine::EnergyEngine()
+  : m_unit_scalar(1.0)
 {
   m_tracer = NULL;
 }
@@ -80,6 +81,13 @@ EnergyEngine::set_data_set(vtkm::cont::DataSet &dataset)
 
 }
 
+
+void 
+EnergyEngine::set_unit_scalar(vtkm::Float64 unit_scalar)
+{
+  ROVER_INFO("Energy Engine setting unit scalar "<<unit_scalar);
+  m_unit_scalar = unit_scalar;
+}
 
 void 
 EnergyEngine::set_primary_field(const std::string &primary_field)
@@ -130,6 +138,7 @@ EnergyEngine::trace(Ray32 &rays)
 
   init_rays(rays);
   
+  m_tracer->SetUnitScalar(m_unit_scalar);
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
   m_tracer->SetColorMap(m_color_map);
   m_tracer->Trace(rays);
@@ -173,6 +182,7 @@ EnergyEngine::trace(Ray64 &rays)
   init_rays(rays);
 
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
+  m_tracer->SetUnitScalar(m_unit_scalar);
   m_tracer->SetColorMap(m_color_map);
   ROVER_INFO("Energy Engine tracing");
   m_tracer->Trace(rays);
@@ -218,7 +228,7 @@ EnergyEngine::get_primary_range()
   {
     ROVER_ERROR("energy engine: tracer is NULL data set was never set.");
   }
-  return m_tracer->GetScalarRange();
+  return m_tracer->GetScalarFieldRange();
 }
 
 void 

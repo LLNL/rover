@@ -105,6 +105,7 @@ Scheduler<FloatType>::set_global_scalar_range()
   {
     vtkmRange local_range = m_domains[i].get_primary_range();
     global_range.Include(local_range);
+    ROVER_INFO("Dom " << i <<" scalar range "<<local_range);
   }
 #ifdef PARALLEL
   double rank_min = global_range.Min;
@@ -318,42 +319,48 @@ Scheduler<FloatType>::trace_rays()
     //
 
     ROVER_INFO("Schedule: creating partial image in domain "<<i);
-    PartialImage<FloatType> partial_image;
-    partial_image.m_pixel_ids = rays.PixelIdx;
-    partial_image.m_distances = rays.MinDistance;
-    partial_image.m_width = width;
-    partial_image.m_height = height;
-
-    if(m_render_settings.m_path_lengths)
+    const int nparts = rays.m_partials.size();
+    for(int x = 0; x < nparts; ++x)
+    //for(int x = 0; x < 1; ++x)
+    //for(int x = 1; x < 2; ++x)
     {
-      partial_image.m_path_lengths = rays.GetBuffer("path_lengths").Buffer;
-    }
+      PartialImage<FloatType> partial_image;
+      partial_image.m_pixel_ids = rays.m_partials[x].m_pixel_ids;
+      partial_image.m_distances = rays.m_partials[x].m_distances;
+      partial_image.m_width = width;
+      partial_image.m_height = height;
 
-    if(m_render_settings.m_render_mode == energy)
-    {
-      partial_image.m_buffer = rays.Buffers.at(0);
-      ROVER_INFO("  buffer size "     <<partial_image.m_buffer.GetSize());
-      ROVER_INFO("  buffer channels " <<partial_image.m_buffer.GetNumChannels());
-      ROVER_INFO("  buffer length    "<<partial_image.m_buffer.GetBufferLength());
-      assert(partial_image.m_buffer.GetNumChannels() > 0);
-      if(m_render_settings.m_secondary_field != "")
+      if(m_render_settings.m_path_lengths)
       {
-        partial_image.m_intensities = rays.GetBuffer("emission");
-        ROVER_INFO(" i buffer size "     <<partial_image.m_intensities.GetSize());
-        ROVER_INFO(" i buffer channels " <<partial_image.m_intensities.GetNumChannels());
-        ROVER_INFO(" i  buffer length   "<<partial_image.m_intensities.GetBufferLength());
-        assert(partial_image.m_intensities.GetNumChannels() > 0);
+        partial_image.m_path_lengths = rays.m_partials[x].m_path_lengths;
       }
+
+      if(m_render_settings.m_render_mode == energy)
+      {
+        partial_image.m_buffer = rays.m_partials[x].m_buffer;
+        ROVER_INFO("  buffer size "     <<partial_image.m_buffer.GetSize());
+        ROVER_INFO("  buffer channels " <<partial_image.m_buffer.GetNumChannels());
+        ROVER_INFO("  buffer length    "<<partial_image.m_buffer.GetBufferLength());
+        assert(partial_image.m_buffer.GetNumChannels() > 0);
+        if(m_render_settings.m_secondary_field != "")
+        {
+          partial_image.m_intensities = rays.m_partials[x].m_intensities;
+          ROVER_INFO(" i buffer size "     <<partial_image.m_intensities.GetSize());
+          ROVER_INFO(" i buffer channels " <<partial_image.m_intensities.GetNumChannels());
+          ROVER_INFO(" i  buffer length   "<<partial_image.m_intensities.GetBufferLength());
+          assert(partial_image.m_intensities.GetNumChannels() > 0);
+        }
+      }
+      else
+      {
+        // TODO: add some conversion to uchar probably withing the "channel buffer"
+        if(rays.NumRays !=0 ) assert(rays.Buffers.at(0).GetNumChannels() == 4); 
+        partial_image.m_buffer = rays.m_partials[x].m_buffer;
+      }
+      
+      timer.Reset();
+      m_partial_images.push_back(partial_image);
     }
-    else
-    {
-      // TODO: add some conversion to uchar probably withing the "channel buffer"
-      if(rays.NumRays !=0 ) assert(rays.Buffers.at(0).GetNumChannels() == 4); 
-      partial_image.m_buffer = rays.Buffers.at(0);
-    }
-    
-    timer.Reset();
-    m_partial_images.push_back(partial_image);
 
     time = timer.GetElapsedTime(); 
     ROVER_DATA_ADD("domain_push_back", time);

@@ -66,6 +66,7 @@ void
 VolumeEngine::set_primary_field(const std::string &primary_field)
 {
   m_primary_field = primary_field;
+  m_tracer->SetScalarField(this->m_primary_field);
 }
 
 void 
@@ -106,7 +107,7 @@ VolumeEngine::trace(Ray32 &rays)
   }
   else
   {
-    m_tracer->SetScalarField(this->m_primary_field);
+    //m_tracer->SetScalarField(this->m_primary_field);
   }
   ROVER_INFO("tracing  rays");
   rays.Buffers.at(0).InitConst(0.);
@@ -140,7 +141,7 @@ VolumeEngine::trace(Ray64 &rays)
 vtkmRange
 VolumeEngine::get_primary_range()
 {
-  return m_tracer->GetScalarRange();
+  return m_tracer->GetScalarFieldRange();
 }
 
 void 

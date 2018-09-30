@@ -79,7 +79,9 @@ Domain::set_render_settings(const RenderSettings &settings)
           settings.m_render_mode == energy)
   {
     ROVER_INFO("Render mode = energy");
-    m_engine = std::make_shared<EnergyEngine>();
+    auto engine = std::make_shared<EnergyEngine>();
+    engine->set_unit_scalar(settings.m_energy_settings.m_unit_scalar);
+    m_engine = engine;
   }
   else if(m_render_settings.m_render_mode != surface && 
           settings.m_render_mode == surface)

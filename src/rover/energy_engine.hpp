@@ -55,6 +55,7 @@ protected:
   template<typename Precision>
   void init_emission(vtkm::rendering::raytracing::Ray<Precision> &rays,
                      const int num_bins);
+  vtkm::Float64 m_unit_scalar;
 public:
   EnergyEngine();
   ~EnergyEngine();
@@ -67,6 +68,7 @@ public:
   void set_primary_range(const vtkmRange &range) override;
   void set_primary_field(const std::string &primary_field) override;
   void set_secondary_field(const std::string &field);
+  void set_unit_scalar(vtkm::Float64 unit_scalar);
   void set_composite_background(bool on);
   vtkmRange get_primary_range();
 };

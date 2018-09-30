@@ -62,7 +62,7 @@ TEST(rover_hex, test_call)
 
   vtkmCamera camera;
   std::vector<vtkmDataSet> datasets;
-  set_up_lulesh(datasets, camera);
+  set_up_marbl(datasets, camera);
 
   CameraGenerator generator(camera);
   generator.set_width(1024);
@@ -73,11 +73,16 @@ TEST(rover_hex, test_call)
   // Create some basic setting and color table
   //
   RenderSettings settings;
-  settings.m_primary_field = "speed";
+  //settings.m_primary_field = "blast_mesh/absorption_opacity";
+  //settings.m_primary_field = "absorption_opacity";
+  //settings.m_path_lengths = true;
+  settings.m_primary_field = "total_opacity";
+  settings.m_render_mode = rover::energy;
+  settings.m_energy_settings.m_unit_scalar = 0.00001;
   vtkmColorTable color_table("cool to warm");
-  color_table.AddPointAlpha(0.0, .01);
-  color_table.AddPointAlpha(0.5, .02);
-  color_table.AddPointAlpha(1.0, .01);
+  color_table.AddPointAlpha(0.0, .015);
+  color_table.AddPointAlpha(0.5, .025);
+  color_table.AddPointAlpha(1.0, .015);
   settings.m_color_table = color_table;
    
   driver32.set_render_settings(settings);
@@ -87,7 +92,7 @@ TEST(rover_hex, test_call)
   }
   driver32.set_ray_generator(&generator);
   driver32.execute();
-  driver32.save_png("mulit_volume_hex_32_par");
+  driver32.save_png("marbl");
   
   driver32.finalize();
   MPI_Finalize();

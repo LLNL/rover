@@ -156,6 +156,31 @@ void set_up_hardy(rover::vtkmDataSet &dataset)
   dataset.PrintSummary(std::cout); 
 }
 
+void set_up_marbl(std::vector<rover::vtkmDataSet> &datasets, rover::vtkmCamera &camera)
+{
+  rover::MultiDomainVTKReader reader;
+  std::string data_dir("/usr/workspace/wsrzd/larsen30/marbl/ascent_deps/vtk/");
+  std::string file("debug.visit");
+  reader.read_file(data_dir, file);
+  datasets = reader.get_data_sets();
+ 
+  datasets[0].PrintSummary(std::cout); 
+  vtkm::Bounds bounds = datasets[0].GetCoordinateSystem().GetBounds();
+  for(int i = 1; i < datasets.size(); ++i)
+  {
+    bounds.Include(datasets[i].GetCoordinateSystem().GetBounds());
+  }
+  camera.ResetToBounds(bounds);
+  //Vec3f position(0.f, 0, -4.5f); 
+  //Vec3f up(1.f, 0.f, 0.f); 
+  //Vec3f look_at(.5f, .5f, .5f);
+  //  
+  //camera.SetLookAt(look_at);
+  //camera.SetPosition(position);
+  //camera.SetViewUp(up);
+
+}
+
 void set_up_lulesh(std::vector<rover::vtkmDataSet> &datasets, rover::vtkmCamera &camera)
 {
   rover::MultiDomainVTKReader reader;
