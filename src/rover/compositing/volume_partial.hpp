@@ -52,7 +52,7 @@ struct VolumePartial
   typedef FloatType ValueType;
   int                    m_pixel_id;
   float                  m_depth; 
-  unsigned char          m_pixel[3];
+  float                  m_pixel[3];
   float                  m_alpha;
 
   VolumePartial()
@@ -67,8 +67,8 @@ struct VolumePartial
 
   void print() const
   {
-    std::cout<<"[id : "<<m_pixel_id<<", red : "<<(int)m_pixel[0]<<","
-             <<" green : "<<(int)m_pixel[1]<<", blue : "<<(int)m_pixel[2]
+    std::cout<<"[id : "<<m_pixel_id<<", red : "<<m_pixel[0]<<","
+             <<" green : "<<m_pixel[1]<<", blue : "<<m_pixel[2]
              <<", alpha "<<m_alpha<<", depth : "<<m_depth<<"]\n";
   }
 
@@ -86,29 +86,30 @@ struct VolumePartial
 
   inline void blend(const VolumePartial &other)
   {
-    //const int dp = 678653;
+    const int dp = 678660;
     if(m_alpha >= 1.f || other.m_alpha == 0.f) return;
-    //if(m_pixel_id == dp)
-    //{
-    //  std::cout<<"**************\n";
-    //  other.print();
-    //  print();
-    //}
+    if(m_pixel_id >= dp && m_pixel_id < dp + 15)
+    {
+      std::cout<<"**************\n";
+      other.print();
+      print();
+    }
     const float opacity = (1.f - m_alpha);
-    m_pixel[0] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[0])); 
-    m_pixel[1] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[1])); 
-    m_pixel[2] +=  static_cast<unsigned char>(opacity * static_cast<float>(other.m_pixel[2])); 
+    m_pixel[0] +=  opacity * other.m_pixel[0]; 
+    m_pixel[1] +=  opacity * other.m_pixel[1]; 
+    m_pixel[2] +=  opacity * other.m_pixel[2]; 
     m_alpha += opacity * other.m_alpha;
     m_alpha = m_alpha > 1.f ? 1.f : m_alpha;
-    //if(m_pixel_id == dp)
-    //{
-    //  print();
-    //  std::cout<<"**************\n";
+
+    if(m_pixel_id >= dp && m_pixel_id < dp + 15)
+    {
+      print();
+      std::cout<<"**************\n";
     //  m_pixel[0] = 0; 
     //  m_pixel[1] = 255; 
     //  m_pixel[2] = 0; 
     //  m_alpha  = 1;
-    //}
+    }
   }
 
   inline void load_from_partial(const PartialImage<ValueType> &partial_image, const int &index)
@@ -117,42 +118,36 @@ struct VolumePartial
     m_pixel_id = static_cast<int>(partial_image.m_pixel_ids.GetPortalConstControl().Get(index));
     m_depth = static_cast<float>(partial_image.m_distances.GetPortalConstControl().Get(index));
 
-    m_pixel[0] = static_cast<unsigned char>(partial_image.
-                                  m_buffer.Buffer.GetPortalConstControl().Get(index*4+0) * 255);
+    m_pixel[0] = static_cast<float>(partial_image.m_buffer.Buffer.GetPortalConstControl().Get(index*4+0));
+    m_pixel[1] = static_cast<float>(partial_image.m_buffer.Buffer.GetPortalConstControl().Get(index*4+1));
+    m_pixel[2] = static_cast<float>(partial_image.m_buffer.Buffer.GetPortalConstControl().Get(index*4+2));
 
-    m_pixel[1] = static_cast<unsigned char>(partial_image.
-                                  m_buffer.Buffer.GetPortalConstControl().Get(index*4+1) * 255);
-
-    m_pixel[2] = static_cast<unsigned char>(partial_image.
-                                  m_buffer.Buffer.GetPortalConstControl().Get(index*4+2) * 255);
-
-    m_alpha = static_cast<float>(partial_image.
-                                  m_buffer.Buffer.GetPortalConstControl().Get(index*4+3));
+    m_alpha = static_cast<float>(partial_image.m_buffer.Buffer.GetPortalConstControl().Get(index*4+3));
   }
   
   inline void store_into_partial(PartialImage<FloatType> &output, 
                                  const int &index,
                                  const std::vector<FloatType> &background)
   {
-    const FloatType inverse = 1.f / 255.f;
     output.m_pixel_ids.GetPortalControl().Set(index, m_pixel_id ); 
     output.m_distances.GetPortalControl().Set(index, m_depth ); 
     const int starting_index = index * 4;
-    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 0, static_cast<FloatType>(m_pixel[0])*inverse);
-    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(m_pixel[1])*inverse);
-    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(m_pixel[2])*inverse);
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 0, static_cast<FloatType>(m_pixel[0]));
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(m_pixel[1]));
+    output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(m_pixel[2]));
     output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(m_alpha));
 
     VolumePartial bg_color;
-    bg_color.m_pixel[0] = (unsigned char)(background[0]*255.f);
-    bg_color.m_pixel[1] = (unsigned char)(background[1]*255.f); 
-    bg_color.m_pixel[2] = (unsigned char)(background[2]*255.f); 
+    bg_color.m_pixel[0] = background[0];
+    bg_color.m_pixel[1] = background[1]; 
+    bg_color.m_pixel[2] = background[2]; 
     bg_color.m_alpha    = background[3]; 
+
     this->blend(bg_color);
 
-    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 0, static_cast<FloatType>(m_pixel[0])*inverse);
-    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(m_pixel[1])*inverse);
-    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(m_pixel[2])*inverse);
+    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 0, static_cast<FloatType>(m_pixel[0]));
+    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 1, static_cast<FloatType>(m_pixel[1]));
+    output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 2, static_cast<FloatType>(m_pixel[2]));
     output.m_intensities.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(m_alpha));
   }
 
@@ -160,9 +155,9 @@ struct VolumePartial
                                    const std::vector<FloatType> &background)
   {
     VolumePartial bg_color;
-    bg_color.m_pixel[0] = (unsigned char)(background[0]*255.f);
-    bg_color.m_pixel[1] = (unsigned char)(background[1]*255.f); 
-    bg_color.m_pixel[2] = (unsigned char)(background[2]*255.f); 
+    bg_color.m_pixel[0] = background[0];
+    bg_color.m_pixel[1] = background[1]; 
+    bg_color.m_pixel[2] = background[2]; 
     bg_color.m_alpha    = background[3]; 
     //
     // Gather the unique pixels into the output

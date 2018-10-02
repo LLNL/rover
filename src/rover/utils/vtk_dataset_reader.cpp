@@ -164,10 +164,8 @@ MultiDomainVTKReader::read_file(const std::string &directory, const std::string 
 #endif
      for(int i = begining_domain; i <= end_domain; ++i)
      {
-        //std::cout<<"Reading "<<number_of_domains<<" files\n";
         vtkm::io::reader::VTKDataSetReader reader(file_names[i].c_str());
         m_datasets.push_back(reader.ReadDataSet());
-        //m_datasets[i].PrintSummary(std::cout);
      }
     
   }
