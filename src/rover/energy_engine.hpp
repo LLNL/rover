@@ -60,8 +60,8 @@ public:
   ~EnergyEngine();
 
   void set_data_set(vtkm::cont::DataSet &);
-  void trace(Ray32 &rays);
-  void trace(Ray64 &rays);
+  PartialVector32 partial_trace(Ray32 &rays) override;
+  PartialVector64 partial_trace(Ray64 &rays) override;
   void init_rays(Ray32 &rays);
   void init_rays(Ray64 &rays);
   void set_primary_range(const vtkmRange &range) override;

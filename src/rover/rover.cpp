@@ -62,6 +62,7 @@ protected:
 
   void reset_render_mode(RenderMode render_mode)
   {
+  
   }
 
 public: 
@@ -280,7 +281,7 @@ Rover::execute()
 
 template<typename T> 
 bool
-is_float(T ) { } 
+is_float(T );
 
 template<> 
 bool

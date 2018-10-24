@@ -52,8 +52,8 @@ public:
   virtual ~Engine(){};
    
   virtual void set_data_set(vtkmDataSet &) = 0;
-  virtual void trace(Ray32 &rays) = 0;
-  virtual void trace(Ray64 &rays) = 0;
+  virtual PartialVector32 partial_trace(Ray32 &rays) = 0;
+  virtual PartialVector64 partial_trace(Ray64 &rays) = 0;
   virtual void init_rays(Ray32 &rays) = 0;
   virtual void init_rays(Ray64 &rays) = 0;
   virtual void set_primary_range(const vtkmRange &range) = 0;
@@ -64,7 +64,8 @@ public:
 
   virtual void set_samples(const vtkm::Bounds &global_bounds, const int &samples)
   {
-    
+    (void)samples;  
+    (void)global_bounds;  
   }
 
   virtual void set_secondary_field(const std::string &secondary_field)

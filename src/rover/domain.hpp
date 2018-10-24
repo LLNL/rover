@@ -56,8 +56,8 @@ public:
   Domain();
   ~Domain();
   const vtkmDataSet& get_data_set();
-  void trace(Ray32 &rays);
-  void trace(Ray64 &rays);
+  PartialVector32 partial_trace(Ray32 &rays);
+  PartialVector64 partial_trace(Ray64 &rays);
   void init_rays(Ray32 &rays);
   void init_rays(Ray64 &rays);
   void set_data_set(vtkmDataSet &dataset);

@@ -113,8 +113,8 @@ EnergyEngine::init_emission(vtkm::rendering::raytracing::Ray<Precision> &rays,
   rays.GetBuffer("emission").InitConst(0);
 }
 
-void 
-EnergyEngine::trace(Ray32 &rays)
+PartialVector32
+EnergyEngine::partial_trace(Ray32 &rays)
 {
   if(m_tracer == NULL)
   {
@@ -132,7 +132,7 @@ EnergyEngine::trace(Ray32 &rays)
   
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
   m_tracer->SetColorMap(m_color_map);
-  m_tracer->Trace(rays);
+  return m_tracer->PartialTrace(rays);
 
 }
 
@@ -156,8 +156,8 @@ EnergyEngine::init_rays(Ray64 &rays)
   init_emission(rays, num_bins);
 }
 
-void 
-EnergyEngine::trace(Ray64 &rays)
+PartialVector64
+EnergyEngine::partial_trace(Ray64 &rays)
 {
   if(m_tracer == NULL)
   {
@@ -175,8 +175,7 @@ EnergyEngine::trace(Ray64 &rays)
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
   m_tracer->SetColorMap(m_color_map);
   ROVER_INFO("Energy Engine tracing");
-  m_tracer->Trace(rays);
-  ROVER_INFO("Energy Engine done tracing");
+  return m_tracer->PartialTrace(rays);
 }
 
 int 

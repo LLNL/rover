@@ -219,7 +219,23 @@ Scheduler<FloatType>::set_global_bounds()
   time = timer.GetElapsedTime();
   ROVER_DATA_ADD("set_global_bounds", time);
 }
+template<typename FloatType>
+void Scheduler<FloatType>::add_partial(vtkmRayTracing::PartialComposite<FloatType> &partial, 
+                                       int width,
+                                       int height)
+{
+  PartialImage<FloatType> partial_image;
+  partial_image.m_pixel_ids = partial.PixelIds;
+  partial_image.m_distances = partial.Distances;
+  partial_image.m_buffer = partial.Buffer;
+  partial_image.m_intensities = partial.Intensities;
+  partial_image.m_path_lengths = partial.PathLengths;
 
+  partial_image.m_width = width;
+  partial_image.m_height = height;
+
+  m_partial_images.push_back(partial_image);
+}
 //
 // in the other schedulers this method will be far from trivial
 //
@@ -306,55 +322,23 @@ Scheduler<FloatType>::trace_rays()
     ROVER_INFO("Tracing domain "<<i);
 
     timer.Reset();
-    m_domains[i].trace(rays);
+    std::vector<vtkmRayTracing::PartialComposite<FloatType>> partials;
+    partials = m_domains[i].partial_trace(rays);
     time = timer.GetElapsedTime();
     ROVER_DATA_ADD("domain_trace", time);
 #ifdef ROVER_ENABLE_LOGGING
     DataLogger::GetInstance()->GetStream()<<vtkmLogger::GetInstance()->GetStream().str();
 #endif
-
-    //
-    // Create a partial image result from the completed rays
-    //
-
     ROVER_INFO("Schedule: creating partial image in domain "<<i);
-    PartialImage<FloatType> partial_image;
-    partial_image.m_pixel_ids = rays.PixelIdx;
-    partial_image.m_distances = rays.MinDistance;
-    partial_image.m_width = width;
-    partial_image.m_height = height;
-
-    if(m_render_settings.m_path_lengths)
+    //
+    // Create a partial images from the completed rays
+    //
+    for(size_t p = 0; p < partials.size(); ++p)
     {
-      partial_image.m_path_lengths = rays.GetBuffer("path_lengths").Buffer;
+      add_partial(partials[p], width, height);
     }
 
-    if(m_render_settings.m_render_mode == energy)
-    {
-      partial_image.m_buffer = rays.Buffers.at(0);
-      ROVER_INFO("  buffer size "     <<partial_image.m_buffer.GetSize());
-      ROVER_INFO("  buffer channels " <<partial_image.m_buffer.GetNumChannels());
-      ROVER_INFO("  buffer length    "<<partial_image.m_buffer.GetBufferLength());
-      assert(partial_image.m_buffer.GetNumChannels() > 0);
-      if(m_render_settings.m_secondary_field != "")
-      {
-        partial_image.m_intensities = rays.GetBuffer("emission");
-        ROVER_INFO(" i buffer size "     <<partial_image.m_intensities.GetSize());
-        ROVER_INFO(" i buffer channels " <<partial_image.m_intensities.GetNumChannels());
-        ROVER_INFO(" i  buffer length   "<<partial_image.m_intensities.GetBufferLength());
-        assert(partial_image.m_intensities.GetNumChannels() > 0);
-      }
-    }
-    else
-    {
-      // TODO: add some conversion to uchar probably withing the "channel buffer"
-      if(rays.NumRays !=0 ) assert(rays.Buffers.at(0).GetNumChannels() == 4); 
-      partial_image.m_buffer = rays.Buffers.at(0);
-    }
-    
     timer.Reset();
-    m_partial_images.push_back(partial_image);
-
     time = timer.GetElapsedTime(); 
     ROVER_DATA_ADD("domain_push_back", time);
 
@@ -365,13 +349,13 @@ Scheduler<FloatType>::trace_rays()
   timer.Reset();
   time = trace_timer.GetElapsedTime(); 
   ROVER_DATA_ADD("total_trace", time);
-  //
-  // Add dummy partial image if we had no domains
-  //
   //int num_channels = this->get_global_channels(); 
   int num_channels = m_partial_images[0].m_buffer.GetNumChannels();
     
   vtkmTimer t1;
+  //
+  // Add dummy partial image if we had no domains
+  //
   if(num_domains == 0)
   {
     PartialImage<FloatType> partial_image;
@@ -393,17 +377,6 @@ Scheduler<FloatType>::trace_rays()
   if(m_background.size() == 0)
   {
     this->create_default_background(num_channels);
-
-    //const size_t partials_size = m_partial_images.size();;   
-    //for(size_t i = 0; i < partials_size; ++i)
-    //{
-    //  const size_t bg_size= m_background.size();   
-    //  for(size_t k = 0; k < bg_size; ++k)
-    //  {
-    //    m_partial_images[i].m_source_sig.resize(bg_size);
-    //    m_partial_images[i].m_source_sig[k] = m_background[k];
-    //  }
-    //}
   }
 
   ROVER_DATA_ADD("default_bg", t1.GetElapsedTime());

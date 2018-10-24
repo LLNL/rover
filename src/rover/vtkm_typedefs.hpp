@@ -47,6 +47,7 @@
 #include <vtkm/cont/Timer.h>
 #include <vtkm/cont/ColorTable.h>
 #include <vtkm/rendering/raytracing/Camera.h>
+#include <vtkm/rendering/raytracing/PartialComposite.h>
 #include <vtkm/rendering/raytracing/Ray.h>
 #include <vtkm/rendering/raytracing/Logger.h>
 
@@ -66,6 +67,9 @@ typedef vtkm::cont::ArrayHandle<vtkm::Id>                     IdHandle;
 typedef vtkm::Vec<vtkm::Float32,3>                            vtkmVec3f;
 typedef vtkm::cont::Timer<>                                   vtkmTimer;
 typedef vtkm::rendering::raytracing::Logger                   vtkmLogger;
+
+using PartialVector64 = std::vector<vtkm::rendering::raytracing::PartialComposite<vtkm::Float64>>;
+using PartialVector32 = std::vector<vtkm::rendering::raytracing::PartialComposite<vtkm::Float32>>;
 
 //
 // Utility method for getting raw pointer 

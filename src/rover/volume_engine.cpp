@@ -92,8 +92,8 @@ VolumeEngine::init_rays(Ray64 &rays)
   rays.Buffers.at(0).InitChannels(signature);
 }
 
-void 
-VolumeEngine::trace(Ray32 &rays)
+PartialVector32
+VolumeEngine::partial_trace(Ray32 &rays)
 {
   if(m_tracer == NULL)
   {
@@ -111,11 +111,11 @@ VolumeEngine::trace(Ray32 &rays)
   ROVER_INFO("tracing  rays");
   rays.Buffers.at(0).InitConst(0.);
   m_tracer->SetColorMap(m_color_map);
-  m_tracer->Trace(rays);
+  return m_tracer->PartialTrace(rays);
 }
 
-void 
-VolumeEngine::trace(Ray64 &rays)
+PartialVector64
+VolumeEngine::partial_trace(Ray64 &rays)
 {
   if(m_tracer == NULL)
   {
@@ -134,7 +134,7 @@ VolumeEngine::trace(Ray64 &rays)
   ROVER_INFO("tracing  rays");
   rays.Buffers.at(0).InitConst(0.);
   m_tracer->SetColorMap(m_color_map);
-  m_tracer->Trace(rays);
+  return m_tracer->PartialTrace(rays);
 }
 
 vtkmRange

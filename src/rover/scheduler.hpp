@@ -85,6 +85,8 @@ protected:
   int  get_global_channels();
   Image<FloatType>                          m_result;
   std::vector<PartialImage<FloatType>>      m_partial_images;
+
+  void add_partial(vtkmRayTracing::PartialComposite<FloatType> &partial, int width, int height);
 private:
 
 };

@@ -149,20 +149,20 @@ Domain::init_rays(Ray64 &rays)
   m_engine->init_rays(rays);
 }
 
-void
-Domain::trace(Ray32 &rays)
+PartialVector32
+Domain::partial_trace(Ray32 &rays)
 {
   m_engine->set_samples(m_global_bounds, 
                         m_render_settings.m_volume_settings.m_num_samples);
-  m_engine->trace(rays);
+  return m_engine->partial_trace(rays);
 }
 
-void
-Domain::trace(Ray64 &rays)
+PartialVector64
+Domain::partial_trace(Ray64 &rays)
 {
   m_engine->set_samples(m_global_bounds, 
                         m_render_settings.m_volume_settings.m_num_samples);
-  m_engine->trace(rays);
+  return m_engine->partial_trace(rays);
 }
 
 void 
