@@ -59,6 +59,7 @@ struct ArraySizeFunctor
 };
 
 EnergyEngine::EnergyEngine()
+  : m_unit_scalar(1.f)
 {
   m_tracer = NULL;
 }
@@ -129,11 +130,19 @@ EnergyEngine::partial_trace(Ray32 &rays)
   ROVER_INFO("Energy Engine trace32");
 
   init_rays(rays);
-  
+    
+  m_tracer->SetUnitScalar(m_unit_scalar);
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
   m_tracer->SetColorMap(m_color_map);
   return m_tracer->PartialTrace(rays);
 
+}
+
+void 
+EnergyEngine::set_unit_scalar(vtkm::Float32 unit_scalar)
+{
+    ROVER_INFO("Energy Engine setting unit scalar "<<unit_scalar);
+    m_unit_scalar = unit_scalar;
 }
 
 void 
@@ -172,6 +181,7 @@ EnergyEngine::partial_trace(Ray64 &rays)
   ROVER_INFO("Energy Engine trace64");
   init_rays(rays);
 
+  m_tracer->SetUnitScalar(m_unit_scalar);
   m_tracer->SetRenderMode(vtkm::rendering::ConnectivityProxy::ENERGY_MODE);
   m_tracer->SetColorMap(m_color_map);
   ROVER_INFO("Energy Engine tracing");

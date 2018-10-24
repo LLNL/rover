@@ -51,6 +51,8 @@ class EnergyEngine : public Engine
 protected:
   vtkmDataSet m_data_set;
   vtkm::rendering::ConnectivityProxy *m_tracer;
+  vtkm::Float32 m_unit_scalar;
+
   int detect_num_bins();
   template<typename Precision>
   void init_emission(vtkm::rendering::raytracing::Ray<Precision> &rays,
@@ -68,6 +70,7 @@ public:
   void set_primary_field(const std::string &primary_field) override;
   void set_secondary_field(const std::string &field);
   void set_composite_background(bool on);
+  void set_unit_scalar(vtkm::Float32 unit_scalar);
   vtkmRange get_primary_range();
 };
 

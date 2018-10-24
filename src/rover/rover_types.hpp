@@ -73,7 +73,7 @@ struct VolumeSettings
 {
   int m_num_samples; // approximate number of samples per ray
   VolumeSettings()
-    : m_num_samples(200)
+    : m_num_samples(400)
   {}
 };
 //
@@ -82,8 +82,10 @@ struct VolumeSettings
 struct EnergySettings
 {
   bool m_divide_abs_by_emmision;
+  float m_unit_scalar;
   EnergySettings()
-    : m_divide_abs_by_emmision(false)
+    : m_divide_abs_by_emmision(false),
+      m_unit_scalar(1.0)
   {}
 };
 
