@@ -66,6 +66,7 @@ void
 VolumeEngine::set_primary_field(const std::string &primary_field)
 {
   m_primary_field = primary_field;
+  m_tracer->SetScalarField(m_primary_field);
 }
 
 void 
@@ -104,10 +105,7 @@ VolumeEngine::partial_trace(Ray32 &rays)
   {
     throw RoverException("Primary field is not set. Unable to render\n");
   }
-  else
-  {
-    m_tracer->SetScalarField(this->m_primary_field);
-  }
+
   ROVER_INFO("tracing  rays");
   rays.Buffers.at(0).InitConst(0.);
   m_tracer->SetColorMap(m_color_map);
@@ -140,7 +138,7 @@ VolumeEngine::partial_trace(Ray64 &rays)
 vtkmRange
 VolumeEngine::get_primary_range()
 {
-  return m_tracer->GetScalarRange();
+  return m_tracer->GetScalarFieldRange();
 }
 
 void 

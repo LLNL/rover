@@ -227,7 +227,7 @@ EnergyEngine::get_primary_range()
   {
     ROVER_ERROR("energy engine: tracer is NULL data set was never set.");
   }
-  return m_tracer->GetScalarRange();
+  return m_tracer->GetScalarFieldRange();
 }
 
 void 
