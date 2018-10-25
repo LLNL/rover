@@ -86,14 +86,8 @@ struct VolumePartial
 
   inline void blend(const VolumePartial &other)
   {
-    const int dp = 678660;
     if(m_alpha >= 1.f || other.m_alpha == 0.f) return;
-    if(m_pixel_id >= dp && m_pixel_id < dp + 15)
-    {
-      std::cout<<"**************\n";
-      other.print();
-      print();
-    }
+
     const float opacity = (1.f - m_alpha);
     m_pixel[0] +=  opacity * other.m_pixel[0]; 
     m_pixel[1] +=  opacity * other.m_pixel[1]; 
@@ -101,15 +95,6 @@ struct VolumePartial
     m_alpha += opacity * other.m_alpha;
     m_alpha = m_alpha > 1.f ? 1.f : m_alpha;
 
-    if(m_pixel_id >= dp && m_pixel_id < dp + 15)
-    {
-      print();
-      std::cout<<"**************\n";
-    //  m_pixel[0] = 0; 
-    //  m_pixel[1] = 255; 
-    //  m_pixel[2] = 0; 
-    //  m_alpha  = 1;
-    }
   }
 
   inline void load_from_partial(const PartialImage<ValueType> &partial_image, const int &index)
