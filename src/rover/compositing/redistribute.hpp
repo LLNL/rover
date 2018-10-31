@@ -106,8 +106,6 @@ struct Redistribute
     else
     {
       ROVER_INFO("getting "<<proxy.in_link().size()<<" blocks"); 
-      size_t total = 0;
-#if 1 
       for(int i = 0; i < proxy.in_link().size(); ++i)
       {
         int gid = proxy.in_link().target(i).gid;
@@ -122,34 +120,6 @@ struct Redistribute
           block->m_partials.push_back(incoming_partials[j]);
         }
       } // for
-#else
-      for(int i = 0; i < proxy.in_link().size(); ++i)
-      {
-        int gid = proxy.in_link().target(i).gid;
-        /*
-        if(gid == proxy.gid())
-        {
-          continue;
-        }*/
-        diy::MemoryBuffer &incoming = proxy.incoming(gid);
-        size_t incoming_sz = incoming.size() / sizeof(VolumePartial);
-        ROVER_INFO("Incoming size "<<incoming_sz);
-        total += incoming_sz;
-  
-      } // for
-      block->m_partials.resize(total);
-      size_t sz = 0;
-      for(int i = 0; i < proxy.in_link().size(); ++i)
-      {
-        int gid = proxy.in_link().target(i).gid;
-        diy::MemoryBuffer &incoming = proxy.incoming(gid);
-        size_t incoming_sz = incoming.size() / sizeof(VolumePartial);
-        std::copy((VolumePartial*) &incoming.buffer[0],
-                  (VolumePartial*) &incoming.buffer[0] + incoming_sz,
-                  &block->m_partials[sz]);
-        sz += incoming_sz;
-      }
-#endif
 
     } // else
     MPI_Barrier(MPI_COMM_WORLD); //HACK

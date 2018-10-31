@@ -80,6 +80,7 @@ public:
   virtual void get_result(Image<vtkm::Float32> &image);
   virtual void get_result(Image<vtkm::Float64> &image);
 protected:
+  void composite();
   void set_global_scalar_range();
   void set_global_bounds();
   int  get_global_channels();

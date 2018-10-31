@@ -103,8 +103,8 @@ struct EmissionPartial
   
   inline void blend_absorption(const EmissionPartial<FloatType> &other)
   {
-    const int num_bins = m_bins.size();
-    assert(num_bins == other.m_bins.size());
+    const int num_bins = static_cast<int>(m_bins.size());
+    assert(num_bins == (int)other.m_bins.size());
     m_path_length += other.m_path_length;
     for(int i = 0; i < num_bins; ++i)
     {
@@ -114,8 +114,8 @@ struct EmissionPartial
 
   inline void blend_emission(EmissionPartial<FloatType> &other)
   {
-    const int num_bins = m_bins.size();
-    assert(num_bins == other.m_bins.size());
+    const int num_bins = static_cast<int>(m_bins.size());
+    assert(num_bins == (int)other.m_bins.size());
     for(int i = 0; i < num_bins; ++i)
     {
       m_emission_bins[i] *= other.m_bins[i];
@@ -124,8 +124,8 @@ struct EmissionPartial
 
   inline void add_emission(EmissionPartial<FloatType> &other)
   {
-    const int num_bins = m_bins.size();
-    assert(num_bins == other.m_bins.size());
+    const int num_bins = static_cast<int>(m_bins.size());
+    assert(num_bins == (int)other.m_bins.size());
     for(int i = 0; i < num_bins; ++i)
     {
       m_emission_bins[i] += other.m_emission_bins[i];
@@ -158,7 +158,7 @@ struct EmissionPartial
                                  const int &index,
                                  const std::vector<FloatType> &background)
   {
-    const int num_bins = m_bins.size();
+    const int num_bins = static_cast<int>(m_bins.size());
     output.m_pixel_ids.GetPortalControl().Set(index, m_pixel_id ); 
     output.m_distances.GetPortalControl().Set(index, m_depth ); 
     const int starting_index = num_bins * index;

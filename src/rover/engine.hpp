@@ -59,6 +59,7 @@ public:
   virtual void set_primary_range(const vtkmRange &range) = 0;
   virtual void set_composite_background(bool on) = 0;
   virtual vtkmRange get_primary_range() = 0;
+  virtual int get_num_channels() = 0;
 
   virtual void set_primary_field(const std::string &primary_field) = 0;
 

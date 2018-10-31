@@ -78,8 +78,8 @@ struct AbsorptionPartial
 
   inline void blend(const AbsorptionPartial<FloatType> &other)
   {
-    const int num_bins = m_bins.size();
-    assert(num_bins == other.m_bins.size());
+    const int num_bins = static_cast<int>(m_bins.size());
+    assert(num_bins == (int)other.m_bins.size());
     m_path_length += other.m_path_length;
     for(int i = 0; i < num_bins; ++i)
     {
@@ -89,7 +89,7 @@ struct AbsorptionPartial
 
   inline void load_from_partial(const PartialImage<FloatType> &partial_image, const int &index)
   {
-    const int num_bins= partial_image.m_buffer.GetNumChannels(); 
+    const int num_bins = partial_image.m_buffer.GetNumChannels(); 
     m_pixel_id = static_cast<int>(partial_image.m_pixel_ids.GetPortalConstControl().Get(index));
     m_depth = partial_image.m_distances.GetPortalConstControl().Get(index);
     m_bins.resize(num_bins);
@@ -111,7 +111,7 @@ struct AbsorptionPartial
                                  const int &index,
                                  const std::vector<FloatType> &background)
   {
-    const int num_bins = m_bins.size();
+    const int num_bins = static_cast<int>(m_bins.size());
     output.m_pixel_ids.GetPortalControl().Set(index, m_pixel_id ); 
     output.m_distances.GetPortalControl().Set(index, m_depth ); 
     const int starting_index = num_bins * index;

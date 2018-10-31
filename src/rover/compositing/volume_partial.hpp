@@ -123,10 +123,10 @@ struct VolumePartial
     output.m_buffer.Buffer.GetPortalControl().Set(starting_index + 3, static_cast<FloatType>(m_alpha));
 
     VolumePartial bg_color;
-    bg_color.m_pixel[0] = background[0];
-    bg_color.m_pixel[1] = background[1]; 
-    bg_color.m_pixel[2] = background[2]; 
-    bg_color.m_alpha    = background[3]; 
+    bg_color.m_pixel[0] = static_cast<float>(background[0]);
+    bg_color.m_pixel[1] = static_cast<float>(background[1]); 
+    bg_color.m_pixel[2] = static_cast<float>(background[2]); 
+    bg_color.m_alpha    = static_cast<float>(background[3]); 
 
     this->blend(bg_color);
 
@@ -140,10 +140,10 @@ struct VolumePartial
                                    const std::vector<FloatType> &background)
   {
     VolumePartial bg_color;
-    bg_color.m_pixel[0] = background[0];
-    bg_color.m_pixel[1] = background[1]; 
-    bg_color.m_pixel[2] = background[2]; 
-    bg_color.m_alpha    = background[3]; 
+    bg_color.m_pixel[0] = static_cast<float>(background[0]);
+    bg_color.m_pixel[1] = static_cast<float>(background[1]); 
+    bg_color.m_pixel[2] = static_cast<float>(background[2]); 
+    bg_color.m_alpha    = static_cast<float>(background[3]); 
     //
     // Gather the unique pixels into the output
     //

@@ -96,7 +96,7 @@ struct Element
     printf("Element: %s\n", symbol.c_str());
     printf("   Atomic number: %d\n", atomic_number);
     printf("   %d Bins:\n", (int)energy_bins.size());
-    for(int i = 0; i < energy_bins.size();++i)
+    for(int i = 0; i < (int)energy_bins.size();++i)
     {
       printf("        %e %e\n", energy_bins[i].energy, energy_bins[i].opacity);
     } 
@@ -261,7 +261,7 @@ void MaterialDatabase::read_db()
 double 
 MaterialDatabase::sample_bin(const Element &elem, const double &x)
 {
-  int n = elem.energy_bins.size();
+  int n = (int)elem.energy_bins.size();
   if(n == 0) 
   {
     printf("No EngeryBins to sample\n"); 

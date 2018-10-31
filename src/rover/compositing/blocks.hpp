@@ -109,10 +109,14 @@ struct AddBlock
                   const BoundsType &domain_bounds,
                   const LinkType &link) const
   {
+    (void) local_bounds;
+    (void) domain_bounds;
+    (void) local_with_ghost_bounds;
     Block *block = new Block(m_partials);
     LinkType *rg_link = new LinkType(link);
     diy::Master& master = const_cast<diy::Master&>(m_master);
     int lid = master.add(gid, block, rg_link);
+    (void) lid;
   }
 }; 
 

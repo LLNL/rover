@@ -81,6 +81,12 @@ EnergyEngine::set_data_set(vtkm::cont::DataSet &dataset)
 
 }
 
+int
+EnergyEngine::get_num_channels()
+{
+  return detect_num_bins();
+}
+
 
 void 
 EnergyEngine::set_primary_field(const std::string &primary_field)

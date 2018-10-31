@@ -89,9 +89,10 @@ struct IdToMaterialFunctor
   vtkm::Id m_size; // input array size
   vtkm::Id m_bins;
   vtkm::Id m_num_mats;
+  vtkm::cont::ArrayHandle<OutType> *m_output_array;
   vtkm::Range m_range;
   vtkm::cont::ArrayHandle<OutType> m_mat_lookup;
-  vtkm::cont::ArrayHandle<OutType> *m_output_array;
+
   IdToMaterialFunctor(vtkm::Int32 bins,
                          vtkm::Int32 num_mats,
                          vtkm::cont::ArrayHandle<OutType> *output_array,
@@ -161,7 +162,7 @@ struct FieldToMaterialFunctor
     vtkm::Id field_size = array.GetPortalConstControl().GetNumberOfValues();
     m_output_array->Allocate( m_bins * field_size );
     ROVER_INFO("Creating absorption field of size "<<field_size<<" num bins "<<m_bins);
-    vtkm::Float32 inv_diff = m_range.Min;
+    vtkm::Float64 inv_diff = m_range.Min;
     if(m_range.Max - m_range.Min != 0.f)
       inv_diff = 1.f / (m_range.Max - m_range.Min);
 
@@ -190,7 +191,7 @@ vtkm::Range
 get_global_range(std::vector<vtkm::cont::Field> fields)
 {
   vtkm::Range range;
-  for(int i = 0; i < fields.size(); ++i)
+  for(int i = 0; i < (int)fields.size(); ++i)
   {
     vtkm::cont::ArrayHandle<vtkm::Range> range_array = fields[i].GetRange();
     vtkm::Range scalar_range = range_array.GetPortalControl().Get(0);

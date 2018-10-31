@@ -111,6 +111,12 @@ Domain::set_render_settings(const RenderSettings &settings)
   }
 }
 
+int
+Domain::get_num_channels()
+{
+  return m_engine->get_num_channels();
+}
+
 void 
 Domain::set_data_set(vtkmDataSet &dataset)
 {

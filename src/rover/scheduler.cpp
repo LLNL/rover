@@ -1,43 +1,43 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2018, Lawrence Livermore National Security, LLC.
-// 
+//
 // Produced at the Lawrence Livermore National Laboratory
-// 
+//
 // LLNL-CODE-749865
-// 
+//
 // All rights reserved.
-// 
-// This file is part of Rover. 
-// 
+//
+// This file is part of Rover.
+//
 // Please also read rover/LICENSE
-// 
-// Redistribution and use in source and binary forms, with or without 
+//
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
-// * Redistributions of source code must retain the above copyright notice, 
+//
+// * Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
-// 
+//
 // * Redistributions in binary form must reproduce the above copyright notice,
 //   this list of conditions and the disclaimer (as noted below) in the
 //   documentation and/or other materials provided with the distribution.
-// 
+//
 // * Neither the name of the LLNS/LLNL nor the names of its contributors may
 //   be used to endorse or promote products derived from this software without
 //   specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
 // LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
 // OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include <assert.h>
@@ -69,14 +69,15 @@ int
 Scheduler<FloatType>::get_global_channels()
 {
 
-  int num_channels = 0;
-  if(m_partial_images.size() > 0)
+  int num_channels = 1;
+  for(size_t i = 0; i < m_domains.size(); ++i)
   {
-    num_channels = m_partial_images[0].m_buffer.GetNumChannels();
+    num_channels = std::max(num_channels, m_domains[i].get_num_channels());
   }
 #ifdef PARALLEL
   vtkmTimer timer;
   double time = 0;
+  (void) time;
   int mpi_num_channels;
   MPI_Allreduce(&num_channels, &mpi_num_channels, 1, MPI_INT, MPI_MAX, m_comm_handle);
   num_channels = mpi_num_channels;
@@ -85,7 +86,6 @@ Scheduler<FloatType>::get_global_channels()
 #endif
 
   ROVER_INFO("Global number of channels"<<num_channels);
-  assert(num_channels > 0);
   return num_channels;
 }
 
@@ -96,6 +96,7 @@ Scheduler<FloatType>::set_global_scalar_range()
 
   vtkmTimer timer;
   double time = 0;
+  (void) time;
 
   const int num_domains = static_cast<int>(m_domains.size());
 
@@ -175,7 +176,7 @@ Scheduler<FloatType>::set_global_bounds()
                 m_comm_handle);
 
   MPI_Allreduce((void *)(&y_min),
-                (void *)(&global_y_min), 
+                (void *)(&global_y_min),
                 1,
                 MPI_DOUBLE,
                 MPI_MIN,
@@ -189,7 +190,7 @@ Scheduler<FloatType>::set_global_bounds()
                 m_comm_handle);
 
   MPI_Allreduce((void *)(&z_min),
-                (void *)(&global_z_min), 
+                (void *)(&global_z_min),
                 1,
                 MPI_DOUBLE,
                 MPI_MIN,
@@ -212,7 +213,7 @@ Scheduler<FloatType>::set_global_bounds()
 
   ROVER_INFO("Global bounds "<<global_bounds);
 
-  for(int i = 0; i < num_domains; ++i) 
+  for(int i = 0; i < num_domains; ++i)
   {
     m_domains[i].set_global_bounds(global_bounds);
   }
@@ -220,7 +221,7 @@ Scheduler<FloatType>::set_global_bounds()
   ROVER_DATA_ADD("set_global_bounds", time);
 }
 template<typename FloatType>
-void Scheduler<FloatType>::add_partial(vtkmRayTracing::PartialComposite<FloatType> &partial, 
+void Scheduler<FloatType>::add_partial(vtkmRayTracing::PartialComposite<FloatType> &partial,
                                        int width,
                                        int height)
 {
@@ -236,17 +237,54 @@ void Scheduler<FloatType>::add_partial(vtkmRayTracing::PartialComposite<FloatTyp
 
   m_partial_images.push_back(partial_image);
 }
+
+template<typename FloatType>
+void Scheduler<FloatType>::composite()
+{
+  if(m_render_settings.m_render_mode == volume)
+  {
+    Compositor<VolumePartial<FloatType>> compositor;
+    compositor.set_background(m_background);
+#ifdef PARALLEL
+    compositor.set_comm_handle(m_comm_handle);
+#endif
+    m_result = compositor.composite(m_partial_images);
+  }
+  else
+  {
+    if(m_render_settings.m_secondary_field != "")
+    {
+      Compositor<EmissionPartial<FloatType>> compositor;
+      compositor.set_background(m_background);
+#ifdef PARALLEL
+      compositor.set_comm_handle(m_comm_handle);
+#endif
+      m_result = compositor.composite(m_partial_images);
+    }
+    else
+    {
+      Compositor<AbsorptionPartial<FloatType>> compositor;
+      compositor.set_background(m_background);
+#ifdef PARALLEL
+        compositor.set_comm_handle(m_comm_handle);
+#endif
+      m_result = compositor.composite(m_partial_images);
+    }
+  }
+  ROVER_INFO("Schedule: compositing complete");
+}
 //
 // in the other schedulers this method will be far from trivial
 //
 template<typename FloatType>
-void 
+void
 Scheduler<FloatType>::trace_rays()
 {
   ROVER_INFO("tracing_rays");
   vtkmTimer tot_timer;
   vtkmTimer timer;
   double time = 0;
+  (void) time;
   ROVER_DATA_OPEN("schedule_trace");
 
   if(m_ray_generator == NULL)
@@ -339,39 +377,39 @@ Scheduler<FloatType>::trace_rays()
     }
 
     timer.Reset();
-    time = timer.GetElapsedTime(); 
+    time = timer.GetElapsedTime();
     ROVER_DATA_ADD("domain_push_back", time);
 
     time = domain_timer.GetElapsedTime();
     ROVER_DATA_CLOSE(time);
     ROVER_INFO("Schedule: done tracing domain "<<i);
   }// for each domain
+
   timer.Reset();
-  time = trace_timer.GetElapsedTime(); 
+  time = trace_timer.GetElapsedTime();
   ROVER_DATA_ADD("total_trace", time);
-  //int num_channels = this->get_global_channels(); 
-  int num_channels = m_partial_images[0].m_buffer.GetNumChannels();
-    
+  int num_channels = this->get_global_channels();
+
   vtkmTimer t1;
-  //
+
   // Add dummy partial image if we had no domains
-  //
-  if(num_domains == 0)
+
+  if(num_domains == 0 || m_partial_images.size() == 0)
   {
     PartialImage<FloatType> partial_image;
     partial_image.m_width = width;
     partial_image.m_height = height;
-    partial_image.m_buffer = 
+    partial_image.m_buffer =
       vtkm::rendering::raytracing::ChannelBuffer<FloatType>(num_channels, 0);
     if(m_render_settings.m_secondary_field != "")
     {
-      partial_image.m_intensities = 
+      partial_image.m_intensities =
         vtkm::rendering::raytracing::ChannelBuffer<FloatType>(num_channels, 0);
     }
     m_partial_images.push_back(partial_image);
   }
-  DataLogger::GetInstance()->AddLogData("blank_image", t1.GetElapsedTime());
-  ROVER_DATA_ADD("blank_image", t1.GetElapsedTime());
+  //DataLogger::GetInstance()->AddLogData("blank_image", t1.GetElapsedTime());
+  //ROVER_DATA_ADD("blank_image", t1.GetElapsedTime());
   t1.Reset();
 
   if(m_background.size() == 0)
@@ -385,41 +423,12 @@ Scheduler<FloatType>::trace_rays()
   time = timer.GetElapsedTime();
   ROVER_DATA_ADD("mid", t1.GetElapsedTime());
   timer.Reset();
-
-  timer.Reset();
-  //TODO: composite
-  if(m_render_settings.m_render_mode == volume)
-  {
-    Compositor<VolumePartial<FloatType>> compositor;
-    compositor.set_background(m_background);
-#ifdef PARALLEL
-    compositor.set_comm_handle(m_comm_handle);
-#endif
-    m_result = compositor.composite(m_partial_images);
-  }
-  else
-  {
-    if(m_render_settings.m_secondary_field != "")
-    {
-      Compositor<EmissionPartial<FloatType>> compositor;
-      compositor.set_background(m_background);
-#ifdef PARALLEL
-      compositor.set_comm_handle(m_comm_handle);
-#endif
-      m_result = compositor.composite(m_partial_images);
-    }
-    else
-    {
-      Compositor<AbsorptionPartial<FloatType>> compositor;
-      compositor.set_background(m_background);
-#ifdef PARALLEL
-        compositor.set_comm_handle(m_comm_handle);
-#endif
-      m_result = compositor.composite(m_partial_images);
-    }
-  }
-  ROVER_ERROR("Schedule: compositing complete");
   
+  // 
+  // Composite the results
+  // 
+  timer.Reset();
+  composite(); 
   time = timer.GetElapsedTime();
   ROVER_DATA_ADD("compositing", time);
   timer.Reset();
@@ -429,6 +438,7 @@ Scheduler<FloatType>::trace_rays()
   ROVER_DATA_ADD("clear", time);
 
   double tot_time = tot_timer.GetElapsedTime();
+  (void) tot_time;
   ROVER_DATA_CLOSE(tot_time);
   ROVER_INFO("Schedule: end of trace");
 }
@@ -452,7 +462,6 @@ void Scheduler<FloatType>::save_result(std::string file_name)
 {
   int height = 0;
   int width = 0;
-  int buffer_size = m_ray_generator->get_size();
   m_ray_generator->get_dims(height, width);
   assert( height > 0 );
   assert( width > 0 );

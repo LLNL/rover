@@ -61,6 +61,10 @@ VolumeEngine::set_data_set(vtkm::cont::DataSet &dataset)
   m_tracer = new vtkm::rendering::ConnectivityProxy(dataset);
 }
 
+int VolumeEngine::get_num_channels()
+{
+  return 4;
+}
 
 void 
 VolumeEngine::set_primary_field(const std::string &primary_field)

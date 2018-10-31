@@ -72,6 +72,7 @@ public:
   void set_composite_background(bool on);
   void set_unit_scalar(vtkm::Float32 unit_scalar);
   vtkmRange get_primary_range();
+  int get_num_channels() override;
 };
 
 }; // namespace rover

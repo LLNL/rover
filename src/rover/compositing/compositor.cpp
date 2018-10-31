@@ -525,12 +525,23 @@ PartialImage<typename PartialType::ValueType>
 Compositor<PartialType>::composite(std::vector<PartialImage<typename PartialType::ValueType>> &partial_images)
 {
   ROVER_INFO("Compsositor start");
+  int global_partial_images = partial_images.size();
 #ifdef PARALLEL
-  MPI_Barrier(m_comm_handle);
+  int local_partials = global_partial_images;
+  MPI_Allreduce(&local_partials, &global_partial_images, 1, MPI_INT, MPI_SUM, m_comm_handle);
 #endif
   // there should always be at least one ray cast, 
   // so this should be a safe check
-  bool has_path_lengths = partial_images[0].m_path_lengths.GetNumberOfValues() != 0;
+  bool has_path_lengths = false;
+  if(partial_images.size() > 0)
+  {
+    has_path_lengths = partial_images[0].m_path_lengths.GetNumberOfValues() != 0;
+  }
+
+#ifdef PARALLEL
+  // we could have no data, but it could exist elsewhere 
+#endif
+
   ROVER_DATA_OPEN("compositing");
   vtkmTimer tot_timer; 
   vtkmTimer timer; 

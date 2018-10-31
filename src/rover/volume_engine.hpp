@@ -64,6 +64,7 @@ public:
   void set_composite_background(bool on);
   void set_samples(const vtkm::Bounds &global_bounds, const int &samples);
   vtkmRange get_primary_range();
+  int get_num_channels() override;
 };
 
 }; // namespace rover
